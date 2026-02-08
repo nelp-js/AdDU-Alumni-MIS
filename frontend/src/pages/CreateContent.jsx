@@ -308,14 +308,6 @@ function CreateContent() {
                                     >
                                         {loading ? 'Saving…' : 'Save as Draft'}
                                     </button>
-                                    <button
-                                        type="button"
-                                        className="cc-btn cc-publish"
-                                        disabled={!canSubmit || loading}
-                                        onClick={() => handleSubmit('published')}
-                                    >
-                                        {loading ? 'Publishing…' : 'Publish Article'}
-                                    </button>
                                 </div>
                             </div>
                         </form>
