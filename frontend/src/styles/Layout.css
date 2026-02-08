@@ -67,6 +67,25 @@
     text-decoration: none;
 }
 
+/* 👇 NEW: HEADER NOTIFICATION BADGE (Floating Top-Right) 👇 */
+.header-badge {
+    position: absolute;
+    top: -8px;        /* Adjust up/down */
+    right: -12px;      /* Adjust left/right */
+    
+    color: #ef4444;    /* Bright Red Text */
+    font-weight: 900;  /* Extra Bold to make it visible */
+    font-size: 12px;
+    
+    /* Remove Circle & Background */
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    min-width: auto;
+    border-radius: 0;
+    z-index: 10;
+}
+
 /* Footer */
 .site-footer {
     background-color: #040354;

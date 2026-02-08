@@ -298,9 +298,6 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     z-index: 10;
     padding: 2px;
-    
-    /* Adds a subtle pulse animation */
-    animation: pulse-red 2s infinite;
 }
 
 @keyframes pulse-red {

@@ -9,6 +9,10 @@ function Header() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [user, setUser] = useState(null);
     const [showDropdown, setShowDropdown] = useState(false);
+    
+    // 👇 UPDATED: Changed to plural 'totalNotifications' for clarity
+    const [totalNotifications, setTotalNotifications] = useState(0);
+    
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -23,7 +27,6 @@ function Header() {
             .then((res) => {
                 const userData = res.data;
                 setUser(userData);
-                
                 const adminStatus = Boolean(userData?.is_superuser);
                 setIsAdmin(adminStatus);
                 localStorage.setItem(USER_IS_ADMIN, adminStatus ? 'true' : 'false');
@@ -33,6 +36,26 @@ function Header() {
                 setUser(null);
             });
     }, []);
+
+    // 👇 UPDATED: Fetching the dynamic total for the badge
+    useEffect(() => {
+        if (!isAdmin) return;
+
+        const fetchAllNotifications = async () => {
+            try {
+                // Now fetching the combined count from our new view
+                const res = await api.get('/api/dashboard/stats/');
+                setTotalNotifications(res.data.total);
+            } catch (err) {
+                console.error("Failed to fetch dashboard stats", err);
+            }
+        };
+
+        fetchAllNotifications();
+        const interval = setInterval(fetchAllNotifications, 30000);
+
+        return () => clearInterval(interval);
+    }, [isAdmin]);
 
     const handleLogout = () => {
         localStorage.clear();
@@ -65,40 +88,36 @@ function Header() {
                     <a href="#volunteer">Volunteer</a>
 
                     {isAdmin && (
-                        <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'header-nav-link active' : 'header-nav-link'}>
+                        <NavLink 
+                            to="/dashboard" 
+                            className={({ isActive }) => isActive ? 'header-nav-link active' : 'header-nav-link'}
+                            style={{ position: 'relative' }} 
+                        >
                             Dashboard
+                            {/* THE THICK DYNAMIC BADGE */}
+                            {totalNotifications > 0 && (
+                                <span className="header-badge">{totalNotifications}</span>
+                            )}
                         </NavLink>
                     )}
 
                     <div className="profile-container">
-                        <button 
-                            className="profile-btn header-nav-link" 
-                            onClick={handleProfileClick}
-                        >
-                            Profile 
-                            {user && <FiChevronDown style={{ fontSize: '1.1em' }} />}
+                        <button className="profile-btn header-nav-link" onClick={handleProfileClick}>
+                            Profile {user && <FiChevronDown style={{ fontSize: '1.1em' }} />}
                         </button>
 
                         {showDropdown && user && (
                             <div className="profile-dropdown">
                                 <div className="dropdown-info">
-                                    <div 
-                                        className="user-fullname"
-                                        style={{ textTransform: 'capitalize' }}
-                                    >
+                                    <div className="user-fullname" style={{ textTransform: 'capitalize' }}>
                                         {user.first_name} {user.last_name}
                                     </div>
-                                    
-                                    <div className="user-email">
-                                        {user.email}
-                                    </div>
+                                    <div className="user-email">{user.email}</div>
                                     <div className="user-username">
                                         <FiInfo className="info-icon" /> {user.username}
                                     </div>
                                 </div>
-
                                 <div className="dropdown-divider"></div>
-
                                 <button onClick={handleLogout} className="dropdown-logout">
                                     <FiLogOut className="logout-icon" /> Log out
                                 </button>
