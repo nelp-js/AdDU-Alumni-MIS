@@ -1,25 +1,24 @@
-/* Full article view - layout: image, title, text preview, By author, content */
+/* Article View - matches Event View: no card, same background, clean layout */
 .article-view-page {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background-color: #F5F5F7;
+    background-color: #f5f5f7;
 }
 
 .article-view-main {
     flex: 1;
-    max-width: 680px;
+    max-width: 900px;
     margin: 0 auto;
-    padding: 60px 24px 80px;
     width: 100%;
+    padding: 32px 24px 80px;
     box-sizing: border-box;
 }
 
 .article-view-loading,
 .article-view-error {
-    text-align: center;
-    padding: 48px 24px;
     color: #6d7280;
+    margin-bottom: 16px;
     font-size: 16px;
 }
 
@@ -27,60 +26,58 @@
     color: #dc3545;
 }
 
-.article-view-back {
+.article-view-all-stories {
     display: inline-block;
-    margin-top: 24px;
+    font-family: 'Avenir Book', 'Avenir LT Pro Light', sans-serif;
+    font-size: 14px;
     color: #040354;
-    font-size: 15px;
     text-decoration: none;
+    margin-bottom: 16px;
 }
 
-.article-view-back:hover {
+.article-view-all-stories:hover {
     text-decoration: underline;
 }
 
-.article-view-article {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+.article-view-title {
+    font-family: Baskerville, 'Baskerville Old Face', Georgia, serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: #000;
+    letter-spacing: -0.5px;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+}
+
+.article-view-banner-wrap {
+    width: 100%;
+    margin-bottom: 24px;
+    border-radius: 10px;
     overflow: hidden;
 }
 
-.article-view-image-wrap {
-    width: 100%;
-    line-height: 0;
-}
-
-.article-view-image {
+.article-view-banner {
     width: 100%;
     height: auto;
-    display: block;
-    object-fit: cover;
     max-height: 420px;
-}
-
-.article-view-title {
-    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
-    font-size: 26px;
-    font-weight: 600;
-    color: #333;
-    margin: 0 24px 16px;
-    line-height: 1.3;
+    object-fit: cover;
+    object-position: center;
+    display: block;
 }
 
 .article-view-deck {
-    font-size: 16px;
-    color: #6d7280;
-    margin: 0 24px 12px;
+    font-family: 'Avenir Book', 'Avenir LT Pro Light', sans-serif;
+    font-size: 18px;
     line-height: 1.5;
+    color: #1f2937;
+    margin: 0 0 16px 0;
 }
 
 .article-view-author {
-    font-size: 14px;
-    color: #6d7280;
-    margin: 0 24px 24px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #e5e7eb;
+    font-family: 'Avenir Book', 'Avenir LT Pro Light', sans-serif;
+    font-size: 16px;
+    color: #4b5563;
+    margin: 0 0 28px 0;
 }
 
 .article-view-content.avenir-book,
@@ -88,19 +85,31 @@
 .article-view-content.avenir-book li {
     font-family: 'Avenir LT Std 45 Book', 'Avenir Book', 'Avenir LT Std', system-ui, sans-serif;
     font-weight: 400;
-    font-size: 17px;
-    line-height: 1.65;
-    color: #333;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #374151;
 }
 
 .article-view-content.avenir-book {
-    margin: 0 24px 32px;
+    margin: 0;
     padding: 0;
 }
 
-.article-view-content.avenir-book h2 { font-size: 1.35em; margin: 1.25em 0 0.5em; font-weight: 600; }
-.article-view-content.avenir-book h3 { font-size: 1.15em; margin: 1em 0 0.4em; font-weight: 600; }
-.article-view-content.avenir-book p { margin: 0 0 0.85em; }
+.article-view-content.avenir-book h2 {
+    font-size: 1.35em;
+    margin: 1.25em 0 0.5em;
+    font-weight: 600;
+    color: #1f2937;
+}
+.article-view-content.avenir-book h3 {
+    font-size: 1.15em;
+    margin: 1em 0 0.4em;
+    font-weight: 600;
+    color: #1f2937;
+}
+.article-view-content.avenir-book p {
+    margin: 0 0 0.85em;
+}
 .article-view-content.avenir-book blockquote {
     margin: 1em 0;
     padding-left: 1em;
@@ -108,23 +117,69 @@
     color: #6b7280;
 }
 .article-view-content.avenir-book ul,
-.article-view-content.avenir-book ol { margin: 0.5em 0; padding-left: 1.5em; }
+.article-view-content.avenir-book ol {
+    margin: 0.5em 0;
+    padding-left: 1.5em;
+}
 
 @media (max-width: 768px) {
     .article-view-main {
-        padding: 40px 16px 60px;
+        padding: 24px 20px 60px;
+    }
+
+    .article-view-title {
+        font-size: 26px;
+    }
+
+    .article-view-banner-wrap {
+        margin-bottom: 20px;
+    }
+
+    .article-view-banner {
+        max-height: 320px;
+    }
+
+    .article-view-deck {
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+
+    .article-view-author {
+        font-size: 15px;
+        margin-bottom: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .article-view-main {
+        padding: 20px 16px 48px;
+    }
+
+    .article-view-all-stories {
+        font-size: 13px;
     }
 
     .article-view-title {
         font-size: 22px;
-        margin-left: 20px;
-        margin-right: 20px;
+        line-height: 1.25;
     }
 
-    .article-view-deck,
-    .article-view-author,
-    .article-view-content.avenir-book {
-        margin-left: 20px;
-        margin-right: 20px;
+    .article-view-banner-wrap {
+        margin-bottom: 16px;
+        border-radius: 8px;
+    }
+
+    .article-view-banner {
+        max-height: 260px;
+    }
+
+    .article-view-deck {
+        font-size: 15px;
+        margin-bottom: 10px;
+    }
+
+    .article-view-author {
+        font-size: 14px;
+        margin-bottom: 20px;
     }
 }
