@@ -11,120 +11,55 @@ import { useTitle } from '../Hooks/useTitle';
 
 const ICON_COLOR = '#040354';
 
-// Module Cards Configuration
 const MODULE_CARDS = [
-    { 
-        icon: 'users', 
-        title: 'User Management', 
-        description: 'Manage registration and accounts of users.', 
-        button: 'Manage Users', 
-        to: '/dashboard/users' 
-    },
-    { 
-        icon: 'document', 
-        title: 'CMS & News Feed', 
-        description: 'Manage website content, news articles, and information dissemination', 
-        button: 'Manage Content', 
-        to: '/dashboard/content',
-        secondaryButton: 'Create Content',
-        secondaryTo: '/dashboard/content/create'
-    },
-    { 
-        icon: 'calendar', 
-        title: 'Event Management', 
-        description: 'Create, manage, and track alumni events and attendance', 
-        button: 'Manage Events', 
-        to: '/dashboard/events',
-        secondaryButton: 'Create Event',
-        secondaryTo: '/create-event' 
-    },
-    { 
-        icon: 'briefcase', 
-        title: 'Job & Internship', 
-        description: 'Job postings, applications, and career tracking', 
-        button: 'Manage Jobs', 
-        to: '#' 
-    },
-    { 
-        icon: 'survey', 
-        title: 'Feedback & Surveys', 
-        description: 'Create surveys, collect feedback, and analyze tracer studies', 
-        button: 'Manage Surveys', 
-        to: '#' 
-    },
-    { 
-        icon: 'fundraising', 
-        title: 'Fundraising & Donations', 
-        description: 'Campaign management, donations, and financial support', 
-        button: 'Manage Campaigns', 
-        to: '#' 
-    },
+    { icon: 'users', title: 'User Management', description: 'Manage registration and accounts of users.', button: 'Manage Users', to: '/dashboard/users' },
+    { icon: 'document', title: 'CMS & News Feed', description: 'Manage website content, news articles, and information dissemination', button: 'Manage Content', to: '/dashboard/content', secondaryButton: 'Create Content', secondaryTo: '/dashboard/content/create' },
+    { icon: 'calendar', title: 'Event Management', description: 'Create, manage, and track alumni events and attendance', button: 'Manage Events', to: '/dashboard/events', secondaryButton: 'Create Event', secondaryTo: '/create-event' },
+    { icon: 'briefcase', title: 'Job & Internship', description: 'Job postings, applications, and career tracking', button: 'Manage Jobs', to: '#' },
+    { icon: 'survey', title: 'Feedback & Surveys', description: 'Create surveys, collect feedback, and analyze tracer studies', button: 'Manage Surveys', to: '#' },
+    { icon: 'fundraising', title: 'Fundraising & Donations', description: 'Campaign management, donations, and financial support', button: 'Manage Campaigns', to: '#' },
 ];
 
-const STAT_ICON_MAP = {
-    people: FiUsers,
-    calendar: FiCalendar,
-    briefcase: FiBriefcase,
-    donation: FiDollarSign,
-};
-
-const MODULE_ICON_MAP = {
-    users: FiUsers,
-    document: FiFileText,
-    calendar: FiCalendar,
-    briefcase: FiBriefcase,
-    survey: FiBarChart2,
-    fundraising: FiDollarSign,
-};
+const STAT_ICON_MAP = { people: FiUsers, calendar: FiCalendar, briefcase: FiBriefcase, donation: FiDollarSign };
+const MODULE_ICON_MAP = { users: FiUsers, document: FiFileText, calendar: FiCalendar, briefcase: FiBriefcase, survey: FiBarChart2, fundraising: FiDollarSign };
 
 function StatIcon({ type }) {
     const Icon = STAT_ICON_MAP[type];
-    if (!Icon) return null;
-    return <Icon size={48} color={ICON_COLOR} strokeWidth={1.5} />;
+    return Icon ? <Icon size={48} color={ICON_COLOR} strokeWidth={1.5} /> : null;
 }
 
 function ModuleIcon({ type }) {
     const Icon = MODULE_ICON_MAP[type];
-    if (!Icon) return null;
-    return <Icon size={28} color={ICON_COLOR} strokeWidth={1.5} />;
+    return Icon ? <Icon size={28} color={ICON_COLOR} strokeWidth={1.5} /> : null;
 }
 
 function Dashboard() {
     useTitle('Admin Dashboard');
     
-    // --- STATE ---
     const [alumniCount, setAlumniCount] = useState(0);
     const [eventsCount, setEventsCount] = useState(0);
     const [statsLoading, setStatsLoading] = useState(true);
     const [activities, setActivities] = useState([]);
     const [activitiesLoading, setActivitiesLoading] = useState(true);
     
-    // 👇 NEW: State for the Red Notification Badge
-    const [pendingCount, setPendingCount] = useState(0);
+    // 👇 NEW: State for all notification categories
+    const [notifications, setNotifications] = useState({ users: 0, events: 0, articles: 0 });
 
-    // --- HELPER: Format Date ---
     const formatDate = (dateStr) => {
         if (!dateStr) return '—';
         try {
-            const d = new Date(dateStr);
-            return d.toLocaleString(undefined, {
-                month: 'short', day: 'numeric', year: 'numeric',
-                hour: 'numeric', minute: '2-digit',
+            return new Date(dateStr).toLocaleString(undefined, {
+                month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
             });
-        } catch {
-            return dateStr;
-        }
+        } catch { return dateStr; }
     };
 
-    // --- FETCH DATA ---
     useEffect(() => {
-        // 1. Fetch Alumni Count and Events Count
+        // 1. Fetch General Stats
         Promise.all([
             api.get('/api/users/').then((res) => {
-                const activeAlumni = res.data.filter(user =>
-                    !user.is_superuser && user.is_active !== false
-                );
-                setAlumniCount(activeAlumni.length);
+                const active = res.data.filter(u => !u.is_superuser && u.is_active !== false);
+                setAlumniCount(active.length);
             }),
             api.get('/api/events/').then((res) => {
                 const approved = (res.data || []).filter(e => e.is_approved === true);
@@ -133,28 +68,27 @@ function Dashboard() {
         ]).catch(err => console.error(err)).finally(() => setStatsLoading(false));
 
         // 2. Fetch Recent Activities
-        api.get('/api/activities/')
-            .then((res) => setActivities(res.data))
-            .catch(err => console.error("Failed to load activities", err))
-            .finally(() => setActivitiesLoading(false));
+        api.get('/api/activities/').then((res) => setActivities(res.data)).catch(() => {}).finally(() => setActivitiesLoading(false));
 
-        // 3. 👇 NEW: Poll for Pending Users (Live Notification)
-        const fetchPendingCount = async () => {
+        // 3. 👇 UPDATED: Dynamic Stats Polling
+        const fetchAllStats = async () => {
             try {
-                const res = await api.get('/api/users/pending-count/');
-                setPendingCount(res.data.count);
+                const res = await api.get('/api/dashboard/stats/');
+                setNotifications({
+                    users: res.data.users,
+                    events: res.data.events,
+                    articles: res.data.articles
+                });
             } catch (err) {
-                console.error("Failed to fetch pending count", err);
+                console.error("Failed to fetch dashboard stats", err);
             }
         };
 
-        fetchPendingCount(); // Run immediately
-        const interval = setInterval(fetchPendingCount, 30000); // Repeat every 30s
-
-        return () => clearInterval(interval); // Cleanup on unmount
+        fetchAllStats();
+        const interval = setInterval(fetchAllStats, 30000);
+        return () => clearInterval(interval);
     }, []);
 
-    // Dynamic Stats Cards
     const statCards = [
         { icon: 'people', value: statsLoading ? '...' : alumniCount.toLocaleString(), label: 'Total Alumni' },
         { icon: 'calendar', value: statsLoading ? '...' : eventsCount.toLocaleString(), label: 'Total Events' },
@@ -167,7 +101,6 @@ function Dashboard() {
             <main className="dashboard-main">
                 <h1 className="dashboard-title">Admin Dashboard</h1>
 
-                {/* STATS SECTION */}
                 <section className="dashboard-stats">
                     {statCards.map((card) => (
                         <div key={card.label} className="dashboard-stat-card">
@@ -178,42 +111,34 @@ function Dashboard() {
                     ))}
                 </section>
 
-                {/* MODULES SECTION */}
                 <section className="dashboard-modules">
-                    {MODULE_CARDS.map((card) => (
-                        <div 
-                            key={card.title} 
-                            className="dashboard-module-card"
-                            style={{ position: 'relative' }} /* 👈 Necessary for badge positioning */
-                        >
-                            {/* 👇 NEW: Red Notification Badge Logic */}
-                            {card.title === 'User Management' && pendingCount > 0 && (
-                                <div className="dashboard-notification-badge">
-                                    {pendingCount}
-                                </div>
-                            )}
+                    {MODULE_CARDS.map((card) => {
+                        // 👇 Logic to show category-specific counts
+                        let badgeValue = 0;
+                        if (card.title === 'User Management') badgeValue = notifications.users;
+                        if (card.title === 'Event Management') badgeValue = notifications.events;
+                        if (card.title === 'CMS & News Feed') badgeValue = notifications.articles;
 
-                            <div className="dashboard-module-icon"><ModuleIcon type={card.icon} /></div>
-                            <h2 className="dashboard-module-title">{card.title}</h2>
-                            <p className="dashboard-module-desc">{card.description}</p>
-                            
-                            <div className="dashboard-module-actions">
-                                <Link to={card.to} className="dashboard-module-btn">
-                                    {card.button}
-                                </Link>
-                                
-                                {/* Secondary Button */}
-                                {card.secondaryButton && (
-                                    <Link to={card.secondaryTo} className="dashboard-module-btn secondary">
-                                        {card.secondaryButton}
-                                    </Link>
+                        return (
+                            <div key={card.title} className="dashboard-module-card" style={{ position: 'relative' }}>
+                                {badgeValue > 0 && (
+                                    <div className="dashboard-notification-badge">{badgeValue}</div>
                                 )}
+                                <div className="dashboard-module-icon"><ModuleIcon type={card.icon} /></div>
+                                <h2 className="dashboard-module-title">{card.title}</h2>
+                                <p className="dashboard-module-desc">{card.description}</p>
+                                <div className="dashboard-module-actions">
+                                    <Link to={card.to} className="dashboard-module-btn">{card.button}</Link>
+                                    {card.secondaryButton && (
+                                        <Link to={card.secondaryTo} className="dashboard-module-btn secondary">{card.secondaryButton}</Link>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </section>
 
-                {/* RECENT ACTIVITIES SECTION */}
+                {/* ACTIVITIES TABLE (Keep as is) */}
                 <section className="dashboard-activities">
                     <h2 className="dashboard-activities-title">Recent Activities</h2>
                     <div className="dashboard-table-wrap">
@@ -223,9 +148,7 @@ function Dashboard() {
                             </thead>
                             <tbody>
                                 {activitiesLoading ? (
-                                    <tr><td colSpan="5" style={{textAlign:'center', padding:'20px'}}>Loading activities...</td></tr>
-                                ) : activities.length === 0 ? (
-                                    <tr><td colSpan="5" style={{textAlign:'center', padding:'20px'}}>No recent activities found.</td></tr>
+                                    <tr><td colSpan="5" style={{textAlign:'center', padding:'20px'}}>Loading...</td></tr>
                                 ) : (
                                     activities.map((row) => (
                                         <tr key={row.id}>
@@ -233,11 +156,7 @@ function Dashboard() {
                                             <td>{row.action}</td>
                                             <td>{row.module}</td>
                                             <td>{row.user}</td>
-                                            <td>
-                                                <span className="dashboard-status">
-                                                    ✓ {row.status}
-                                                </span>
-                                            </td>
+                                            <td><span className="dashboard-status">✓ {row.status}</span></td>
                                         </tr>
                                     ))
                                 )}

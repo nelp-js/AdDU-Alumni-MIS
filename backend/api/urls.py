@@ -29,7 +29,6 @@ urlpatterns = [
     path("articles/published/<int:pk>/", views.PublishedArticleDetail.as_view(), name="published-article-detail"),
 
     # --- DASHBOARD STATS (The "Thick 1" Badge Logic) ---
-    # This combines Users, Events, and Articles into one total
     path("dashboard/stats/", views.dashboard_stats, name="dashboard-stats"),
 
     # --- SYSTEM VIEWS ---
