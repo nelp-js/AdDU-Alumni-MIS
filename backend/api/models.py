@@ -61,7 +61,33 @@ class Event(models.Model):
 
     def __str__(self):
         return self.event_name
-    
+
+
+class Article(models.Model):
+    """News / story content for CMS. Draft or published."""
+    STATUS_DRAFT = 'draft'
+    STATUS_PUBLISHED = 'published'
+    STATUS_CHOICES = [
+        (STATUS_DRAFT, 'Draft'),
+        (STATUS_PUBLISHED, 'Published'),
+    ]
+
+    title = models.CharField(max_length=255)
+    author_name = models.CharField(max_length=255)
+    subtitle = models.CharField(max_length=280, blank=True)
+    cover_image = models.ImageField(upload_to='article_covers/', null=True, blank=True)
+    content = models.TextField(blank=True)  # HTML from rich text editor
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='articles')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return self.title
+
 
 class ActivityLog(models.Model):
     MODULE_CHOICES = [

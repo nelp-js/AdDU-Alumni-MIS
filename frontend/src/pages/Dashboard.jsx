@@ -25,7 +25,9 @@ const MODULE_CARDS = [
         title: 'CMS & News Feed', 
         description: 'Manage website content, news articles, and information dissemination', 
         button: 'Manage Content', 
-        to: '#' 
+        to: '/dashboard/content',
+        secondaryButton: 'Create Content',
+        secondaryTo: '/dashboard/content/create'
     },
     { 
         icon: 'calendar', 

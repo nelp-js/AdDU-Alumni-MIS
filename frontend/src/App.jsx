@@ -9,6 +9,8 @@ import CreateEvent from "./pages/CreateEvent"
 import Dashboard from "./pages/Dashboard"
 import UserManagement from "./pages/UserManagement"
 import EventManagement from "./pages/EventManagement"
+import CreateContent from "./pages/CreateContent"
+import ContentManagement from "./pages/ContentManagement"
 import Stories from "./pages/Stories"
 import Error from "./pages/Error"
 import AdminProtectedRoute from "./components/AdminProtectedRoute"
@@ -43,6 +45,8 @@ function App() {
         <Route path="/dashboard" element={<AdminProtectedRoute><Dashboard /></AdminProtectedRoute>} />
         <Route path="/dashboard/users" element={<AdminProtectedRoute><UserManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/events" element={<AdminProtectedRoute><EventManagement /></AdminProtectedRoute>} />
+        <Route path="/dashboard/content" element={<AdminProtectedRoute><ContentManagement /></AdminProtectedRoute>} />
+        <Route path="/dashboard/content/create" element={<AdminProtectedRoute><CreateContent /></AdminProtectedRoute>} />
         <Route path="/dashboard-preview" element={<Dashboard />} />
         <Route path="*" element={<Error />}></Route>
       </Routes>

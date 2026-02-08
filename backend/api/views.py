@@ -9,11 +9,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 import random
 from django.core.mail import send_mail
 
-from .models import User, Event, ActivityLog, PasswordReset 
+from .models import User, Event, Article, ActivityLog, PasswordReset
 
 from .serializers import (
     UserSerializer, CurrentUserSerializer, UserListSerializer, UserUpdateSerializer,
-    EventSerializer, EventUpdateSerializer, CustomTokenObtainPairSerializer, ActivityLogSerializer
+    EventSerializer, EventUpdateSerializer, CustomTokenObtainPairSerializer, ActivityLogSerializer,
+    ArticleSerializer, ArticleUpdateSerializer,
 )
 
 # --- USER VIEWS ---
@@ -173,6 +174,66 @@ class EventDelete(generics.DestroyAPIView):
         if self.request.user.is_staff:
             return Event.objects.all()
         return Event.objects.filter(organizer=self.request.user)
+
+
+# --- ARTICLE / CMS VIEWS ---
+class ArticleListCreate(generics.ListCreateAPIView):
+    serializer_class = ArticleSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    parser_classes = (MultiPartParser, FormParser)
+
+    def get_queryset(self):
+        return Article.objects.all()
+
+    def perform_create(self, serializer):
+        article = serializer.save(created_by=self.request.user)
+        ActivityLog.objects.create(
+            action=f"Article created: {article.title}",
+            module="CMS & News Feed",
+            user=self.request.user,
+            status="Completed"
+        )
+
+
+class ArticleDetailView(generics.RetrieveUpdateAPIView):
+    serializer_class = ArticleUpdateSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    queryset = Article.objects.all()
+    parser_classes = (MultiPartParser, FormParser)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def publish_article(request, article_id):
+    """Set article status to published."""
+    try:
+        article = Article.objects.get(pk=article_id)
+    except Article.DoesNotExist:
+        return Response({"detail": "Article not found."}, status=404)
+    article.status = Article.STATUS_PUBLISHED
+    article.save()
+    ActivityLog.objects.create(
+        action=f"Article published: {article.title}",
+        module="CMS & News Feed",
+        user=request.user,
+        status="Completed"
+    )
+    return Response({"detail": "Article published.", "status": article.status})
+
+
+class ArticleDelete(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    queryset = Article.objects.all()
+
+    def perform_destroy(self, instance):
+        title = instance.title
+        instance.delete()
+        ActivityLog.objects.create(
+            action=f"Article deleted: {title}",
+            module="CMS & News Feed",
+            user=self.request.user,
+            status="Completed"
+        )
 
 
 class ActivityLogListView(generics.ListAPIView):

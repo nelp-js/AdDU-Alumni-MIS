@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import User, Event
+from .models import User, Event, Article
 from .models import ActivityLog
 
 
@@ -119,6 +119,27 @@ class EventUpdateSerializer(serializers.ModelSerializer):
             "action_button_label", "action_button_link"
         ]
         read_only_fields = ["organizer"]
+
+
+class ArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Article
+        fields = [
+            "id", "title", "author_name", "subtitle", "cover_image", "content",
+            "status", "created_by", "created_at", "updated_at"
+        ]
+        read_only_fields = ["created_by", "created_at", "updated_at"]
+
+
+class ArticleUpdateSerializer(serializers.ModelSerializer):
+    """Admin edit article and publish."""
+    class Meta:
+        model = Article
+        fields = [
+            "id", "title", "author_name", "subtitle", "cover_image", "content",
+            "status", "created_by", "created_at", "updated_at"
+        ]
+        read_only_fields = ["created_by", "created_at", "updated_at"]
 
 
 class ActivityLogSerializer(serializers.ModelSerializer):
