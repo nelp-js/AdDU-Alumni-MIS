@@ -165,23 +165,23 @@ CSRF_TRUSTED_ORIGINS = [
 # --- EMAIL SETTINGS ---
 
 # 1. DEVELOPMENT MODE: Prints emails to the terminal (Console)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' 
-DEFAULT_FROM_EMAIL = 'admin@ateneoalumni.com'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' 
+# DEFAULT_FROM_EMAIL = 'admin@ateneoalumni.com'
 
 # 2. PRODUCTION MODE (Uncomment when ready)
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'your_real_email@gmail.com'
-# EMAIL_HOST_PASSWORD = 'your_app_password_here' 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 
 # --- CLOUDINARY CONFIGURATION ---
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'), 
-    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),      
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
 }
 

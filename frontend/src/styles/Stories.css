@@ -1,0 +1,66 @@
+/* Match Dashboard page styles */
+.stories-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #F5F5F7;
+}
+
+.stories-main {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 24px 40px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.stories-hero {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+/* Same as Dashboard title - Avenir 65 */
+.stories-title {
+    font-size: 28px;
+    font-weight: 400;
+    color: #333;
+    text-align: center;
+    margin: 0 0 12px 0;
+    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
+}
+
+/* Subtitle - matches dashboard secondary text */
+.stories-subtitle {
+    font-size: 16px;
+    font-weight: 400;
+    color: #6d7280;
+    text-align: center;
+    margin: 0;
+    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .stories-main {
+        padding: 40px 16px 32px;
+    }
+
+    .stories-hero {
+        margin-bottom: 32px;
+    }
+
+    .stories-title {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stories-title {
+        font-size: 24px;
+    }
+
+    .stories-subtitle {
+        font-size: 14px;
+    }
+}

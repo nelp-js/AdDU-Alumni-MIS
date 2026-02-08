@@ -105,6 +105,7 @@ def reject_user(request, user_id):
 class EventListCreate(generics.ListCreateAPIView):
     serializer_class = EventSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    parser_classes = (MultiPartParser, FormParser)
 
     def get_queryset(self):
         user = self.request.user
@@ -115,10 +116,7 @@ class EventListCreate(generics.ListCreateAPIView):
         return Event.objects.filter(is_approved=True) | Event.objects.filter(organizer=user)
 
     def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save(organizer=self.request.user)
-        else:
-            print(serializer.errors)
+        serializer.save(organizer=self.request.user)
 
 
 class EventDetailView(generics.RetrieveUpdateAPIView):
@@ -126,6 +124,7 @@ class EventDetailView(generics.RetrieveUpdateAPIView):
     serializer_class = EventUpdateSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
     queryset = Event.objects.all()
+    parser_classes = (MultiPartParser, FormParser)
 
 
 @api_view(["POST"])
@@ -187,10 +186,10 @@ class ActivityLogListView(generics.ListAPIView):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def request_password_reset(request):
-    # 👇 CHANGE: Get username instead of email
+    # CHANGE: Get username instead of email
     username = request.data.get('username') 
     try:
-        # 👇 CHANGE: Find user by username
+        # CHANGE: Find user by username
         user = User.objects.get(username=username) 
         
         otp = str(random.randint(100000, 999999))
@@ -201,7 +200,7 @@ def request_password_reset(request):
             subject='Password Reset OTP - Ateneo Alumni',
             message=f'Your verification code is: {otp}',
             from_email=None, 
-            recipient_list=[user.email], # 👈 We use the email from the database
+            recipient_list=[user.email], # We use the email from the database
             fail_silently=False,
         )
         return Response({"detail": f"OTP sent to email associated with {username}."})
@@ -214,13 +213,13 @@ def request_password_reset(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def reset_password(request):
-    # 👇 CHANGE: Accept username to identify user
+    # CHANGE: Accept username to identify user
     username = request.data.get('username')
     otp = request.data.get('otp')
     new_password = request.data.get('password')
     
     try:
-        # 👇 CHANGE: Find user by username
+        # CHANGE: Find user by username
         user = User.objects.get(username=username)
         reset_entry = PasswordReset.objects.get(user=user)
         

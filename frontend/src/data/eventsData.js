@@ -1,60 +1,8 @@
 /**
  * Shared event data for Events list and EventView detail page.
- * Each event can have list-only fields (title, date, location, image) and optional detail fields.
+ * Only events that lead to an event detail page are listed.
  */
 export const events = [
-    {
-        id: 1,
-        image: '/ateneo homecoming 3.jpg',
-        title: 'Alumni Career Fair & Networking Night',
-        date: 'October 13, 2025',
-        location: 'Finster Auditorium',
-        // Optional detail view fields (fallbacks used if missing)
-        tagline: '',
-        description: '',
-        registrationDeadline: '',
-        venueAddress: '',
-        organizerName: '',
-        cost: '',
-        startTime: '',
-        endTime: '',
-        detailsDate: '',
-        registerUrl: '',
-    },
-    {
-        id: 2,
-        image: '/martinhall.jpg',
-        title: 'Alumni Sports Fest',
-        date: 'August 14, 2025',
-        location: 'Martin Hall, 4F',
-        tagline: '',
-        description: '',
-        registrationDeadline: '',
-        venueAddress: '',
-        organizerName: '',
-        cost: '',
-        startTime: '',
-        endTime: '',
-        detailsDate: '',
-        registerUrl: '',
-    },
-    {
-        id: 3,
-        image: '/ateneo homecoming 1.jpg',
-        title: 'Homecoming Gala 2025',
-        date: 'July 30, 2025',
-        location: 'SMX Convention, SM Lanang',
-        tagline: '',
-        description: '',
-        registrationDeadline: '',
-        venueAddress: '',
-        organizerName: '',
-        cost: '',
-        startTime: '',
-        endTime: '',
-        detailsDate: '',
-        registerUrl: '',
-    },
     {
         id: 4,
         image: '/ateneo homecoming 2.jpg',

@@ -58,6 +58,7 @@ function Header() {
                 
                 <nav className="header-nav">
                     <Link to="/">Home</Link>
+                    <Link to="/stories">News &amp; Stories</Link>
                     <Link to="/events">Events</Link>
                     <a href="#engage">Engage</a>
                     <a href="#support">Support</a>
