@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -218,12 +219,13 @@ class ArticleDetailView(generics.RetrieveUpdateAPIView):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def publish_article(request, article_id):
-    """Set article status to published."""
+    """Set article status to published and record approval time."""
     try:
         article = Article.objects.get(pk=article_id)
     except Article.DoesNotExist:
         return Response({"detail": "Article not found."}, status=404)
     article.status = Article.STATUS_PUBLISHED
+    article.approved_at = timezone.now()
     article.save()
     ActivityLog.objects.create(
         action=f"Article published: {article.title}",

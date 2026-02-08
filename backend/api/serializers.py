@@ -122,24 +122,40 @@ class EventUpdateSerializer(serializers.ModelSerializer):
 
 
 class ArticleSerializer(serializers.ModelSerializer):
+    content_created_time = serializers.DateTimeField(source="created_at", read_only=True)
+
     class Meta:
         model = Article
         fields = [
             "id", "title", "author_name", "subtitle", "cover_image", "content",
-            "status", "created_by", "created_at", "updated_at"
+            "status", "created_by", "created_at", "updated_at",
+            "content_created_time", "approved_at"
         ]
-        read_only_fields = ["created_by", "created_at", "updated_at"]
+        read_only_fields = ["created_by", "created_at", "updated_at", "content_created_time", "approved_at"]
+        extra_kwargs = {
+            "title": {"required": True},
+            "author_name": {"required": True},
+            "subtitle": {"required": True},
+        }
 
 
 class ArticleUpdateSerializer(serializers.ModelSerializer):
     """Admin edit article and publish."""
+    content_created_time = serializers.DateTimeField(source="created_at", read_only=True)
+
     class Meta:
         model = Article
         fields = [
             "id", "title", "author_name", "subtitle", "cover_image", "content",
-            "status", "created_by", "created_at", "updated_at"
+            "status", "created_by", "created_at", "updated_at",
+            "content_created_time", "approved_at"
         ]
-        read_only_fields = ["created_by", "created_at", "updated_at"]
+        read_only_fields = ["created_by", "created_at", "updated_at", "content_created_time", "approved_at"]
+        extra_kwargs = {
+            "title": {"required": True},
+            "author_name": {"required": True},
+            "subtitle": {"required": True},
+        }
 
 
 class ActivityLogSerializer(serializers.ModelSerializer):

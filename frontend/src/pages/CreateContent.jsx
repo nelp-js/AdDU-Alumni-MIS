@@ -1,5 +1,10 @@
-import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import Placeholder from '@tiptap/extension-placeholder';
+import { TextStyle, FontSize } from '@tiptap/extension-text-style';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -8,6 +13,8 @@ import { useTitle } from '../Hooks/useTitle';
 
 const MAX_SUBTITLE = 280;
 const MAX_WORDS = 1200;
+
+const FONT_SIZES = [12, 14, 16, 18, 20, 24];
 
 function stripHtml(html) {
     if (!html || typeof html !== 'string') return '';
@@ -22,72 +29,64 @@ function countWords(html) {
     return text.split(/\s+/).filter(Boolean).length;
 }
 
-function RichTextEditor({ value, onChange, placeholder }) {
-    const editorRef = useRef(null);
-    const isInitialMount = useRef(true);
-
-    useEffect(() => {
-        if (!editorRef.current) return;
-        if (isInitialMount.current) {
-            editorRef.current.innerHTML = value || '';
-            isInitialMount.current = false;
-        }
-        if (value === '') {
-            editorRef.current.innerHTML = '';
-        }
-    }, [value]);
-
-    const handleInput = useCallback(() => {
-        const el = editorRef.current;
-        if (!el) return;
-        const html = el.innerHTML;
-        onChange(html === '<br>' ? '' : html);
-    }, [onChange]);
-
-    const exec = useCallback((cmd, val = null) => {
-        document.execCommand(cmd, false, val);
-        editorRef.current?.focus();
-        handleInput();
-    }, [handleInput]);
+function TiptapToolbar({ editor }) {
+    if (!editor) return null;
 
     return (
-        <div className="cc-rich-editor">
-            <div className="cc-toolbar">
-                <button type="button" className="cc-tb-btn" onClick={() => exec('bold')} title="Bold">
+        <div className="cc-tiptap-toolbar">
+            <span className="cc-tb-group">
+                <select
+                    className="cc-tb-select"
+                    value=""
+                    onChange={(e) => {
+                        const px = e.target.value;
+                        if (px) editor.chain().focus().setFontSize(`${px}px`).run();
+                        e.target.value = '';
+                    }}
+                    aria-label="Font size"
+                >
+                    <option value="">Size</option>
+                    {FONT_SIZES.map((n) => (
+                        <option key={n} value={n}>{n}</option>
+                    ))}
+                </select>
+            </span>
+            <span className="cc-tb-group">
+                <button type="button" className="cc-tb-btn" onClick={() => editor.chain().focus().toggleBold().run()} title="Bold">
                     <b>B</b>
                 </button>
-                <button type="button" className="cc-tb-btn" onClick={() => exec('underline')} title="Underline">
+                <button type="button" className="cc-tb-btn" onClick={() => editor.chain().focus().toggleItalic().run()} title="Italic">
+                    <i>I</i>
+                </button>
+                <button type="button" className="cc-tb-btn" onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline">
                     <u>U</u>
                 </button>
-                <span className="cc-tb-sep" />
-                <button type="button" className="cc-tb-btn" onClick={() => exec('formatBlock', 'h2')} title="Heading 2">
-                    H2
-                </button>
-                <button type="button" className="cc-tb-btn" onClick={() => exec('formatBlock', 'h3')} title="Heading 3">
-                    H3
-                </button>
-                <button type="button" className="cc-tb-btn" onClick={() => exec('formatBlock', 'p')} title="Paragraph">
-                    P
-                </button>
-                <span className="cc-tb-sep" />
-                <button type="button" className="cc-tb-btn" onClick={() => exec('insertUnorderedList')} title="Bullet list">
-                    •
-                </button>
-                <button type="button" className="cc-tb-btn" onClick={() => exec('insertOrderedList')} title="Numbered list">
-                    1.
-                </button>
-                <button type="button" className="cc-tb-btn" onClick={() => exec('formatBlock', 'blockquote')} title="Quote">
-                    “
-                </button>
-            </div>
-            <div
-                ref={editorRef}
-                className="cc-editor-body"
-                contentEditable
-                suppressContentEditableWarning
-                data-placeholder={placeholder}
-                onInput={handleInput}
-            />
+            </span>
+            <span className="cc-tb-group">
+                <select
+                    className="cc-tb-select"
+                    value=""
+                    onChange={(e) => {
+                        const v = e.target.value;
+                        if (v === '') editor.chain().focus().setParagraph().run();
+                        else editor.chain().focus().toggleHeading({ level: Number(v) }).run();
+                        e.target.value = '';
+                    }}
+                    aria-label="Heading"
+                >
+                    <option value="">Paragraph</option>
+                    <option value="2">H2</option>
+                    <option value="3">H3</option>
+                </select>
+            </span>
+            <span className="cc-tb-group">
+                <button type="button" className="cc-tb-btn" onClick={() => editor.chain().focus().toggleBulletList().run()} title="Bullet list">•</button>
+                <button type="button" className="cc-tb-btn" onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Numbered list">1.</button>
+                <button type="button" className="cc-tb-btn" onClick={() => editor.chain().focus().toggleBlockquote().run()} title="Quote">"</button>
+            </span>
+            <span className="cc-tb-group">
+                <button type="button" className="cc-tb-btn" onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()} title="Clear formatting">Clear</button>
+            </span>
         </div>
     );
 }
@@ -98,6 +97,7 @@ function CreateContent() {
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
     const [submitError, setSubmitError] = useState('');
+    const [showPreview, setShowPreview] = useState(false);
 
     const [title, setTitle] = useState('');
     const [authorName, setAuthorName] = useState('');
@@ -112,19 +112,53 @@ function CreateContent() {
     const canSubmit = Boolean(
         title.trim() &&
         authorName.trim() &&
+        subtitle.trim() &&
         !overSubtitle &&
         !overWords
     );
 
+    const [coverPreviewUrl, setCoverPreviewUrl] = useState(null);
+    useEffect(() => {
+        if (!coverImage) {
+            setCoverPreviewUrl(null);
+            return;
+        }
+        const url = URL.createObjectURL(coverImage);
+        setCoverPreviewUrl(url);
+        return () => URL.revokeObjectURL(url);
+    }, [coverImage]);
+
+    const onUpdate = useCallback(({ editor }) => {
+        setContent(editor.getHTML());
+    }, []);
+
+    const editor = useEditor({
+        extensions: [
+            StarterKit,
+            Underline,
+            TextStyle,
+            FontSize,
+            Placeholder.configure({ placeholder: 'Write your article…' }),
+        ],
+        content: '',
+        editorProps: {
+            attributes: {
+                class: 'cc-tiptap-editor-body',
+            },
+        },
+        onUpdate,
+    });
+
     const handleSubmit = (status) => {
         if (!canSubmit) return;
+        const html = editor?.getHTML() ?? content;
         setSubmitError('');
         setLoading(true);
         const formData = new FormData();
         formData.append('title', title.trim());
         formData.append('author_name', authorName.trim());
         formData.append('subtitle', subtitle.trim().slice(0, MAX_SUBTITLE));
-        formData.append('content', content);
+        formData.append('content', html);
         formData.append('status', status);
         if (coverImage) formData.append('cover_image', coverImage);
 
@@ -143,6 +177,8 @@ function CreateContent() {
             })
             .finally(() => setLoading(false));
     };
+
+    const previewContent = editor?.getHTML() ?? content;
 
     return (
         <div className="create-content-page">
@@ -194,7 +230,7 @@ function CreateContent() {
 
                             <div className="cc-field">
                                 <div className="cc-label-row">
-                                    <label className="cc-label">Subtitle / Deck (optional)</label>
+                                    <label className="cc-label">Subtitle / Deck <span className="cc-required">*</span></label>
                                     <span className={`cc-counter ${overSubtitle ? 'cc-counter-over' : ''}`}>
                                         {subtitleCount}/{MAX_SUBTITLE}
                                     </span>
@@ -206,6 +242,7 @@ function CreateContent() {
                                     placeholder="Short deck or subtitle"
                                     maxLength={MAX_SUBTITLE + 1}
                                     rows={3}
+                                    required
                                 />
                             </div>
 
@@ -226,7 +263,7 @@ function CreateContent() {
                                 {coverImage && (
                                     <div className="cc-preview-wrap">
                                         <img
-                                            src={URL.createObjectURL(coverImage)}
+                                            src={coverPreviewUrl}
                                             alt="Cover preview"
                                             className="cc-cover-preview"
                                         />
@@ -241,12 +278,9 @@ function CreateContent() {
                                         {wordCount} / {MAX_WORDS} words
                                     </span>
                                 </div>
-                                <div className="cc-editor-wrap">
-                                    <RichTextEditor
-                                        value={content}
-                                        onChange={setContent}
-                                        placeholder="Write your article…"
-                                    />
+                                <div className="cc-editor-wrap cc-tiptap-wrap">
+                                    <TiptapToolbar editor={editor} />
+                                    <EditorContent editor={editor} />
                                 </div>
                             </div>
 
@@ -259,6 +293,13 @@ function CreateContent() {
                                     Cancel
                                 </button>
                                 <div className="cc-actions-right">
+                                    <button
+                                        type="button"
+                                        className="cc-btn cc-preview-btn"
+                                        onClick={() => setShowPreview(true)}
+                                    >
+                                        Open Preview
+                                    </button>
                                     <button
                                         type="button"
                                         className="cc-btn cc-draft"
@@ -282,6 +323,30 @@ function CreateContent() {
                 </div>
             </main>
             <Footer />
+
+            {showPreview && (
+                <div className="cc-preview-overlay" onClick={() => setShowPreview(false)}>
+                    <div className="cc-preview-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="cc-preview-article">
+                            {coverPreviewUrl && (
+                                <div className="cc-preview-image-wrap">
+                                    <img src={coverPreviewUrl} alt="" className="cc-preview-image" />
+                                </div>
+                            )}
+                            <h1 className="cc-preview-title">{title || 'Untitled'}</h1>
+                            {subtitle && <p className="cc-preview-deck">{subtitle}</p>}
+                            <p className="cc-preview-author">{authorName || '—'}</p>
+                            <div
+                                className="cc-preview-content avenir-book"
+                                dangerouslySetInnerHTML={{ __html: previewContent || '<p></p>' }}
+                            />
+                        </div>
+                        <button type="button" className="cc-preview-close" onClick={() => setShowPreview(false)}>
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

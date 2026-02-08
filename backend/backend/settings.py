@@ -171,8 +171,9 @@ CSRF_TRUSTED_ORIGINS = [
 # 2. PRODUCTION MODE (Uncomment when ready)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+EMAIL_PORT = 465
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
@@ -185,13 +186,11 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
 }
 
-# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 STORAGES = { "default": { "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage", }, "staticfiles": { "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage", }, }
 
 print("--------------------------------------------------")
 print("🔍 DEBUGGING RENDER CONFIGURATION")
 print(f"1. CLOUD_NAME from Env: {os.getenv('CLOUDINARY_CLOUD_NAME')}")
 print(f"2. API_KEY from Env: {os.getenv('CLOUDINARY_API_KEY')}")
-print(f"3. DEFAULT_FILE_STORAGE: {DEFAULT_FILE_STORAGE}")
 print(f"4. Is cloudinary_storage installed? {'cloudinary_storage' in INSTALLED_APPS}")
 print("--------------------------------------------------")
