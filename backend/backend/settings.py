@@ -53,13 +53,16 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     
-    # 👇 ADDED: Cloudinary Storage (Must be before staticfiles)
+    # Cloudinary Storage (Must be before staticfiles)
     "cloudinary_storage", 
     
     "django.contrib.staticfiles",
     
-    # 👇 ADDED: Cloudinary Core
+    # Cloudinary Core
     "cloudinary",
+    
+    # 👇 ADDED: Anymail for Brevo/Sendinblue
+    "anymail",
     
     "api",
     "rest_framework",
@@ -162,21 +165,17 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost",
 ]
 
-# --- EMAIL SETTINGS ---
+# --- EMAIL SETTINGS (UPDATED FOR BREVO API) ---
 
-# 1. DEVELOPMENT MODE: Prints emails to the terminal (Console)
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' 
-# DEFAULT_FROM_EMAIL = 'admin@ateneoalumni.com'
+# Use Anymail's Brevo backend (sends via HTTP Port 443, bypassing Render firewall)
+EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 
-# 2. PRODUCTION MODE (Uncomment when ready)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-EMAIL_TIMEOUT = 10
+ANYMAIL = {
+    "BREVO_API_KEY": os.getenv('BREVO_API_KEY'),
+}
+
+# The email address that users will see in the "From" field
+DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER', 'alumni.addu.test@gmail.com')
 
 
 # --- CLOUDINARY CONFIGURATION ---
@@ -187,11 +186,11 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
 }
 
-STORAGES = { "default": { "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage", }, "staticfiles": { "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage", }, }
-
-print("--------------------------------------------------")
-print("🔍 DEBUGGING RENDER CONFIGURATION")
-print(f"1. CLOUD_NAME from Env: {os.getenv('CLOUDINARY_CLOUD_NAME')}")
-print(f"2. API_KEY from Env: {os.getenv('CLOUDINARY_API_KEY')}")
-print(f"4. Is cloudinary_storage installed? {'cloudinary_storage' in INSTALLED_APPS}")
-print("--------------------------------------------------")
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}

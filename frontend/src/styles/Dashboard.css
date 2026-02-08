@@ -105,23 +105,48 @@
     flex: 1;
 }
 
+/* Wrapper for buttons to align them side-by-side */
+.dashboard-module-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+    /* Removed flex-wrap to prevent stacking if you want them strictly side-by-side */
+    /* flex-wrap: wrap; <--- Remove or comment this out if you never want them to stack */
+}
+
 .dashboard-module-btn {
-    display: inline-block;
-    padding: 12px 24px;
-    background: #040354;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 10px; /* Reduced side padding slightly to fit better */
+    background-color: #040354;
     color: white;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 400;
     text-decoration: none;
-    transition: all 0.3s ease;
-    margin-top: 4px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: opacity 0.2s;
+    text-align: center;
+    flex: 1;
+    
+    /* Force text to be on one line */
+    white-space: nowrap; 
 }
 
 .dashboard-module-btn:hover {
-    background: #050465;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(4, 3, 84, 0.3);
+    opacity: 0.9;
+}
+
+/* Secondary Button (Create Event) Style */
+.dashboard-module-btn.secondary {
+    background-color: #fff;
+    color: #040354;
+    border: 1px solid #040354;
+}
+
+.dashboard-module-btn.secondary:hover {
+    background-color: #f3f4f6;
+    opacity: 1;
 }
 
 /* Recent Activities */
@@ -138,11 +163,17 @@
     font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
 }
 
+/* --- UPDATED TABLE WRAPPER (Logic from UserManagement.css) --- */
 .dashboard-table-wrap {
     background: white;
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
     overflow: hidden;
+    
+    /* 👇 SCROLLING LOGIC APPLIED HERE 👇 */
+    overflow-x: auto;
+    max-height: 300px; /* Show approx 5 rows */
+    overflow-y: auto;  /* Enable vertical scroll */
 }
 
 .dashboard-table {
@@ -151,8 +182,15 @@
     font-size: 14px;
 }
 
+/* --- UPDATED HEADER (Sticky Logic from UserManagement.css) --- */
 .dashboard-table thead {
     background: #f3f4f6;
+    
+    /* 👇 STICKY HEADER LOGIC 👇 */
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    box-shadow: 0 1px 0 0 #e5e7eb;
 }
 
 .dashboard-table th {
@@ -162,6 +200,7 @@
     color: #040354;
     font-size: 13px;
     letter-spacing: 0.5px;
+    background: #f3f4f6; /* Ensures rows hide behind header */
 }
 
 .dashboard-table tbody tr {
@@ -238,50 +277,4 @@
     .dashboard-stat-value {
         font-size: 24px;
     }
-}
-
-/* ... existing dashboard styles ... */
-
-/* Wrapper for buttons to align them side-by-side */
-.dashboard-module-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: auto;
-    /* Removed flex-wrap to prevent stacking if you want them strictly side-by-side */
-    /* flex-wrap: wrap; <--- Remove or comment this out if you never want them to stack */
-}
-
-.dashboard-module-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 10px; /* Reduced side padding slightly to fit better */
-    background-color: #040354;
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    transition: opacity 0.2s;
-    text-align: center;
-    flex: 1;
-    
-    /* NEW: Force text to be on one line */
-    white-space: nowrap; 
-}
-
-.dashboard-module-btn:hover {
-    opacity: 0.9;
-}
-
-/* Secondary Button (Create Event) Style */
-.dashboard-module-btn.secondary {
-    background-color: #fff;
-    color: #040354;
-    border: 1px solid #040354;
-}
-
-.dashboard-module-btn.secondary:hover {
-    background-color: #f3f4f6;
-    opacity: 1;
 }

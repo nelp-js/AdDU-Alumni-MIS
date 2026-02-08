@@ -13,3 +13,4 @@ dj-database-url
 pillow
 django-cloudinary-storage
 cloudinary
+"django-anymail[brevo]"
