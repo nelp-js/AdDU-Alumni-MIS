@@ -1,20 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { events } from '../data/eventsData';
+import api from '../api';
 import '../styles/Events.css';
 import { useTitle } from '../Hooks/useTitle';
 
 function Events() {
     useTitle('Events');
     const [searchQuery, setSearchQuery] = useState('');
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        api.get('/api/events/')
+            .then((res) => setEvents(Array.isArray(res.data) ? res.data : []))
+            .catch(() => setError('Unable to load events.'))
+            .finally(() => setLoading(false));
+    }, []);
 
     const filteredEvents = events.filter(
         (e) =>
             !searchQuery.trim() ||
-            e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (e.location && e.location.toLowerCase().includes(searchQuery.toLowerCase()))
+            (e.event_name && e.event_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            (e.venue && e.venue.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            (e.preview_text && e.preview_text.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
     const handleFindEvents = (e) => {
@@ -34,10 +45,37 @@ function Events() {
         }
     };
 
+    const formatTime = (timeStr) => {
+        if (!timeStr) return '';
+        const s = String(timeStr);
+        const match = s.match(/^(\d{1,2}):(\d{2})/);
+        if (!match) return s;
+        let h = parseInt(match[1], 10);
+        const m = match[2];
+        const ampm = h >= 12 ? 'pm' : 'am';
+        if (h > 12) h -= 12;
+        if (h === 0) h = 12;
+        return `${h}:${m} ${ampm}`;
+    };
+
+    const formatDisplayDate = (dateStr) => {
+        if (!dateStr) return '';
+        try {
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return '';
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+        } catch {
+            return '';
+        }
+    };
+
     const getDateTimeLine = (event) => {
-        const parts = [event.date];
-        if (event.startTime) parts.push(` at ${event.startTime}`);
-        if (event.endTime) parts.push(` – ${event.endTime}`);
+        const datePart = formatDisplayDate(event.start_date);
+        if (!datePart) return '—';
+        const parts = [datePart];
+        if (event.start_time) parts.push(` at ${formatTime(event.start_time)}`);
+        if (event.end_time) parts.push(` – ${formatTime(event.end_time)}`);
         return parts.join('');
     };
 
@@ -53,14 +91,24 @@ function Events() {
         }
     };
 
-    const monthYearLabel = filteredEvents.length > 0 ? getMonthYear(filteredEvents[0].date) : null;
+    
+    const monthYearLabel = filteredEvents.length > 0 && filteredEvents[0].start_date
+        ? getMonthYear(filteredEvents[0].start_date)
+        : null;
+
+    const getEventImageUrl = (event) => {
+        if (!event.event_image) return '/cs alumni 2.jpg';
+        const url = event.event_image;
+        if (typeof url !== 'string') return '/cs alumni 2.jpg';
+        return url.startsWith('http') ? url : (api.defaults.baseURL || '') + (url.startsWith('/') ? url : '/' + url);
+    };
 
     return (
         <div className="events-page">
             <Header />
 
             <main className="events-main">
-                {/* Hero banner - cs alumni 2.jpg */}
+                
                 <section className="events-hero">
                     <img
                         src="/cs alumni 2.jpg"
@@ -69,7 +117,7 @@ function Events() {
                     />
                 </section>
 
-                {/* Search bar - Caltech-style: search input with icon + Find Events button */}
+                
                 <section className="events-search-section">
                     <form className="events-search-box" onSubmit={handleFindEvents}>
                         <span className="events-search-icon-wrap" aria-hidden>
@@ -92,7 +140,7 @@ function Events() {
                     </form>
                 </section>
 
-                {/* Month & Year header – indicates events below belong to this month */}
+                
                 {monthYearLabel && (
                     <header className="events-month-year-header">
                         <span className="events-month-year-text">{monthYearLabel}</span>
@@ -100,38 +148,41 @@ function Events() {
                     </header>
                 )}
 
-                {/* Event list: Date | Text content | Image */}
+                
                 <section className="events-list">
-                    {filteredEvents.length === 0 ? (
+                    {loading && <p className="events-list-empty">Loading events…</p>}
+                    {error && <p className="events-list-empty">{error}</p>}
+                    {!loading && !error && filteredEvents.length === 0 && (
                         <p className="events-list-empty">No events match your search.</p>
-                    ) : (
-                        filteredEvents.map((event) => {
-                            const { dayName, dayNum } = getDateParts(event.date);
-                            return (
-                                <Link
-                                    key={event.id}
-                                    to={`/events/${event.id}`}
-                                    className="events-list-item"
-                                >
-                                    <div className="events-list-date">
-                                        <span className="events-list-day-name">{dayName}</span>
-                                        <span className="events-list-day-num">{dayNum}</span>
-                                    </div>
-                                    <div className="events-list-content">
-                                        <p className="events-list-datetime">{getDateTimeLine(event)}</p>
-                                        <h3 className="events-list-title">{event.title}</h3>
-                                        <p className="events-list-location">{event.location || '—'}</p>
-                                        {event.description && (
-                                            <p className="events-list-description">{event.description}</p>
-                                        )}
-                                    </div>
-                                    <div className="events-list-image-wrap">
-                                        <img src={event.image} alt="" className="events-list-image" />
-                                    </div>
-                                </Link>
-                            );
-                        })
                     )}
+                    {!loading && !error && filteredEvents.length > 0 && filteredEvents.map((event) => {
+                        const { dayName, dayNum } = getDateParts(event.start_date);
+                        return (
+                            <Link
+                                key={event.id}
+                                to={`/events/${event.id}`}
+                                className="events-list-item"
+                            >
+                                <div className="events-list-date">
+                                    <span className="events-list-day-name">{dayName}</span>
+                                    <span className="events-list-day-num">{dayNum}</span>
+                                </div>
+                                <div className="events-list-content">
+                                    <p className="events-list-datetime">{getDateTimeLine(event)}</p>
+                                    <h3 className="events-list-title">{event.event_name || '—'}</h3>
+                                    <p className="events-list-location">{event.venue || '—'}</p>
+                                    {(event.preview_text || event.event_description) && (
+                                        <p className="events-list-description">
+                                            {event.preview_text || event.event_description}
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="events-list-image-wrap">
+                                    <img src={getEventImageUrl(event)} alt="" className="events-list-image" />
+                                </div>
+                            </Link>
+                        );
+                    })}
                 </section>
             </main>
 

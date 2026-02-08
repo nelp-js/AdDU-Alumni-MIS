@@ -342,6 +342,14 @@
     .events-section-title {
         font-size: 30px;
     }
+
+    .events-list-item {
+        gap: 24px;
+    }
+
+    .events-list-image-wrap {
+        width: 240px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -387,6 +395,50 @@
     .events-month-year-text {
         font-size: 16px;
     }
+
+    /* Event list: stack on tablet/phone – image on top, then date + content */
+    .events-list {
+        gap: 32px;
+    }
+
+    .events-list-item {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .events-list-image-wrap {
+        order: -1;
+        width: 100%;
+        min-height: 220px;
+        max-height: 280px;
+    }
+
+    .events-list-image {
+        min-height: 220px;
+        max-height: 280px;
+    }
+
+    .events-list-date {
+        width: 100%;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 12px;
+        padding: 16px 20px;
+        box-shadow: none;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .events-list-day-num {
+        margin-top: 0;
+    }
+
+    .events-list-content {
+        padding: 20px;
+    }
+
+    .events-list-title {
+        font-size: 20px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -421,5 +473,45 @@
 
     .events-month-year-text {
         font-size: 15px;
+    }
+
+    .events-list {
+        gap: 24px;
+    }
+
+    .events-list-image-wrap {
+        min-height: 200px;
+        max-height: 240px;
+    }
+
+    .events-list-image {
+        min-height: 200px;
+        max-height: 240px;
+    }
+
+    .events-list-date {
+        padding: 12px 16px;
+    }
+
+    .events-list-day-name {
+        font-size: 12px;
+    }
+
+    .events-list-day-num {
+        font-size: 26px;
+    }
+
+    .events-list-content {
+        padding: 16px;
+    }
+
+    .events-list-title {
+        font-size: 18px;
+    }
+
+    .events-list-datetime,
+    .events-list-location,
+    .events-list-description {
+        font-size: 13px;
     }
 }

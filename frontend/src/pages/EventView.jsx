@@ -1,17 +1,85 @@
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { getEventById } from '../data/eventsData';
+import api from '../api';
 import '../styles/EventView.css';
 import { useTitle } from '../Hooks/useTitle';
 
+function formatDisplayDate(dateStr) {
+    if (!dateStr) return '—';
+    try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '—';
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        return d.toLocaleDateString(undefined, options);
+    } catch {
+        return dateStr;
+    }
+}
+
+function formatTime(timeStr) {
+    if (!timeStr) return '';
+    const s = String(timeStr);
+    const match = s.match(/^(\d{1,2}):(\d{2})/);
+    if (!match) return s;
+    let h = parseInt(match[1], 10);
+    const m = match[2];
+    const ampm = h >= 12 ? 'pm' : 'am';
+    if (h > 12) h -= 12;
+    if (h === 0) h = 12;
+    return `${h}:${m} ${ampm}`;
+}
+
 function EventView() {
     const { id } = useParams();
-    const event = getEventById(id);
+    const [event, setEvent] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    useTitle(event ? event.title : 'Event');
+    useEffect(() => {
+        if (!id) {
+            setLoading(false);
+            setError(true);
+            return;
+        }
+        api.get(`/api/events/${id}/`)
+            .then((res) => {
+                setEvent(res.data);
+                setError(null);
+            })
+            .catch((err) => {
+                setEvent(null);
+                setError(err.response?.status === 404 ? 'notfound' : 'error');
+            })
+            .finally(() => setLoading(false));
+    }, [id]);
 
-    if (!event) {
+    useTitle(event ? event.event_name : 'Event');
+
+    const getImageUrl = (e) => {
+        if (!e?.event_image) return null;
+        const url = e.event_image;
+        if (typeof url !== 'string') return null;
+        if (url.startsWith('http')) return url;
+        const base = api.defaults.baseURL || '';
+        return url.startsWith('/') ? base + url : url;
+    };
+
+    if (loading) {
+        return (
+            <div className="event-view-page">
+                <Header />
+                <main className="event-view-main">
+                    <p className="event-view-not-found">Loading event…</p>
+                    <Link to="/events" className="event-view-back-link">« All Events</Link>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
+
+    if (error || !event) {
         return (
             <div className="event-view-page">
                 <Header />
@@ -24,8 +92,9 @@ function EventView() {
         );
     }
 
-    const detailsDate = event.detailsDate || event.date;
-    const venueLines = event.venueAddress ? event.venueAddress.split('\n') : [event.location || '—'];
+    const detailsDate = formatDisplayDate(event.start_date);
+    const imageUrl = getImageUrl(event);
+    const hasActionButton = event.action_button_label && event.action_button_link;
 
     return (
         <div className="event-view-page">
@@ -34,38 +103,41 @@ function EventView() {
             <main className="event-view-main">
                 <Link to="/events" className="event-view-all-events">« All Events</Link>
 
-                <h1 className="event-view-title">{event.title}</h1>
+                <h1 className="event-view-title">{event.event_name}</h1>
                 <p className="event-view-date-time">
-                    {event.date}{event.startTime ? ` at ${event.startTime}` : ''}
+                    {formatDisplayDate(event.start_date)}
+                    {event.start_time ? ` at ${formatTime(event.start_time)}` : ''}
                 </p>
 
-                <div className="event-view-banner-wrap">
-                    <img
-                        src={event.image}
-                        alt=""
-                        className="event-view-banner"
-                    />
-                </div>
-
-                {event.tagline && (
-                    <p className="event-view-tagline">{event.tagline}</p>
+                {imageUrl && (
+                    <div className="event-view-banner-wrap">
+                        <img src={imageUrl} alt="" className="event-view-banner" />
+                    </div>
                 )}
 
-                {event.description && (
-                    <p className="event-view-description">{event.description}</p>
+                {event.preview_text && (
+                    <p className="event-view-tagline">{event.preview_text}</p>
                 )}
 
-                {event.registrationDeadline && (
-                    <p className="event-view-deadline">
-                        Deadline to register: {event.registrationDeadline}. Registration is required to attend the event.
-                    </p>
+                {event.event_description && (
+                    <p className="event-view-description">{event.event_description}</p>
                 )}
 
                 <p className="event-view-date-repeat">{detailsDate}</p>
 
                 <div className="event-view-actions">
+                    {hasActionButton && (
+                        <a
+                            href={event.action_button_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="event-view-btn event-view-btn-register"
+                        >
+                            {event.action_button_label}
+                        </a>
+                    )}
                     <a
-                        href={event.registerUrl || '#register'}
+                        href={hasActionButton ? event.action_button_link : '#'}
                         className="event-view-btn event-view-btn-calendar"
                         aria-label="Add to calendar"
                     >
@@ -77,32 +149,29 @@ function EventView() {
                         </svg>
                         <span>Add to Calendar</span>
                     </a>
-                    <a
-                        href={event.registerUrl || '#register'}
-                        className="event-view-btn event-view-btn-register"
-                    >
-                        Register
-                    </a>
+                    {!hasActionButton && (
+                        <span className="event-view-btn event-view-btn-register" style={{ opacity: 0.7 }}>
+                            Register
+                        </span>
+                    )}
                 </div>
 
                 <section className="event-view-info">
                     <div className="event-view-info-col event-view-details">
                         <h3>DETAILS</h3>
                         <p><strong>Date:</strong> {detailsDate}</p>
-                        <p><strong>Time:</strong> {event.startTime && event.endTime
-                            ? `${event.startTime} — ${event.endTime}`
-                            : event.startTime || '—'}</p>
+                        <p><strong>Time:</strong> {event.start_time && event.end_time
+                            ? `${formatTime(event.start_time)} — ${formatTime(event.end_time)}`
+                            : event.start_time ? formatTime(event.start_time) : '—'}</p>
                         <p><strong>Cost:</strong> {event.cost || '—'}</p>
                     </div>
                     <div className="event-view-info-col event-view-venue">
                         <h3>VENUE</h3>
-                        {venueLines.map((line, i) => (
-                            <p key={i}>{line}</p>
-                        ))}
+                        <p>{event.venue || '—'}</p>
                     </div>
                     <div className="event-view-info-col event-view-organizer">
                         <h3>ORGANIZER</h3>
-                        <p>{event.organizerName || '—'}</p>
+                        <p>{event.organizer_names || '—'}</p>
                     </div>
                     <div className="event-view-info-col event-view-share">
                         <h3>SHARE</h3>

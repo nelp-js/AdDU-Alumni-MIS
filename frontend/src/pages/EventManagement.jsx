@@ -228,6 +228,12 @@ function EventManagement() {
                                     <span className="event-mgmt-details-label">Event Name</span>
                                     <span className="event-mgmt-details-value">{detailsEvent.event_name || '—'}</span>
                                 </div>
+                                {(detailsEvent.preview_text != null && detailsEvent.preview_text !== '') && (
+                                    <div className="event-mgmt-details-row event-mgmt-details-row-block">
+                                        <span className="event-mgmt-details-label">Short Preview</span>
+                                        <span className="event-mgmt-details-value">{detailsEvent.preview_text}</span>
+                                    </div>
+                                )}
                                 <div className="event-mgmt-details-row event-mgmt-details-row-block">
                                     <span className="event-mgmt-details-label">Description</span>
                                     <span className="event-mgmt-details-value">{detailsEvent.event_description || '—'}</span>
