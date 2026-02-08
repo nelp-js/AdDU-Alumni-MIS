@@ -22,13 +22,24 @@ function ContentManagement() {
             .finally(() => setLoading(false));
     }, []);
 
+    const formatDate = (isoStr) => {
+        if (!isoStr) return '—';
+        try {
+            return new Date(isoStr).toLocaleString(undefined, {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+            });
+        } catch {
+            return isoStr;
+        }
+    };
+
     const handlePublish = (id) => {
         setPublishingId(id);
         api.post(`/api/articles/${id}/publish/`)
-            .then(() => {
-                setArticles((prev) =>
-                    prev.map((a) => (a.id === id ? { ...a, status: 'published' } : a))
-                );
+            .then(() => api.get('/api/articles/'))
+            .then((res) => {
+                setArticles(res.data);
             })
             .catch(() => {})
             .finally(() => setPublishingId(null));
@@ -41,16 +52,6 @@ function ContentManagement() {
             .then(() => setArticles((prev) => prev.filter((a) => a.id !== id)))
             .catch(() => alert('Failed to delete.'))
             .finally(() => setDeletingId(null));
-    };
-
-    const formatDate = (dateStr) => {
-        if (!dateStr) return '—';
-        try {
-            const d = new Date(dateStr);
-            return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-        } catch {
-            return dateStr;
-        }
     };
 
     return (
@@ -180,6 +181,20 @@ function ContentManagement() {
                                         {detailsArticle.status === 'published' ? 'Published' : 'Draft'}
                                     </span>
                                 </div>
+                                <div className="content-mgmt-detail-row">
+                                    <span className="content-mgmt-detail-label">Created</span>
+                                    <span className="content-mgmt-detail-value">
+                                        {formatDate(detailsArticle.content_created_time || detailsArticle.created_at)}
+                                    </span>
+                                </div>
+                                {detailsArticle.approved_at && (
+                                    <div className="content-mgmt-detail-row">
+                                        <span className="content-mgmt-detail-label">Approved</span>
+                                        <span className="content-mgmt-detail-value">
+                                            {formatDate(detailsArticle.approved_at)}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                             <div className="content-mgmt-modal-actions">
                                 <div />

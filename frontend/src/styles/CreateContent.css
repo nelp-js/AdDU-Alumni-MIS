@@ -19,13 +19,15 @@
     font-size: 28px;
     font-weight: 400;
     color: #333;
+    text-align: center;
     margin: 0 0 8px 0;
     font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
 }
 
 .create-content-subtitle {
-    font-size: 16px;
+    font-size: 14px;
     color: #6d7280;
+    text-align: center;
     margin: 0 0 32px 0;
 }
 
@@ -160,26 +162,38 @@
     border: 1px solid #e5e7eb;
 }
 
-/* Rich text editor */
-.cc-editor-wrap {
+/* Tiptap editor */
+.cc-editor-wrap.cc-tiptap-wrap {
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     overflow: hidden;
     background: #fff;
 }
 
-.cc-rich-editor {
-    min-height: 280px;
-}
-
-.cc-toolbar {
+.cc-tiptap-toolbar {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 2px;
-    padding: 8px 10px;
+    padding: 8px 12px;
     background: #f9fafb;
     border-bottom: 1px solid #e0e0e0;
+}
+
+.cc-tb-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.cc-tb-select {
+    padding: 6px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: #fff;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
 }
 
 .cc-tb-btn {
@@ -195,15 +209,9 @@
     background: #e5e7eb;
 }
 
-.cc-tb-sep {
-    width: 1px;
-    height: 20px;
-    background: #d1d5db;
-    margin: 0 4px;
-}
-
-.cc-editor-body {
-    min-height: 260px;
+.cc-tiptap-wrap .ProseMirror,
+.cc-tiptap-editor-body {
+    min-height: 280px;
     padding: 14px 16px;
     font-size: 15px;
     line-height: 1.6;
@@ -211,16 +219,142 @@
     outline: none;
 }
 
-.cc-editor-body:empty::before {
+.cc-tiptap-wrap .ProseMirror p.is-editor-empty:first-child::before,
+.cc-tiptap-editor-body p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);
     color: #9ca3af;
+    float: left;
+    height: 0;
+    pointer-events: none;
 }
 
-.cc-editor-body h2 { font-size: 1.4em; margin: 1em 0 0.5em; }
-.cc-editor-body h3 { font-size: 1.2em; margin: 0.8em 0 0.4em; }
-.cc-editor-body p { margin: 0 0 0.75em; }
-.cc-editor-body blockquote { margin: 0.75em 0; padding-left: 1em; border-left: 4px solid #d1d5db; color: #6b7280; }
-.cc-editor-body ul, .cc-editor-body ol { margin: 0.5em 0; padding-left: 1.5em; }
+.cc-tiptap-wrap .ProseMirror h2 { font-size: 1.4em; margin: 1em 0 0.5em; }
+.cc-tiptap-wrap .ProseMirror h3 { font-size: 1.2em; margin: 0.8em 0 0.4em; }
+.cc-tiptap-wrap .ProseMirror p { margin: 0 0 0.75em; }
+.cc-tiptap-wrap .ProseMirror blockquote { margin: 0.75em 0; padding-left: 1em; border-left: 4px solid #d1d5db; color: #6b7280; }
+.cc-tiptap-wrap .ProseMirror ul,
+.cc-tiptap-wrap .ProseMirror ol { margin: 0.5em 0; padding-left: 1.5em; }
+
+/* Open Preview modal – article as published */
+.cc-preview-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+.cc-preview-modal {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    max-width: 680px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.cc-preview-article {
+    overflow-y: auto;
+    padding: 0 0 24px;
+    flex: 1;
+}
+
+.cc-preview-image-wrap {
+    width: 100%;
+    margin-bottom: 24px;
+    line-height: 0;
+}
+
+.cc-preview-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    max-height: 360px;
+}
+
+.cc-preview-title {
+    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 24px 12px;
+    line-height: 1.3;
+}
+
+.cc-preview-deck {
+    font-size: 16px;
+    color: #6d7280;
+    margin: 0 24px 12px;
+    line-height: 1.5;
+}
+
+.cc-preview-author {
+    font-size: 14px;
+    color: #6d7280;
+    margin: 0 24px 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Article body – Avenir Book */
+.cc-preview-content.avenir-book,
+.cc-preview-content.avenir-book p,
+.cc-preview-content.avenir-book li {
+    font-family: 'Avenir LT Std 45 Book', 'Avenir Book', 'Avenir LT Std', system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 17px;
+    line-height: 1.65;
+    color: #333;
+}
+
+.cc-preview-content.avenir-book {
+    margin: 0 24px;
+    padding: 0;
+}
+
+.cc-preview-content.avenir-book h2 { font-size: 1.35em; margin: 1.25em 0 0.5em; font-weight: 600; }
+.cc-preview-content.avenir-book h3 { font-size: 1.15em; margin: 1em 0 0.4em; font-weight: 600; }
+.cc-preview-content.avenir-book p { margin: 0 0 0.85em; }
+.cc-preview-content.avenir-book blockquote {
+    margin: 1em 0;
+    padding-left: 1em;
+    border-left: 4px solid #d1d5db;
+    color: #6b7280;
+}
+.cc-preview-content.avenir-book ul,
+.cc-preview-content.avenir-book ol { margin: 0.5em 0; padding-left: 1.5em; }
+
+/* Preview: Tiptap uses inline font-size (e.g. style="font-size: 14px") so no extra rules needed */
+
+.cc-preview-close {
+    margin: 0 24px 24px;
+    padding: 12px 24px;
+    background: #040354;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    align-self: flex-start;
+}
+
+.cc-preview-close:hover {
+    opacity: 0.9;
+}
+
+.cc-preview-btn {
+    background: #f3f4f6;
+    color: #374151;
+}
 
 /* Buttons */
 .cc-actions {

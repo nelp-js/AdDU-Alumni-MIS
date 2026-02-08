@@ -74,13 +74,14 @@ class Article(models.Model):
 
     title = models.CharField(max_length=255)
     author_name = models.CharField(max_length=255)
-    subtitle = models.CharField(max_length=280, blank=True)
+    subtitle = models.CharField(max_length=280)  # required (deck)
     cover_image = models.ImageField(upload_to='article_covers/', null=True, blank=True)
     content = models.TextField(blank=True)  # HTML from rich text editor
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='articles')
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)  # content created time
     updated_at = models.DateTimeField(auto_now=True)
+    approved_at = models.DateTimeField(null=True, blank=True)  # set when admin publishes
 
     class Meta:
         ordering = ['-updated_at']

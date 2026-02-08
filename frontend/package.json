@@ -15,7 +15,12 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-icons": "^5.5.0",
-    "react-router-dom": "^7.12.0"
+    "react-router-dom": "^7.12.0",
+    "@tiptap/react": "^3.8.0",
+    "@tiptap/starter-kit": "^3.8.0",
+    "@tiptap/extension-text-style": "^3.8.0",
+    "@tiptap/extension-underline": "^3.8.0",
+    "@tiptap/extension-placeholder": "^3.8.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
