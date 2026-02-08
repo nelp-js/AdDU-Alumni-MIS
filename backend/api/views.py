@@ -251,6 +251,23 @@ class ArticleDelete(generics.DestroyAPIView):
         )
 
 
+# --- PUBLIC ARTICLE VIEWS (News & Stories page) ---
+class PublishedArticleList(generics.ListAPIView):
+    """List only published articles, newest first. No auth required."""
+    serializer_class = ArticleSerializer
+    permission_classes = [AllowAny]
+    queryset = Article.objects.filter(status=Article.STATUS_PUBLISHED).order_by("-approved_at", "-created_at")
+
+
+class PublishedArticleDetail(generics.RetrieveAPIView):
+    """Get a single published article by id. 404 if not published. No auth required."""
+    serializer_class = ArticleSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        return Article.objects.filter(status=Article.STATUS_PUBLISHED)
+
+
 class ActivityLogListView(generics.ListAPIView):
     queryset = ActivityLog.objects.all()[:10]
     serializer_class = ActivityLogSerializer

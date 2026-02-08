@@ -55,6 +55,110 @@
     }
 }
 
+/* Card grid - photo, title, date published, short deck */
+.stories-loading,
+.stories-error,
+.stories-empty {
+    text-align: center;
+    padding: 48px 24px;
+    color: #6d7280;
+    font-size: 16px;
+}
+
+.stories-error {
+    color: #dc3545;
+}
+
+.stories-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px 24px;
+    margin-top: 24px;
+}
+
+.stories-card {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 0.2s;
+}
+
+.stories-card:hover {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.stories-card-image-wrap {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    background: #e5e7eb;
+    overflow: hidden;
+}
+
+.stories-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.stories-card-image-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+}
+
+.stories-card-title {
+    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+    margin: 16px 20px 8px;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.stories-card-date {
+    font-size: 14px;
+    color: #6d7280;
+    margin: 0 20px 8px;
+}
+
+.stories-card-deck {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5;
+    margin: 0 20px 20px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+@media (max-width: 992px) {
+    .stories-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .stories-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .stories-card-title {
+        font-size: 15px;
+    }
+}
+
 @media (max-width: 480px) {
     .stories-title {
         font-size: 24px;

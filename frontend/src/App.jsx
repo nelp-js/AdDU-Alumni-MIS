@@ -12,6 +12,7 @@ import EventManagement from "./pages/EventManagement"
 import CreateContent from "./pages/CreateContent"
 import ContentManagement from "./pages/ContentManagement"
 import Stories from "./pages/Stories"
+import ArticleView from "./pages/ArticleView"
 import Error from "./pages/Error"
 import AdminProtectedRoute from "./components/AdminProtectedRoute"
 import ScrollToTop from "./components/ScrollToTop"
@@ -36,6 +37,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/stories" element={<Stories />} />
+        <Route path="/stories/:id" element={<ArticleView />} />
         <Route path="/events" element={<Events />} />
         <Route path="/events/:id" element={<EventView />} />
         <Route path="/create-event" element={<CreateEvent />} />
