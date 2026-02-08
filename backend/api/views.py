@@ -121,11 +121,24 @@ class EventListCreate(generics.ListCreateAPIView):
 
 
 class EventDetailView(generics.RetrieveUpdateAPIView):
-    """GET or PATCH an event by id (admin only). Used for event management edit."""
+    """GET: public (approved events only) or staff (any). PATCH: admin only."""
     serializer_class = EventUpdateSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
-    queryset = Event.objects.all()
     parser_classes = (MultiPartParser, FormParser)
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [AllowAny()]
+        return [IsAuthenticated(), IsAdminUser()]
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return EventSerializer
+        return EventUpdateSerializer
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated and self.request.user.is_staff:
+            return Event.objects.all()
+        return Event.objects.filter(is_approved=True)
 
 
 @api_view(["POST"])
