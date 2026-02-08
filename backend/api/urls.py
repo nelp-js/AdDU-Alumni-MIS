@@ -23,4 +23,5 @@ urlpatterns = [
     path('activities/', ActivityLogListView.as_view(), name='activity-list'),
     path("password-reset-request/", views.request_password_reset, name="password-reset-request"),
     path("password-reset-confirm/", views.reset_password, name="password-reset-confirm"),
+    path('users/pending-count/', views.pending_user_count, name='pending-user-count'),
 ]

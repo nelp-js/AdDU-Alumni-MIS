@@ -98,8 +98,11 @@ function Dashboard() {
     const [statsLoading, setStatsLoading] = useState(true);
     const [activities, setActivities] = useState([]);
     const [activitiesLoading, setActivitiesLoading] = useState(true);
+    
+    // 👇 NEW: State for the Red Notification Badge
+    const [pendingCount, setPendingCount] = useState(0);
 
-    // --- HELPER: Format Date (Same as User Management) ---
+    // --- HELPER: Format Date ---
     const formatDate = (dateStr) => {
         if (!dateStr) return '—';
         try {
@@ -115,7 +118,7 @@ function Dashboard() {
 
     // --- FETCH DATA ---
     useEffect(() => {
-        // 1. Fetch Alumni Count and Events Count in parallel
+        // 1. Fetch Alumni Count and Events Count
         Promise.all([
             api.get('/api/users/').then((res) => {
                 const activeAlumni = res.data.filter(user =>
@@ -134,6 +137,21 @@ function Dashboard() {
             .then((res) => setActivities(res.data))
             .catch(err => console.error("Failed to load activities", err))
             .finally(() => setActivitiesLoading(false));
+
+        // 3. 👇 NEW: Poll for Pending Users (Live Notification)
+        const fetchPendingCount = async () => {
+            try {
+                const res = await api.get('/api/users/pending-count/');
+                setPendingCount(res.data.count);
+            } catch (err) {
+                console.error("Failed to fetch pending count", err);
+            }
+        };
+
+        fetchPendingCount(); // Run immediately
+        const interval = setInterval(fetchPendingCount, 30000); // Repeat every 30s
+
+        return () => clearInterval(interval); // Cleanup on unmount
     }, []);
 
     // Dynamic Stats Cards
@@ -163,7 +181,18 @@ function Dashboard() {
                 {/* MODULES SECTION */}
                 <section className="dashboard-modules">
                     {MODULE_CARDS.map((card) => (
-                        <div key={card.title} className="dashboard-module-card">
+                        <div 
+                            key={card.title} 
+                            className="dashboard-module-card"
+                            style={{ position: 'relative' }} /* 👈 Necessary for badge positioning */
+                        >
+                            {/* 👇 NEW: Red Notification Badge Logic */}
+                            {card.title === 'User Management' && pendingCount > 0 && (
+                                <div className="dashboard-notification-badge">
+                                    {pendingCount}
+                                </div>
+                            )}
+
                             <div className="dashboard-module-icon"><ModuleIcon type={card.icon} /></div>
                             <h2 className="dashboard-module-title">{card.title}</h2>
                             <p className="dashboard-module-desc">{card.description}</p>
@@ -173,7 +202,7 @@ function Dashboard() {
                                     {card.button}
                                 </Link>
                                 
-                                {/* Secondary Button (e.g. Create Event) */}
+                                {/* Secondary Button */}
                                 {card.secondaryButton && (
                                     <Link to={card.secondaryTo} className="dashboard-module-btn secondary">
                                         {card.secondaryButton}
@@ -200,7 +229,6 @@ function Dashboard() {
                                 ) : (
                                     activities.map((row) => (
                                         <tr key={row.id}>
-                                            {/* Use formatDate on the raw timestamp */}
                                             <td>{formatDate(row.timestamp)}</td>
                                             <td>{row.action}</td>
                                             <td>{row.module}</td>

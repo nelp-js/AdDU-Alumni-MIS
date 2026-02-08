@@ -278,3 +278,42 @@
         font-size: 24px;
     }
 }
+
+/* 👇 NEW: LIVE NOTIFICATION BADGE STYLING 👇 */
+.dashboard-notification-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: #ef4444; /* Bright Red */
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%; /* Perfect Circle */
+    border: 2px solid white; /* White ring to separate from card */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 10;
+    padding: 2px;
+    
+    /* Adds a subtle pulse animation */
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}

@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.utils import timezone
+from django.conf import settings  # 👈 Added this import for EMAIL_HOST_USER
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -30,6 +31,16 @@ def current_user(request):
     """Return current user id, username, is_superuser for frontend (e.g. dashboard link)."""
     serializer = CurrentUserSerializer(request.user)
     return Response(serializer.data)
+
+
+# 👇 NEW: Helper view for dashboard notifications
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def pending_user_count(request):
+    """Return the count of users waiting for approval."""
+    # Assuming 'is_approved=False' and 'is_superuser=False' means pending
+    count = User.objects.filter(is_approved=False, is_superuser=False).count()
+    return Response({'count': count})
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -274,45 +285,45 @@ class ActivityLogListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
 
-# --- PASSWORD RESET VIEWS (NEW) ---
+# --- PASSWORD RESET VIEWS (UPDATED) ---
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def request_password_reset(request):
-    # CHANGE: Get username instead of email
     username = request.data.get('username') 
     try:
-        # CHANGE: Find user by username
         user = User.objects.get(username=username) 
         
         otp = str(random.randint(100000, 999999))
+        
+        # update_or_create ensures we don't make duplicate records for one user
         PasswordReset.objects.update_or_create(user=user, defaults={'otp': otp})
         
         # Send to the user's registered email
         send_mail(
             subject='Password Reset OTP - Ateneo Alumni',
             message=f'Your verification code is: {otp}',
-            from_email=None, 
-            recipient_list=[user.email], # We use the email from the database
+            from_email=settings.EMAIL_HOST_USER,  # 👈 FIXED: Uses the verified sender email
+            recipient_list=[user.email], 
             fail_silently=False,
         )
         return Response({"detail": f"OTP sent to email associated with {username}."})
     except User.DoesNotExist:
         return Response({"detail": "Username not found."}, status=404)
     except Exception as e:
+        # Useful for debugging on Render logs
+        print(f"Error sending email: {e}")
         return Response({"detail": str(e)}, status=500)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def reset_password(request):
-    # CHANGE: Accept username to identify user
     username = request.data.get('username')
     otp = request.data.get('otp')
     new_password = request.data.get('password')
     
     try:
-        # CHANGE: Find user by username
         user = User.objects.get(username=username)
         reset_entry = PasswordReset.objects.get(user=user)
         
