@@ -185,13 +185,11 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
 }
 
-# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 STORAGES = { "default": { "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage", }, "staticfiles": { "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage", }, }
 
 print("--------------------------------------------------")
 print("🔍 DEBUGGING RENDER CONFIGURATION")
 print(f"1. CLOUD_NAME from Env: {os.getenv('CLOUDINARY_CLOUD_NAME')}")
 print(f"2. API_KEY from Env: {os.getenv('CLOUDINARY_API_KEY')}")
-print(f"3. DEFAULT_FILE_STORAGE: {DEFAULT_FILE_STORAGE}")
 print(f"4. Is cloudinary_storage installed? {'cloudinary_storage' in INSTALLED_APPS}")
 print("--------------------------------------------------")
