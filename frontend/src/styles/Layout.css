@@ -71,7 +71,7 @@
 .header-badge {
     position: absolute;
     top: -8px;        /* Adjust up/down */
-    right: -12px;      /* Adjust left/right */
+    right: -9px;      /* Adjust left/right */
     
     color: #ef4444;    /* Bright Red Text */
     font-weight: 900;  /* Extra Bold to make it visible */
