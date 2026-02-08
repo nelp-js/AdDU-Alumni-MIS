@@ -54,16 +54,6 @@ function ContentManagement() {
             .finally(() => setDeletingId(null));
     };
 
-    const formatDate = (dateStr) => {
-        if (!dateStr) return '—';
-        try {
-            const d = new Date(dateStr);
-            return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-        } catch {
-            return dateStr;
-        }
-    };
-
     return (
         <div className="content-mgmt-page">
             <Header />
