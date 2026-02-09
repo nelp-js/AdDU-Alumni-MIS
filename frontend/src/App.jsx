@@ -17,6 +17,7 @@ import Error from "./pages/Error"
 import AdminProtectedRoute from "./components/AdminProtectedRoute"
 import ScrollToTop from "./components/ScrollToTop"
 import AutoLogout from "./components/AutoLogout"
+import { NotificationProvider } from './Hooks/NotificationContext';
 function Logout() {
   localStorage.clear()
   return <Navigate to="/login" />
@@ -29,6 +30,7 @@ function RegisterAndLogout() {
 
 function App() {
   return (
+    <NotificationProvider>
     <BrowserRouter>
       <ScrollToTop />
       
@@ -53,6 +55,7 @@ function App() {
         <Route path="*" element={<Error />}></Route>
       </Routes>
     </BrowserRouter>
+    </NotificationProvider>
   )
 }
 

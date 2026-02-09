@@ -9,6 +9,9 @@ import {
 import '../styles/Dashboard.css';
 import { useTitle } from '../Hooks/useTitle';
 
+// 👇 IMPORT THE CONTEXT HOOK
+import { useNotifications } from '../Hooks/NotificationContext';
+
 const ICON_COLOR = '#040354';
 
 const MODULE_CARDS = [
@@ -36,15 +39,14 @@ function ModuleIcon({ type }) {
 function Dashboard() {
     useTitle('Admin Dashboard');
     
+    const { notifications } = useNotifications();
+
     const [alumniCount, setAlumniCount] = useState(0);
     const [eventsCount, setEventsCount] = useState(0);
     const [statsLoading, setStatsLoading] = useState(true);
     const [activities, setActivities] = useState([]);
     const [activitiesLoading, setActivitiesLoading] = useState(true);
     
-    // 👇 NEW: State for all notification categories
-    const [notifications, setNotifications] = useState({ users: 0, events: 0, articles: 0 });
-
     const formatDate = (dateStr) => {
         if (!dateStr) return '—';
         try {
@@ -55,7 +57,7 @@ function Dashboard() {
     };
 
     useEffect(() => {
-        // 1. Fetch General Stats
+
         Promise.all([
             api.get('/api/users/').then((res) => {
                 const active = res.data.filter(u => !u.is_superuser && u.is_active !== false);
@@ -67,26 +69,8 @@ function Dashboard() {
             }),
         ]).catch(err => console.error(err)).finally(() => setStatsLoading(false));
 
-        // 2. Fetch Recent Activities
         api.get('/api/activities/').then((res) => setActivities(res.data)).catch(() => {}).finally(() => setActivitiesLoading(false));
 
-        // 3. 👇 UPDATED: Dynamic Stats Polling
-        const fetchAllStats = async () => {
-            try {
-                const res = await api.get('/api/dashboard/stats/');
-                setNotifications({
-                    users: res.data.users,
-                    events: res.data.events,
-                    articles: res.data.articles
-                });
-            } catch (err) {
-                console.error("Failed to fetch dashboard stats", err);
-            }
-        };
-
-        fetchAllStats();
-        const interval = setInterval(fetchAllStats, 30000);
-        return () => clearInterval(interval);
     }, []);
 
     const statCards = [
@@ -113,7 +97,6 @@ function Dashboard() {
 
                 <section className="dashboard-modules">
                     {MODULE_CARDS.map((card) => {
-                        // 👇 Logic to show category-specific counts
                         let badgeValue = 0;
                         if (card.title === 'User Management') badgeValue = notifications.users;
                         if (card.title === 'Event Management') badgeValue = notifications.events;
@@ -138,7 +121,6 @@ function Dashboard() {
                     })}
                 </section>
 
-                {/* ACTIVITIES TABLE (Keep as is) */}
                 <section className="dashboard-activities">
                     <h2 className="dashboard-activities-title">Recent Activities</h2>
                     <div className="dashboard-table-wrap">

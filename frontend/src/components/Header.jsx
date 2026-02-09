@@ -5,13 +5,16 @@ import { ACCESS_TOKEN, USER_IS_ADMIN } from '../constants';
 import api from '../api';
 import { FiInfo, FiLogOut, FiChevronDown } from 'react-icons/fi';
 
+// 👇 IMPORT THE NEW HOOK
+import { useNotifications } from '../Hooks/NotificationContext'; 
+
 function Header() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [user, setUser] = useState(null);
     const [showDropdown, setShowDropdown] = useState(false);
     
-    // 👇 UPDATED: Changed to plural 'totalNotifications' for clarity
-    const [totalNotifications, setTotalNotifications] = useState(0);
+    // 👇 NEW: Get notifications directly from the global context
+    const { notifications } = useNotifications();
     
     const navigate = useNavigate();
 
@@ -36,26 +39,6 @@ function Header() {
                 setUser(null);
             });
     }, []);
-
-    // 👇 UPDATED: Fetching the dynamic total for the badge
-    useEffect(() => {
-        if (!isAdmin) return;
-
-        const fetchAllNotifications = async () => {
-            try {
-                // Now fetching the combined count from our new view
-                const res = await api.get('/api/dashboard/stats/');
-                setTotalNotifications(res.data.total);
-            } catch (err) {
-                console.error("Failed to fetch dashboard stats", err);
-            }
-        };
-
-        fetchAllNotifications();
-        const interval = setInterval(fetchAllNotifications, 30000);
-
-        return () => clearInterval(interval);
-    }, [isAdmin]);
 
     const handleLogout = () => {
         localStorage.clear();
@@ -94,9 +77,9 @@ function Header() {
                             style={{ position: 'relative' }} 
                         >
                             Dashboard
-                            {/* THE THICK DYNAMIC BADGE */}
-                            {totalNotifications > 0 && (
-                                <span className="header-badge">{totalNotifications}</span>
+
+                            {notifications.total > 0 && (
+                                <span className="header-badge">{notifications.total}</span>
                             )}
                         </NavLink>
                     )}
