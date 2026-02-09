@@ -4,10 +4,12 @@ import Footer from '../components/Footer';
 import '../styles/Home.css';
 import { useTitle } from '../Hooks/useTitle';
 import { ACCESS_TOKEN } from '../constants';
+import { getOptimizedUrl } from '../utils/imageUtils';
 
 function Home() {
     useTitle('Home');
     const isLoggedIn = !!localStorage.getItem(ACCESS_TOKEN);
+    
     const cards = [
         {
             image: '/cs alumni.jpg',
@@ -47,7 +49,8 @@ function Home() {
                 {/* Full-width image */}
                 <section className="home-image-section">
                     <img
-                        src="https://res.cloudinary.com/dwi7oftcs/image/upload/v1770416955/bg01_k3q7et.jpg"
+                        // 👇 Optimized using 'hero' type (w_1200)
+                        src={getOptimizedUrl('https://res.cloudinary.com/dwi7oftcs/image/upload/v1770416955/bg01_k3q7et.jpg', 'hero')}
                         alt="Ateneo campus"
                         className="home-hero-image"
                     />
@@ -67,7 +70,8 @@ function Home() {
                         <article key={index} className="home-card">
                             <div className="home-card-image-wrap">
                                 <img
-                                    src={card.image}
+                    
+                                    src={getOptimizedUrl(card.image, 'card')}
                                     alt=""
                                     className="home-card-image"
                                 />

@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import api from '../api';
 import { useTitle } from '../Hooks/useTitle';
 import '../styles/Stories.css';
+import { getOptimizedUrl } from '../utils/imageUtils';
 
 function formatDate(isoStr) {
     if (!isoStr) return '';
@@ -27,7 +28,10 @@ function Stories() {
 
     useEffect(() => {
         api.get('/api/articles/published/')
-            .then((res) => setArticles(res.data))
+            .then((res) => {
+                // Ensure data is an array before setting it
+                setArticles(Array.isArray(res.data) ? res.data : []);
+            })
             .catch(() => setError('Failed to load articles.'))
             .finally(() => setLoading(false));
     }, []);
@@ -46,32 +50,38 @@ function Stories() {
                 {!loading && !error && articles.length === 0 && (
                     <div className="stories-empty">No published articles yet.</div>
                 )}
+                
                 {!loading && !error && articles.length > 0 && (
                     <section className="stories-grid">
-                        {articles.map((article) => (
-                            <Link
-                                key={article.id}
-                                to={`/stories/${article.id}`}
-                                className="stories-card"
-                            >
-                                <div className="stories-card-image-wrap">
-                                    {article.cover_image ? (
-                                        <img
-                                            src={article.cover_image}
-                                            alt=""
-                                            className="stories-card-image"
-                                        />
-                                    ) : (
-                                        <div className="stories-card-image-placeholder" />
-                                    )}
-                                </div>
-                                <h2 className="stories-card-title">{article.title || '—'}</h2>
-                                <p className="stories-card-date">
-                                    {formatDate(article.approved_at || article.content_created_time || article.created_at)}
-                                </p>
-                                <p className="stories-card-deck">{article.subtitle || ''}</p>
-                            </Link>
-                        ))}
+                        {articles.map((article) => {
+                            // 👇 Optimize the image URL
+                            const imageUrl = getOptimizedUrl(article.cover_image, 'card');
+
+                            return (
+                                <Link
+                                    key={article.id}
+                                    to={`/stories/${article.id}`}
+                                    className="stories-card"
+                                >
+                                    <div className="stories-card-image-wrap">
+                                        {imageUrl ? (
+                                            <img
+                                                src={imageUrl}
+                                                alt={article.title} // Better accessibility than empty alt
+                                                className="stories-card-image"
+                                            />
+                                        ) : (
+                                            <div className="stories-card-image-placeholder" />
+                                        )}
+                                    </div>
+                                    <h2 className="stories-card-title">{article.title || '—'}</h2>
+                                    <p className="stories-card-date">
+                                        {formatDate(article.approved_at || article.content_created_time || article.created_at)}
+                                    </p>
+                                    <p className="stories-card-deck">{article.subtitle || ''}</p>
+                                </Link>
+                            );
+                        })}
                     </section>
                 )}
             </main>

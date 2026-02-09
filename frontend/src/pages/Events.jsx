@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/Events.css';
 import { useTitle } from '../Hooks/useTitle';
+import { getOptimizedUrl } from '../utils/imageUtils';
 
 function Events() {
     useTitle('Events');
@@ -12,6 +13,7 @@ function Events() {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const DEFAULT_EVENT_IMAGE = "https://res.cloudinary.com/dwi7oftcs/image/upload/f_auto,q_auto/v1770564696/media/article_covers/cs_alumni_2_mrrw0h.jpg";
 
     useEffect(() => {
         api.get('/api/events/')
@@ -90,18 +92,10 @@ function Events() {
             return '';
         }
     };
-
     
     const monthYearLabel = filteredEvents.length > 0 && filteredEvents[0].start_date
         ? getMonthYear(filteredEvents[0].start_date)
         : null;
-
-    const getEventImageUrl = (event) => {
-        if (!event.event_image) return '/cs alumni 2.jpg';
-        const url = event.event_image;
-        if (typeof url !== 'string') return '/cs alumni 2.jpg';
-        return url.startsWith('http') ? url : (api.defaults.baseURL || '') + (url.startsWith('/') ? url : '/' + url);
-    };
 
     return (
         <div className="events-page">
@@ -110,14 +104,14 @@ function Events() {
             <main className="events-main">
                 
                 <section className="events-hero">
+                    {/* 👇 Hardcoded optimized parameters for the static hero image */}
                     <img
-                        src="/cs alumni 2.jpg"
+                        src="https://res.cloudinary.com/dwi7oftcs/image/upload/w_1200,q_auto,f_auto/v1770564696/media/article_covers/cs_alumni_2_mrrw0h.jpg"
                         alt="Alumni events - interior conference scene"
                         className="events-hero-image"
                     />
                 </section>
 
-                
                 <section className="events-search-section">
                     <form className="events-search-box" onSubmit={handleFindEvents}>
                         <span className="events-search-icon-wrap" aria-hidden>
@@ -139,7 +133,6 @@ function Events() {
                         </button>
                     </form>
                 </section>
-
                 
                 {monthYearLabel && (
                     <header className="events-month-year-header">
@@ -147,7 +140,6 @@ function Events() {
                         <span className="events-month-year-line" aria-hidden />
                     </header>
                 )}
-
                 
                 <section className="events-list">
                     {loading && <p className="events-list-empty">Loading events…</p>}
@@ -155,8 +147,15 @@ function Events() {
                     {!loading && !error && filteredEvents.length === 0 && (
                         <p className="events-list-empty">No events match your search.</p>
                     )}
+                    
                     {!loading && !error && filteredEvents.length > 0 && filteredEvents.map((event) => {
                         const { dayName, dayNum } = getDateParts(event.start_date);
+                        
+                        // 👇 USE THE UTILITY HERE
+                        // 1. Try to get the optimized Cloudinary URL
+                        // 2. If null (no image), fallback to DEFAULT_EVENT_IMAGE
+                        const displayImage = getOptimizedUrl(event.event_image, 'card') || DEFAULT_EVENT_IMAGE;
+
                         return (
                             <Link
                                 key={event.id}
@@ -178,7 +177,7 @@ function Events() {
                                     )}
                                 </div>
                                 <div className="events-list-image-wrap">
-                                    <img src={getEventImageUrl(event)} alt="" className="events-list-image" />
+                                    <img src={displayImage} alt="" className="events-list-image" />
                                 </div>
                             </Link>
                         );

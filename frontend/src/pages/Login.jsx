@@ -93,7 +93,7 @@ function Login() {
                 <div className="login-container">
                     <div className="login-form">
                         <div className="form-logo-section">
-                            <img src="https://res.cloudinary.com/dwi7oftcs/image/upload/v1770416947/addulogo_gexxac.jpg" alt="ADDU Logo" className="form-logo" />
+                            <img src="https://res.cloudinary.com/dwi7oftcs/image/upload/f_auto,q_auto/v1770416947/addulogo_gexxac.jpg" alt="ADDU Logo" className="form-logo" />
                             <h1 className="form-brand-title">Ateneo Alumni</h1>
                         </div>
 

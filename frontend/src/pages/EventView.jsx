@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/EventView.css';
 import { useTitle } from '../Hooks/useTitle';
+import { getOptimizedUrl } from '../utils/imageUtils';
 
 function formatDisplayDate(dateStr) {
     if (!dateStr) return '—';
@@ -57,15 +58,6 @@ function EventView() {
 
     useTitle(event ? event.event_name : 'Event');
 
-    const getImageUrl = (e) => {
-        if (!e?.event_image) return null;
-        const url = e.event_image;
-        if (typeof url !== 'string') return null;
-        if (url.startsWith('http')) return url;
-        const base = api.defaults.baseURL || '';
-        return url.startsWith('/') ? base + url : url;
-    };
-
     if (loading) {
         return (
             <div className="event-view-page">
@@ -93,8 +85,10 @@ function EventView() {
     }
 
     const detailsDate = formatDisplayDate(event.start_date);
-    const imageUrl = getImageUrl(event);
     const hasActionButton = event.action_button_label && event.action_button_link;
+
+    // 👇 USE THE UTILITY (Type: 'hero' for big banner images)
+    const imageUrl = getOptimizedUrl(event.event_image, 'hero');
 
     return (
         <div className="event-view-page">
