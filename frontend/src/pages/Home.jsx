@@ -49,7 +49,6 @@ function Home() {
                 {/* Full-width image */}
                 <section className="home-image-section">
                     <img
-                        // 👇 Optimized using 'hero' type (w_1200)
                         src={getOptimizedUrl('https://res.cloudinary.com/dwi7oftcs/image/upload/v1770416955/bg01_k3q7et.jpg', 'hero')}
                         alt="Ateneo campus"
                         className="home-hero-image"
