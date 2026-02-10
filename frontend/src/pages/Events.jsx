@@ -22,7 +22,13 @@ function Events() {
             .finally(() => setLoading(false));
     }, []);
 
-    const filteredEvents = events.filter(
+    const sortedEvents = [...events].sort((a, b) => {
+        const aDate = new Date(a.start_date || a.end_date || 0).getTime();
+        const bDate = new Date(b.start_date || b.end_date || 0).getTime();
+        return aDate - bDate;
+    });
+
+    const filteredEvents = sortedEvents.filter(
         (e) =>
             !searchQuery.trim() ||
             (e.event_name && e.event_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -31,6 +37,7 @@ function Events() {
     );
 
     const handleFindEvents = (e) => {
+        // Keep the button usable, but filtering happens live as you type
         e.preventDefault();
     };
 
@@ -114,22 +121,19 @@ function Events() {
 
                 <section className="events-search-section">
                     <form className="events-search-box" onSubmit={handleFindEvents}>
-                        <span className="events-search-icon-wrap" aria-hidden>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <circle cx="11" cy="11" r="8" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                            </svg>
-                        </span>
                         <input
                             type="search"
-                            placeholder="Search for events"
+                            placeholder="Search..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="events-search-input"
                             aria-label="Search for events"
                         />
-                        <button type="submit" className="events-find-events-btn">
-                            Find Events
+                        <button type="submit" className="events-find-events-btn" aria-label="Search">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="11" cy="11" r="7" />
+                                <line x1="16.5" y1="16.5" x2="21" y2="21" />
+                            </svg>
                         </button>
                     </form>
                 </section>
@@ -145,7 +149,7 @@ function Events() {
                     {loading && <p className="events-list-empty">Loading events…</p>}
                     {error && <p className="events-list-empty">{error}</p>}
                     {!loading && !error && filteredEvents.length === 0 && (
-                        <p className="events-list-empty">No events match your search.</p>
+                        <p className="events-list-empty">No available results found.</p>
                     )}
                     
                     {!loading && !error && filteredEvents.length > 0 && filteredEvents.map((event) => {

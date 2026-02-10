@@ -29,81 +29,71 @@
     display: block;
 }
 
-/* ========== Search bar – larger, rounded, modern button ========== */
+/* ========== Search bar ========== */
 .events-search-section {
     margin-top: 32px;
     margin-bottom: 40px;
-    max-width: 85%;
+    max-width: 720px;
     margin-left: auto;
     margin-right: auto;
 }
 
 .events-search-box {
-    background: #fff;
-    height: 56px;
-    border-radius: 16px;
-    padding: 0 10px 0 0;
+    background: #ffffff;
+    border-radius: 999px;
+    padding: 4px 6px 4px 18px;
     display: flex;
     align-items: center;
     gap: 0;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08), 0 4px 24px rgba(0, 58, 108, 0.12);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     border: none;
+    width: 100%;
 }
 
-.events-search-icon-wrap {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    margin-left: 14px;
-    color: #003A6C;
-}
+
 
 .events-search-input {
     flex: 1;
     min-width: 0;
-    height: 48px;
+    height: 100%;
     border: none;
-    padding: 0 16px;
+    padding: 0 12px 0 0;
     font-family: 'Avenir Book', 'Avenir LT Pro Light', sans-serif;
     font-size: 16px;
-    color: #111;
+    color: #111827;
     outline: none;
     background: transparent;
 }
 
 .events-search-input::placeholder {
-    color: #6b7280;
+    color: #9ca3af;
 }
 
 .events-find-events-btn {
     flex-shrink: 0;
-    height: 42px;
-    padding: 0 28px;
-    background: #003A6C;
-    color: #fff;
+    width: 54px;
+    height: 40px;
+    border-radius: 999px;
+    background: #111827;
+    color: #ffffff;
     border: none;
-    border-radius: 12px;
-    font-family: 'Avenir Book', 'Avenir LT Pro Light', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 58, 108, 0.25);
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.45);
+    transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.15s ease;
 }
 
 .events-find-events-btn:hover {
-    background: #002a52;
+    background: #020617;
     transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(0, 58, 108, 0.35);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.55);
 }
 
 .events-find-events-btn:active {
     transform: translateY(0);
-    box-shadow: 0 1px 4px rgba(0, 58, 108, 0.3);
+    box-shadow: 0 5px 16px rgba(15, 23, 42, 0.5);
 }
 
 /* ========== Month & Year header – section header with divider ========== */
@@ -297,21 +287,9 @@
     }
 
     .events-search-section {
-        max-width: 90%;
+        max-width: 100%;
         margin-top: 28px;
         margin-bottom: 36px;
-    }
-
-    .events-search-box {
-        height: 52px;
-        border-radius: 14px;
-    }
-
-    .events-find-events-btn {
-        height: 40px;
-        padding: 0 22px;
-        font-size: 14px;
-        border-radius: 10px;
     }
 }
 
@@ -325,14 +303,9 @@
     }
 
     .events-search-section {
-        max-width: 92%;
+        max-width: 100%;
         margin-top: 24px;
         margin-bottom: 32px;
-    }
-
-    .events-search-box {
-        height: 52px;
-        border-radius: 14px;
     }
 
     .events-upcoming {
@@ -365,23 +338,6 @@
         max-width: 100%;
         margin-top: 20px;
         margin-bottom: 28px;
-    }
-
-    .events-search-box {
-        height: 50px;
-        padding: 0 8px 0 0;
-        border-radius: 14px;
-    }
-
-    .events-search-input {
-        font-size: 15px;
-    }
-
-    .events-find-events-btn {
-        height: 38px;
-        padding: 0 20px;
-        font-size: 14px;
-        border-radius: 10px;
     }
 
     .events-section-title {
@@ -453,18 +409,6 @@
     .events-search-section {
         margin-top: 16px;
         margin-bottom: 24px;
-    }
-
-    .events-search-box {
-        height: 48px;
-        border-radius: 12px;
-    }
-
-    .events-find-events-btn {
-        height: 36px;
-        padding: 0 18px;
-        font-size: 13px;
-        border-radius: 10px;
     }
 
     .events-section-title {

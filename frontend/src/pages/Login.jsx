@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // Checks location
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import '../styles/Login.css';
 import { ACCESS_TOKEN, REFRESH_TOKEN, USER_IS_ADMIN } from '../constants';
 import { jwtDecode } from 'jwt-decode';
@@ -13,9 +13,17 @@ function Login() {
     useTitle('Login');
 
     const navigate = useNavigate();
-    const location = useLocation(); 
- 
+    const location = useLocation();
+    const [searchParams, setSearchParams] = useSearchParams();
+
     const from = location.state?.from?.pathname || "/";
+    const [showInactivityMessage, setShowInactivityMessage] = useState(() => searchParams.get('inactivity') === '1');
+
+    useEffect(() => {
+        if (searchParams.get('inactivity') === '1') {
+            setSearchParams({}, { replace: true });
+        }
+    }, [searchParams, setSearchParams]);
 
     const [formData, setFormData] = useState({
         username: '',
@@ -96,6 +104,12 @@ function Login() {
                             <img src="https://res.cloudinary.com/dwi7oftcs/image/upload/f_auto,q_auto/v1770416947/addulogo_gexxac.jpg" alt="ADDU Logo" className="form-logo" />
                             <h1 className="form-brand-title">Ateneo Alumni</h1>
                         </div>
+
+                        {showInactivityMessage && (
+                            <div className="login-inactivity-message">
+                                You were logged out due to inactivity. Please log in again.
+                            </div>
+                        )}
 
                         {errors.general && (
                             <div className="error-message">

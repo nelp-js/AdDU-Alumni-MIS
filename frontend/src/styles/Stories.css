@@ -1,4 +1,4 @@
-/* Match Dashboard page styles */
+/* News & Stories */
 .stories-page {
     min-height: 100vh;
     display: flex;
@@ -8,19 +8,18 @@
 
 .stories-main {
     flex: 1;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 60px 24px 40px;
-    width: 100%;
-    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 0 80px;
 }
 
 .stories-hero {
     text-align: center;
-    margin-bottom: 40px;
+    padding: 60px 24px 48px;
+    margin: 0 auto;
 }
 
-/* Same as Dashboard title - Avenir 65 */
 .stories-title {
     font-size: 28px;
     font-weight: 400;
@@ -30,7 +29,6 @@
     font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
 }
 
-/* Subtitle - matches dashboard secondary text */
 .stories-subtitle {
     font-size: 16px;
     font-weight: 400;
@@ -41,21 +39,118 @@
     line-height: 1.5;
 }
 
-@media (max-width: 768px) {
-    .stories-main {
-        padding: 40px 16px 32px;
-    }
-
-    .stories-hero {
-        margin-bottom: 32px;
-    }
-
-    .stories-title {
-        font-size: 28px;
-    }
+/* Search + Sort toolbar */
+.stories-toolbar {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 24px 24px;
+    max-width: 960px;
+    margin: 0 auto;
 }
 
-/* Card grid - photo, title, date published, short deck */
+
+.stories-search-pill {
+    flex: 1 1 0%;          
+    max-width: none;       
+    min-width: 420px;      
+    display: flex;
+    align-items: center;
+
+    background: #ffffff;
+    border-radius: 999px;
+    padding: 4px 6px 4px 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    border: none;
+}
+
+.stories-search-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 15px;
+    font-family: 'Avenir LT Std', system-ui, sans-serif;
+    color: #1a1a1a;
+    padding: 10px 12px 10px 0;
+}
+
+.stories-search-input::placeholder {
+    color: #9ca3af;
+}
+
+.stories-search-button {
+    flex-shrink: 0;
+    width: 56px;
+    height: 40px;
+    border-radius: 999px;
+    border: none;
+    background: #111827;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.45);
+    transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.15s ease;
+}
+
+.stories-search-button:hover {
+    background: #020617;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.55);
+}
+
+.stories-search-button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.5);
+}
+
+.stories-search-icon svg {
+    display: block;
+}
+
+.stories-sort-wrap {
+    display: flex;
+    align-items: center;
+}
+
+.stories-sort-select {
+    min-width: 180px;
+    height: 48px;
+    padding: 10px 44px 10px 18px;
+    font-size: 15px;
+    font-family: 'Avenir LT Std', system-ui, sans-serif;
+
+    border-radius: 999px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+
+    border: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 7l5 5 5-5' fill='none' stroke='%236b7280' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 18px center;
+    background-size: 12px 12px;
+
+    appearance: none;
+}
+
+
+.stories-sort-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.18), 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.stories-sort-select:hover {
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.1);
+}
+
 .stories-loading,
 .stories-error,
 .stories-empty {
@@ -69,93 +164,50 @@
     color: #dc3545;
 }
 
-.stories-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 32px 24px;
-    margin-top: 24px;
+/* Cards section: same layout as Home (.home-cards does the grid) */
+.stories-cards {
+    margin-top: 0;
 }
 
-.stories-card {
-    display: flex;
-    flex-direction: column;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
+/* Link as card: no default link styling */
+.stories-cards a.home-card {
     text-decoration: none;
     color: inherit;
-    transition: box-shadow 0.2s;
 }
 
-.stories-card:hover {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-}
-
-.stories-card-image-wrap {
+/* Placeholder when article has no cover image */
+.stories-cards .home-card-image-placeholder {
     width: 100%;
-    aspect-ratio: 16 / 10;
+    height: 100%;
+    min-height: 200px;
     background: #e5e7eb;
-    overflow: hidden;
 }
 
-.stories-card-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+/* Read More: span as block + flex so it centers like the Home button */
+.stories-cards .home-card-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
 }
 
-.stories-card-image-placeholder {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
-}
-
-.stories-card-title {
-    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    color: #333;
-    margin: 16px 20px 8px;
-    line-height: 1.35;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.stories-card-date {
-    font-size: 14px;
-    color: #6d7280;
-    margin: 0 20px 8px;
-}
-
-.stories-card-deck {
-    font-size: 14px;
-    color: #333;
-    line-height: 1.5;
-    margin: 0 20px 20px;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-@media (max-width: 992px) {
-    .stories-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 600px) {
-    .stories-grid {
-        grid-template-columns: 1fr;
-        gap: 24px;
+@media (max-width: 768px) {
+    .stories-hero {
+        padding: 48px 20px 40px;
     }
 
-    .stories-card-title {
-        font-size: 15px;
+    .stories-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0 20px 20px;
+    }
+
+    .stories-search-pill {
+        max-width: 100%;
+    }
+
+    .stories-sort-select {
+        width: 100%;
     }
 }
 
