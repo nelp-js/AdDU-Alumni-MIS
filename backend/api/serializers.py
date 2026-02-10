@@ -33,7 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             "id", "first_name", "middle_name", "last_name", 
             "is_married", "maiden_name", "email", "confirm_email",
-            "valid_id", "phone_number", "batch", "program",
+            "id_type", "valid_id", "phone_number", "batch", "program",
             "username", "password"
         ]
         extra_kwargs = {
@@ -98,7 +98,7 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = [
-            "id", "event_name", "preview_text", "event_description", # 👈 ADDED preview_text
+            "id", "event_name", "preview_text", "event_description",
             "start_date", "end_date", "start_time", "end_time", 
             "venue", "category", "is_approved", "organizer", 
             "event_image", "cost", "organizer_names", 
