@@ -13,7 +13,7 @@ function Events() {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const DEFAULT_EVENT_IMAGE = "https://res.cloudinary.com/dwi7oftcs/image/upload/f_auto,q_auto/v1770564696/media/article_covers/cs_alumni_2_mrrw0h.jpg";
+    const DEFAULT_EVENT_IMAGE = (getOptimizedUrl('https://res.cloudinary.com/dwi7oftcs/image/upload/v1770564696/media/article_covers/cs_alumni_2_mrrw0h.jpg', 'hero'));
 
     useEffect(() => {
         api.get('/api/events/')
@@ -113,7 +113,7 @@ function Events() {
                 <section className="events-hero">
                     {/* 👇 Hardcoded optimized parameters for the static hero image */}
                     <img
-                        src="https://res.cloudinary.com/dwi7oftcs/image/upload/w_1200,q_auto,f_auto/v1770564696/media/article_covers/cs_alumni_2_mrrw0h.jpg"
+                        src={getOptimizedUrl('https://res.cloudinary.com/dwi7oftcs/image/upload/v1770564696/media/article_covers/cs_alumni_2_mrrw0h.jpg', 'hero')}
                         alt="Alumni events - interior conference scene"
                         className="events-hero-image"
                     />
