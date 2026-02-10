@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.conf import settings
 from rest_framework import generics, status
@@ -10,32 +10,24 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 import random
 from django.core.mail import send_mail
-
 from .models import User, Event, Article, ActivityLog, PasswordReset
-
 from .serializers import (
     UserSerializer, CurrentUserSerializer, UserListSerializer, UserUpdateSerializer,
     EventSerializer, EventUpdateSerializer, CustomTokenObtainPairSerializer, ActivityLogSerializer,
     ArticleSerializer, ArticleUpdateSerializer,
 )
 
-# --- SYSTEM WIDE STATS ---
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def dashboard_stats(request):
-    """
-    Returns the dynamic total for the dashboard notification badge.
-    Sum of: Pending Users + Pending Events + Draft Articles.
-    """
     # 1. Users waiting for approval
     pending_users = User.objects.filter(is_approved=False, is_superuser=False).count()
     
     # 2. Events waiting for approval
     pending_events = Event.objects.filter(is_approved=False).count()
     
-    # 3. Articles still in 'draft' status (from your ContentManagement.jsx logic)
-    # Note: We use the lowercase 'draft' to match your frontend status checks
+    # 3. Articles still in 'draft' status
     pending_articles = Article.objects.filter(status='draft').count()
     
     # The total for your "Thick" Badge
@@ -86,34 +78,46 @@ class UserDetailView(generics.RetrieveUpdateAPIView):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def approve_user(request, user_id):
-    try:
-        user = User.objects.get(pk=user_id, is_superuser=False)
-    except User.DoesNotExist:
-        return Response({"detail": "User not found."}, status=404)
+    user = get_object_or_404(User, pk=user_id, is_superuser=False)
+    
     user.is_approved = True
     user.is_active = True
     user.save()
+
+    try:
+        subject = 'Welcome to Ateneo Alumni - Account Approved'
+        message = f'Hi {user.first_name},\n\nYour account has been approved by the admin! You can now log in to the portal.\n\nLogin here: http://addualumni.vervel.app/login'
+        email_from = settings.EMAIL_HOST_USER
+        recipient_list = [user.email]
+        
+        send_mail(subject, message, email_from, recipient_list, fail_silently=False)
+        print(f"Approval email sent to {user.email}")
+    except Exception as e:
+        print(f"Failed to send email to {user.email}: {e}")
+
     ActivityLog.objects.create(
         action=f"User approved: {user.username}",
         module="User Management",
-        user=request.user, status="Completed"
+        user=request.user, 
+        status="Completed"
     )
-    return Response({"detail": "User approved.", "is_approved": True, "is_active": True})
+    
+    return Response({"detail": "User approved and email sent.", "is_approved": True, "is_active": True})
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def reject_user(request, user_id):
-    try:
-        user = User.objects.get(pk=user_id, is_superuser=False)
-    except User.DoesNotExist:
-        return Response({"detail": "User not found."}, status=404)
+    user = get_object_or_404(User, pk=user_id, is_superuser=False)
+    
     user.is_approved = False
     user.is_active = False
     user.save()
+    
     ActivityLog.objects.create(
         action=f"User rejected: {user.username}",
         module="User Management",
-        user=request.user, status="Rejected"
+        user=request.user, 
+        status="Rejected"
     )
     return Response({"detail": "User rejected.", "is_approved": False, "is_active": False})
 
@@ -217,7 +221,7 @@ def publish_article(request, article_id):
         article = Article.objects.get(pk=article_id)
     except Article.DoesNotExist:
         return Response({"detail": "Article not found."}, status=404)
-    article.status = 'published' # Matches your React status check
+    article.status = 'published'
     article.approved_at = timezone.now()
     article.save()
     ActivityLog.objects.create(
