@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import api from '../api';
 import '../styles/Home.css';
 import { useTitle } from '../Hooks/useTitle';
 import { ACCESS_TOKEN } from '../constants';
@@ -9,24 +11,24 @@ import { getOptimizedUrl } from '../utils/imageUtils';
 function Home() {
     useTitle('Home');
     const isLoggedIn = !!localStorage.getItem(ACCESS_TOKEN);
-    
-    const cards = [
-        {
-            image: '/cs alumni.jpg',
-            title: 'CS Alumni Gathering Kickoff 2025',
-            description: 'Computer Studies Alumni heaped together to celebrate, reunited at the Calungsod San-Vitores Center for an unforgettable evening of connection and celebration.',
-        },
-        {
-            image: '/mugna ui.jpg',
-            title: 'Talks & Workshops | UI/UX as a Career in 2025',
-            description: 'Mr. Erbert Ryan Moralde shared valuable insights and tips on pursuing UI/UX as a career with the CS Cluster students at Bapa Benny Tudtud Auditorium.',
-        },
-        {
-            image: '/aws talk.jpg',
-            title: 'Talks & Workshops | Securing Serverless Applications',
-            description: 'Mr. Ike Yuson shows the CS Cluster students at F600/601 how to secure serverless applications for their web projects.',
-        },
-    ];
+    const [latestArticles, setLatestArticles] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        api.get('/api/articles/published/')
+            .then((res) => {
+                const list = Array.isArray(res.data) ? res.data : [];
+                // Sort by approved_at (publish date) descending, fallback to created_at
+                const sorted = [...list].sort((a, b) => {
+                    const dateA = a.approved_at || a.created_at || '';
+                    const dateB = b.approved_at || b.created_at || '';
+                    return dateB.localeCompare(dateA);
+                });
+                setLatestArticles(sorted.slice(0, 3));
+            })
+            .catch(() => setLatestArticles([]))
+            .finally(() => setLoading(false));
+    }, []);
 
     return (
         <div className="home-page">
@@ -63,27 +65,37 @@ function Home() {
                     </p>
                 </section>
 
-                {/* Cards */}
+                {/* Cards – 3 latest published articles */}
                 <section className="home-cards">
-                    {cards.map((card, index) => (
-                        <article key={index} className="home-card">
-                            <div className="home-card-image-wrap">
-                                <img
-                    
-                                    src={getOptimizedUrl(card.image, 'card')}
-                                    alt=""
-                                    className="home-card-image"
-                                />
-                            </div>
-                            <div className="home-card-content">
-                                <h3 className="home-card-title">{card.title}</h3>
-                                <p className="home-card-description">{card.description}</p>
-                                <button type="button" className="home-card-btn">
-                                    Read More
-                                </button>
-                            </div>
-                        </article>
-                    ))}
+                    {loading && (
+                        <p className="home-cards-loading">Loading…</p>
+                    )}
+                    {!loading && latestArticles.length === 0 && (
+                        <p className="home-cards-empty">No stories yet.</p>
+                    )}
+                    {!loading && latestArticles.map((article) => {
+                        const imageUrl = getOptimizedUrl(article.cover_image, 'card');
+                        return (
+                            <Link
+                                key={article.id}
+                                to={`/stories/${article.id}`}
+                                className="home-card"
+                            >
+                                <div className="home-card-image-wrap">
+                                    {imageUrl ? (
+                                        <img src={imageUrl} alt="" className="home-card-image" />
+                                    ) : (
+                                        <div className="home-card-image-placeholder" />
+                                    )}
+                                </div>
+                                <div className="home-card-content">
+                                    <h3 className="home-card-title">{article.title || '—'}</h3>
+                                    <p className="home-card-description">{article.subtitle || ''}</p>
+                                    <span className="home-card-btn">Read More</span>
+                                </div>
+                            </Link>
+                        );
+                    })}
                 </section>
             </main>
 

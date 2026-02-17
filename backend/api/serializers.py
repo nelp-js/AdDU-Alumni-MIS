@@ -1,3 +1,4 @@
+import re
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User, Event, Article
@@ -121,34 +122,89 @@ class EventUpdateSerializer(serializers.ModelSerializer):
         read_only_fields = ["organizer"]
 
 
+def _strip_html(text):
+    """Strip HTML tags and normalize whitespace for title/subtitle uniformity."""
+    if not text or not isinstance(text, str):
+        return text or ""
+    cleaned = re.sub(r"<[^>]+>", "", text)
+    return " ".join(cleaned.split()).strip()
+
+
+# Font-related CSS props to strip from pasted content (so our Baskerville/Avenir styles apply)
+_FONT_STYLE_PROPS = frozenset(
+    ("font-family", "font-size", "font-weight", "font-style", "font", "color")
+)
+
+
+def _strip_font_styles_from_html(html):
+    """Remove font-family, font-size, font-weight, color from inline styles in HTML content."""
+    if not html or not isinstance(html, str):
+        return html or ""
+
+    def clean_style(match):
+        style = match.group(1)
+        if not style.strip():
+            return ""
+        parts = []
+        for part in style.split(";"):
+            part = part.strip()
+            if not part or ":" not in part:
+                continue
+            prop, _ = part.split(":", 1)
+            prop_lower = prop.strip().lower()
+            if prop_lower in _FONT_STYLE_PROPS:
+                continue
+            parts.append(part)
+        if not parts:
+            return ""
+        return ' style="' + "; ".join(parts) + '"'
+
+    # Match both style="..." and style='...'
+    html = re.sub(r'\s+style="([^"]*)"', clean_style, html)
+    html = re.sub(r"\s+style='([^']*)'", clean_style, html)
+    return html
+
+
 class ArticleSerializer(serializers.ModelSerializer):
     content_created_time = serializers.DateTimeField(source="created_at", read_only=True)
+    date_published = serializers.DateTimeField(source="approved_at", read_only=True)
 
     class Meta:
         model = Article
         fields = [
             "id", "title", "author_name", "subtitle", "cover_image", "content",
             "status", "created_by", "created_at", "updated_at",
-            "content_created_time", "approved_at"
+            "content_created_time", "approved_at", "date_published"
         ]
         read_only_fields = ["created_by", "created_at", "updated_at", "content_created_time", "approved_at"]
         extra_kwargs = {
             "title": {"required": True},
             "author_name": {"required": True},
             "subtitle": {"required": True},
+            "cover_image": {"required": True},
         }
+
+    def validate_title(self, value):
+        return _strip_html(value)
+
+    def validate_subtitle(self, value):
+        return _strip_html(value)
+
+    def validate_content(self, value):
+        return _strip_font_styles_from_html(value) if value else value
 
 
 class ArticleUpdateSerializer(serializers.ModelSerializer):
     """Admin edit article and publish."""
     content_created_time = serializers.DateTimeField(source="created_at", read_only=True)
+    date_published = serializers.DateTimeField(source="approved_at", read_only=True)
 
     class Meta:
         model = Article
         fields = [
             "id", "title", "author_name", "subtitle", "cover_image", "content",
             "status", "created_by", "created_at", "updated_at",
-            "content_created_time", "approved_at"
+            "content_created_time", "approved_at", "date_published"
         ]
         read_only_fields = ["created_by", "created_at", "updated_at", "content_created_time", "approved_at"]
         extra_kwargs = {
@@ -156,6 +212,15 @@ class ArticleUpdateSerializer(serializers.ModelSerializer):
             "author_name": {"required": True},
             "subtitle": {"required": True},
         }
+
+    def validate_title(self, value):
+        return _strip_html(value)
+
+    def validate_subtitle(self, value):
+        return _strip_html(value)
+
+    def validate_content(self, value):
+        return _strip_font_styles_from_html(value) if value else value
 
 
 class ActivityLogSerializer(serializers.ModelSerializer):

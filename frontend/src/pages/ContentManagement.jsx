@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -8,6 +8,7 @@ import { useTitle } from '../Hooks/useTitle';
 
 function ContentManagement() {
     useTitle('Manage Content');
+    const navigate = useNavigate();
     const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -74,7 +75,8 @@ function ContentManagement() {
                                     <tr>
                                         <th>TITLE</th>
                                         <th>AUTHOR</th>
-                                        <th>DATE</th>
+                                        <th>LAST UPDATED</th>
+                                        <th>DATE PUBLISHED</th>
                                         <th>STATUS</th>
                                         <th>DETAILS</th>
                                         <th>ACTIONS</th>
@@ -86,6 +88,7 @@ function ContentManagement() {
                                             <td className="content-mgmt-cell-title">{a.title || '—'}</td>
                                             <td>{a.author_name || '—'}</td>
                                             <td>{formatDate(a.updated_at)}</td>
+                                            <td>{formatDate(a.date_published || a.approved_at)}</td>
                                             <td>
                                                 <span className={`content-mgmt-status content-mgmt-status-${a.status}`}>
                                                     {a.status === 'published' ? 'Published' : 'Draft'}
@@ -102,6 +105,13 @@ function ContentManagement() {
                                             </td>
                                             <td>
                                                 <span className="content-mgmt-actions">
+                                                    <button
+                                                        type="button"
+                                                        className="content-mgmt-edit-btn"
+                                                        onClick={() => navigate(`/dashboard/content/edit/${a.id}`)}
+                                                    >
+                                                        Edit
+                                                    </button>
                                                     {a.status === 'draft' && (
                                                         <button
                                                             type="button"

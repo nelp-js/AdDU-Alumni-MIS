@@ -34,6 +34,8 @@
     margin-top: 32px;
     margin-bottom: 40px;
     max-width: 720px;
+    width: 100%;
+    box-sizing: border-box;
     margin-left: auto;
     margin-right: auto;
 }
@@ -48,6 +50,8 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     border: none;
     width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 
@@ -336,8 +340,22 @@
 
     .events-search-section {
         max-width: 100%;
+        width: 100%;
         margin-top: 20px;
         margin-bottom: 28px;
+    }
+
+    .events-search-box {
+        padding: 4px 4px 4px 16px;
+    }
+
+    .events-find-events-btn {
+        width: 48px;
+        height: 38px;
+    }
+
+    .events-search-input {
+        font-size: 16px; /* prevents zoom on iOS */
     }
 
     .events-section-title {
@@ -407,8 +425,18 @@
     }
 
     .events-search-section {
+        width: 100%;
         margin-top: 16px;
         margin-bottom: 24px;
+    }
+
+    .events-search-box {
+        padding: 4px 4px 4px 14px;
+    }
+
+    .events-find-events-btn {
+        width: 44px;
+        height: 36px;
     }
 
     .events-section-title {

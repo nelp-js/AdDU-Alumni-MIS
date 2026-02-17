@@ -51,6 +51,7 @@ function App() {
         <Route path="/dashboard/events" element={<AdminProtectedRoute><EventManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/content" element={<AdminProtectedRoute><ContentManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/content/create" element={<AdminProtectedRoute><CreateContent /></AdminProtectedRoute>} />
+        <Route path="/dashboard/content/edit/:id" element={<AdminProtectedRoute><CreateContent /></AdminProtectedRoute>} />
         <Route path="/dashboard-preview" element={<Dashboard />} />
         <Route path="*" element={<Error />}></Route>
       </Routes>

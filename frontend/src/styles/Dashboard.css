@@ -25,18 +25,134 @@
     font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
 }
 
-/* Summary stat cards - 3 columns to match design */
-.dashboard-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
+/* Stat carousel */
+.stat-carousel {
     margin-bottom: 48px;
 }
 
+.stat-carousel-track {
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+    padding: 20px 0 50px;
+}
+
+.stat-carousel-cards {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+}
+
+.stat-carousel-card {
+    position: absolute;
+    left: 50%;
+    width: 100%;
+    max-width: 340px;
+    transition: transform 0.5s ease, opacity 0.5s ease, z-index 0.5s;
+}
+
+.stat-carousel-card-active {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+    z-index: 20;
+}
+
+.stat-carousel-card-right {
+    transform: translateX(calc(-50% + 45%)) scale(0.9);
+    opacity: 0.6;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.stat-carousel-card-left {
+    transform: translateX(calc(-50% - 45%)) scale(0.9);
+    opacity: 0.6;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.stat-carousel-card-hidden {
+    transform: translateX(-50%) scale(0.85);
+    opacity: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.stat-carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,240,255,0.9) 100%);
+    color: #302b63;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(48, 43, 99, 0.25);
+    z-index: 30;
+    transition: all 0.2s;
+}
+
+.stat-carousel-btn:hover {
+    background: linear-gradient(135deg, #ffffff 0%, #f0f0ff 100%);
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 20px rgba(48, 43, 99, 0.35);
+}
+
+.stat-carousel-btn-prev {
+    left: 12px;
+}
+
+.stat-carousel-btn-next {
+    right: 12px;
+}
+
+.stat-carousel-dots {
+    position: absolute;
+    bottom: 12px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    z-index: 30;
+}
+
+.stat-carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(48, 43, 99, 0.35);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.stat-carousel-dot:hover {
+    background: rgba(48, 43, 99, 0.6);
+}
+
+.stat-carousel-dot-active {
+    width: 24px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #302b63 0%, #24243e 100%);
+}
+
+/* Summary stat cards - used inside carousel */
+.dashboard-stats {
+    margin-bottom: 0;
+}
+
 .dashboard-stat-card {
-    background: white;
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 100%);
     border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 12px 40px rgba(15, 12, 41, 0.35);
     padding: 28px 24px;
     display: flex;
     flex-direction: column;
@@ -44,23 +160,28 @@
     gap: 12px;
 }
 
-.dashboard-stat-icon {
+.dashboard-stat-card .dashboard-stat-icon {
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #ffffff;
 }
 
-.dashboard-stat-value {
+.dashboard-stat-card .dashboard-stat-icon svg {
+    stroke: #ffffff;
+}
+
+.dashboard-stat-card .dashboard-stat-value {
     font-size: 28px;
     font-weight: 700;
-    color: #040354;
+    color: #ffffff;
     line-height: 1.2;
 }
 
-.dashboard-stat-label {
+.dashboard-stat-card .dashboard-stat-label {
     font-size: 14px;
     font-weight: 400;
-    color: #6d7280;
+    color: #ffffff;
 }
 
 /* Module cards */
@@ -227,8 +348,13 @@
 
 /* Responsive */
 @media (max-width: 1024px) {
-    .dashboard-stats {
-        grid-template-columns: repeat(2, 1fr);
+    .stat-carousel-card-right {
+        transform: translateX(calc(-50% + 60%)) scale(0.8);
+        opacity: 0.4;
+    }
+    .stat-carousel-card-left {
+        transform: translateX(calc(-50% - 60%)) scale(0.8);
+        opacity: 0.4;
     }
 
     .dashboard-modules {
@@ -246,10 +372,22 @@
         margin-bottom: 32px;
     }
 
-    .dashboard-stats {
-        grid-template-columns: 1fr;
-        gap: 16px;
+    .stat-carousel {
         margin-bottom: 32px;
+    }
+
+    .stat-carousel-track {
+        min-height: 180px;
+        padding: 16px 0 44px;
+    }
+
+    .stat-carousel-card {
+        max-width: 300px;
+    }
+
+    .stat-carousel-card-right,
+    .stat-carousel-card-left {
+        opacity: 0.3;
     }
 
     .dashboard-modules {
@@ -279,13 +417,13 @@
     }
 }
 
-/* 👇 NEW: LIVE NOTIFICATION BADGE STYLING 👇 */
+/* 👇 LIVE NOTIFICATION BADGE STYLING 👇 */
 .dashboard-notification-badge {
     position: absolute;
     top: -10px;
     right: -10px;
-    background-color: #ef4444; /* Bright Red */
-    color: white;
+    background-color: #ffffff; /* White circle */
+    color: #040354; /* Header blue */
     font-size: 12px;
     font-weight: 700;
     min-width: 20px;
@@ -293,9 +431,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%; /* Perfect Circle */
-    border: 2px solid white; /* White ring to separate from card */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border-radius: 50%;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.12);
     z-index: 10;
     padding: 2px;
 }

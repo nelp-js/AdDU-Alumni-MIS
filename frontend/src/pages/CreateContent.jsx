@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -92,10 +92,14 @@ function TiptapToolbar({ editor }) {
 }
 
 function CreateContent() {
-    useTitle('Create Content');
+    const { id } = useParams();
+    const isEditMode = Boolean(id);
+    useTitle(isEditMode ? 'Edit Content' : 'Create Content');
     const navigate = useNavigate();
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [fetchLoading, setFetchLoading] = useState(false);
+    const [loadError, setLoadError] = useState(null);
     const [submitError, setSubmitError] = useState('');
     const [showPreview, setShowPreview] = useState(false);
 
@@ -103,30 +107,49 @@ function CreateContent() {
     const [authorName, setAuthorName] = useState('');
     const [subtitle, setSubtitle] = useState('');
     const [coverImage, setCoverImage] = useState(null);
+    const [existingCoverUrl, setExistingCoverUrl] = useState(null);
     const [content, setContent] = useState('');
 
     const subtitleCount = subtitle.length;
     const wordCount = useMemo(() => countWords(content), [content]);
     const overSubtitle = subtitleCount > MAX_SUBTITLE;
     const overWords = wordCount > MAX_WORDS;
+    const hasCover = coverImage || existingCoverUrl;
     const canSubmit = Boolean(
         title.trim() &&
         authorName.trim() &&
         subtitle.trim() &&
+        hasCover &&
         !overSubtitle &&
         !overWords
     );
 
     const [coverPreviewUrl, setCoverPreviewUrl] = useState(null);
     useEffect(() => {
-        if (!coverImage) {
-            setCoverPreviewUrl(null);
-            return;
+        if (coverImage) {
+            const url = URL.createObjectURL(coverImage);
+            setCoverPreviewUrl(url);
+            return () => URL.revokeObjectURL(url);
         }
-        const url = URL.createObjectURL(coverImage);
-        setCoverPreviewUrl(url);
-        return () => URL.revokeObjectURL(url);
-    }, [coverImage]);
+        setCoverPreviewUrl(existingCoverUrl);
+    }, [coverImage, existingCoverUrl]);
+
+    useEffect(() => {
+        if (!isEditMode || !id) return;
+        setFetchLoading(true);
+        setLoadError(null);
+        api.get(`/api/articles/${id}/`)
+            .then((res) => {
+                const a = res.data;
+                setTitle(a.title || '');
+                setAuthorName(a.author_name || '');
+                setSubtitle(a.subtitle || '');
+                setContent(a.content || '');
+                if (a.cover_image) setExistingCoverUrl(a.cover_image);
+            })
+            .catch(() => setLoadError('Failed to load article.'))
+            .finally(() => setFetchLoading(false));
+    }, [isEditMode, id]);
 
     const onUpdate = useCallback(({ editor }) => {
         setContent(editor.getHTML());
@@ -140,7 +163,7 @@ function CreateContent() {
             FontSize,
             Placeholder.configure({ placeholder: 'Write your article…' }),
         ],
-        content: '',
+        content: content || '',
         editorProps: {
             attributes: {
                 class: 'cc-tiptap-editor-body',
@@ -149,8 +172,20 @@ function CreateContent() {
         onUpdate,
     });
 
+    const initialContentSet = useRef(false);
+    useEffect(() => {
+        if (editor && isEditMode && content && !initialContentSet.current) {
+            editor.commands.setContent(content);
+            initialContentSet.current = true;
+        }
+    }, [editor, isEditMode, content]);
+
     const handleSubmit = (status) => {
         if (!canSubmit) return;
+        if (!hasCover) {
+            setSubmitError('Cover image is required.');
+            return;
+        }
         const html = editor?.getHTML() ?? content;
         setSubmitError('');
         setLoading(true);
@@ -159,23 +194,40 @@ function CreateContent() {
         formData.append('author_name', authorName.trim());
         formData.append('subtitle', subtitle.trim().slice(0, MAX_SUBTITLE));
         formData.append('content', html);
-        formData.append('status', status);
-        if (coverImage) formData.append('cover_image', coverImage);
-
-        api.post('/api/articles/', formData)
-            .then(() => {
-                setSuccess(true);
-                setTimeout(() => navigate('/dashboard/content'), 3000);
-            })
-            .catch((err) => {
-                const data = err.response?.data;
-                setSubmitError(
-                    data?.detail
-                        ? (typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail))
-                        : 'Failed to save. Try again.'
-                );
-            })
-            .finally(() => setLoading(false));
+        if (isEditMode) {
+            if (coverImage) formData.append('cover_image', coverImage);
+            api.patch(`/api/articles/${id}/`, formData)
+                .then(() => {
+                    setSuccess(true);
+                    setTimeout(() => navigate('/dashboard/content'), 3000);
+                })
+                .catch((err) => {
+                    const data = err.response?.data;
+                    setSubmitError(
+                        data?.detail
+                            ? (typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail))
+                            : 'Failed to save. Try again.'
+                    );
+                })
+                .finally(() => setLoading(false));
+        } else {
+            formData.append('status', status);
+            formData.append('cover_image', coverImage);
+            api.post('/api/articles/', formData)
+                .then(() => {
+                    setSuccess(true);
+                    setTimeout(() => navigate('/dashboard/content'), 3000);
+                })
+                .catch((err) => {
+                    const data = err.response?.data;
+                    setSubmitError(
+                        data?.detail
+                            ? (typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail))
+                            : 'Failed to save. Try again.'
+                    );
+                })
+                .finally(() => setLoading(false));
+        }
     };
 
     const previewContent = editor?.getHTML() ?? content;
@@ -184,8 +236,10 @@ function CreateContent() {
         <div className="create-content-page">
             <Header />
             <main className="create-content-main">
-                <h1 className="create-content-title">Create Content</h1>
-                <p className="create-content-subtitle">Add a news article or story. Save as draft or publish.</p>
+                <h1 className="create-content-title">{isEditMode ? 'Edit Content' : 'Create Content'}</h1>
+                <p className="create-content-subtitle">
+                    {isEditMode ? 'Update the article. Changes will be saved.' : 'Add a news article or story. Save as draft or publish.'}
+                </p>
 
                 <div className="create-content-form-box">
                     {success && (
@@ -194,12 +248,14 @@ function CreateContent() {
                         </div>
                     )}
 
-                    {!success && (
-                        <form
+                    {loadError && <div className="create-content-error">{loadError}</div>}
+                    {fetchLoading && <div className="create-content-loading">Loading article…</div>}
+                    {!success && !fetchLoading && (
+                            <form
                             className="create-content-form"
                             onSubmit={(e) => {
                                 e.preventDefault();
-                                handleSubmit('draft');
+                                handleSubmit(isEditMode ? null : 'draft');
                             }}
                         >
                             {submitError && <div className="create-content-error">{submitError}</div>}
@@ -210,6 +266,14 @@ function CreateContent() {
                                     type="text"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
+                                    onPaste={(e) => {
+                                        e.preventDefault();
+                                        const plain = e.clipboardData.getData('text/plain');
+                                        const input = e.target;
+                                        const start = input.selectionStart;
+                                        const end = input.selectionEnd;
+                                        setTitle(title.slice(0, start) + plain + title.slice(end));
+                                    }}
                                     className="cc-input"
                                     placeholder="Article title"
                                     required
@@ -222,6 +286,12 @@ function CreateContent() {
                                     type="text"
                                     value={authorName}
                                     onChange={(e) => setAuthorName(e.target.value)}
+                                    onPaste={(e) => {
+                                        e.preventDefault();
+                                        const plain = e.clipboardData.getData('text/plain');
+                                        const input = e.target;
+                                        setAuthorName(authorName.slice(0, input.selectionStart) + plain + authorName.slice(input.selectionEnd));
+                                    }}
                                     className="cc-input"
                                     placeholder="Author name"
                                     required
@@ -238,6 +308,15 @@ function CreateContent() {
                                 <textarea
                                     value={subtitle}
                                     onChange={(e) => setSubtitle(e.target.value)}
+                                    onPaste={(e) => {
+                                        e.preventDefault();
+                                        const plain = e.clipboardData.getData('text/plain');
+                                        const ta = e.target;
+                                        const start = ta.selectionStart;
+                                        const end = ta.selectionEnd;
+                                        const next = subtitle.slice(0, start) + plain + subtitle.slice(end);
+                                        if (next.length <= MAX_SUBTITLE + 1) setSubtitle(next);
+                                    }}
                                     className="cc-textarea cc-subtitle"
                                     placeholder="Short deck or subtitle"
                                     maxLength={MAX_SUBTITLE + 1}
@@ -247,10 +326,10 @@ function CreateContent() {
                             </div>
 
                             <div className="cc-field">
-                                <label className="cc-label">Cover Image (optional)</label>
+                                <label className="cc-label">Cover Image <span className="cc-required">*</span></label>
                                 <label className="cc-file-wrap">
                                     <span className="cc-file-label">
-                                        {coverImage ? coverImage.name : 'Choose JPG or PNG'}
+                                        {coverImage ? coverImage.name : (existingCoverUrl ? 'Change cover (JPG or PNG)' : 'Choose JPG or PNG')}
                                     </span>
                                     <input
                                         type="file"
@@ -260,7 +339,7 @@ function CreateContent() {
                                     />
                                     <span className="cc-browse">Browse</span>
                                 </label>
-                                {coverImage && (
+                                {coverPreviewUrl && (
                                     <div className="cc-preview-wrap">
                                         <img
                                             src={coverPreviewUrl}
@@ -300,14 +379,35 @@ function CreateContent() {
                                     >
                                         Open Preview
                                     </button>
-                                    <button
-                                        type="button"
-                                        className="cc-btn cc-draft"
-                                        disabled={!canSubmit || loading}
-                                        onClick={() => handleSubmit('draft')}
-                                    >
-                                        {loading ? 'Saving…' : 'Save as Draft'}
-                                    </button>
+                                    {isEditMode ? (
+                                        <button
+                                            type="button"
+                                            className="cc-btn cc-draft"
+                                            disabled={!canSubmit || loading}
+                                            onClick={() => handleSubmit(null)}
+                                        >
+                                            {loading ? 'Saving…' : 'Save'}
+                                        </button>
+                                    ) : (
+                                        <>
+                                            <button
+                                                type="button"
+                                                className="cc-btn cc-draft"
+                                                disabled={!canSubmit || loading}
+                                                onClick={() => handleSubmit('draft')}
+                                            >
+                                                {loading ? 'Saving…' : 'Save as Draft'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="cc-btn cc-publish"
+                                                disabled={!canSubmit || loading}
+                                                onClick={() => handleSubmit('published')}
+                                            >
+                                                {loading ? 'Publishing…' : 'Publish'}
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </form>

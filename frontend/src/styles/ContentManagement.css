@@ -130,6 +130,16 @@
     gap: 8px;
 }
 
+.content-mgmt-edit-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #040354;
+    background: #f0f0f5;
+    color: #040354;
+    font-size: 13px;
+    cursor: pointer;
+}
+
 .content-mgmt-publish-btn {
     padding: 6px 12px;
     border-radius: 6px;

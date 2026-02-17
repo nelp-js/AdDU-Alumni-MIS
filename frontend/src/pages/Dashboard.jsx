@@ -8,9 +8,8 @@ import {
 } from 'react-icons/fi';
 import '../styles/Dashboard.css';
 import { useTitle } from '../Hooks/useTitle';
-
-// 👇 IMPORT THE CONTEXT HOOK
 import { useNotifications } from '../Hooks/NotificationContext';
+import StatCarousel from '../components/StatCarousel';
 
 const ICON_COLOR = '#040354';
 
@@ -23,12 +22,13 @@ const MODULE_CARDS = [
     { icon: 'fundraising', title: 'Fundraising & Donations', description: 'Campaign management, donations, and financial support', button: 'Manage Campaigns', to: '#' },
 ];
 
-const STAT_ICON_MAP = { people: FiUsers, calendar: FiCalendar, briefcase: FiBriefcase, donation: FiDollarSign };
+const STAT_ICON_MAP = { people: FiUsers, calendar: FiCalendar, briefcase: FiBriefcase, donation: FiDollarSign, document: FiFileText };
 const MODULE_ICON_MAP = { users: FiUsers, document: FiFileText, calendar: FiCalendar, briefcase: FiBriefcase, survey: FiBarChart2, fundraising: FiDollarSign };
 
-function StatIcon({ type }) {
+function StatIcon({ type, color }) {
     const Icon = STAT_ICON_MAP[type];
-    return Icon ? <Icon size={48} color={ICON_COLOR} strokeWidth={1.5} /> : null;
+    const c = color || ICON_COLOR;
+    return Icon ? <Icon size={48} color={c} strokeWidth={1.5} /> : null;
 }
 
 function ModuleIcon({ type }) {
@@ -43,6 +43,7 @@ function Dashboard() {
 
     const [alumniCount, setAlumniCount] = useState(0);
     const [eventsCount, setEventsCount] = useState(0);
+    const [articlesCount, setArticlesCount] = useState(0);
     const [statsLoading, setStatsLoading] = useState(true);
     const [activities, setActivities] = useState([]);
     const [activitiesLoading, setActivitiesLoading] = useState(true);
@@ -60,12 +61,16 @@ function Dashboard() {
 
         Promise.all([
             api.get('/api/users/').then((res) => {
-                const active = res.data.filter(u => !u.is_superuser && u.is_active !== false);
+                const active = (res.data || []).filter(u => !u.is_superuser && u.is_active !== false);
                 setAlumniCount(active.length);
             }),
             api.get('/api/events/').then((res) => {
                 const approved = (res.data || []).filter(e => e.is_approved === true);
                 setEventsCount(approved.length);
+            }),
+            api.get('/api/articles/published/').then((res) => {
+                const list = Array.isArray(res.data) ? res.data : [];
+                setArticlesCount(list.length);
             }),
         ]).catch(err => console.error(err)).finally(() => setStatsLoading(false));
 
@@ -76,7 +81,7 @@ function Dashboard() {
     const statCards = [
         { icon: 'people', value: statsLoading ? '...' : alumniCount.toLocaleString(), label: 'Total Alumni' },
         { icon: 'calendar', value: statsLoading ? '...' : eventsCount.toLocaleString(), label: 'Total Events' },
-        { icon: 'briefcase', value: '156', label: 'Active Job Postings' },
+        { icon: 'document', value: statsLoading ? '...' : articlesCount.toLocaleString(), label: 'News and Stories Posted' },
     ];
 
     return (
@@ -86,13 +91,18 @@ function Dashboard() {
                 <h1 className="dashboard-title">Admin Dashboard</h1>
 
                 <section className="dashboard-stats">
-                    {statCards.map((card) => (
-                        <div key={card.label} className="dashboard-stat-card">
-                            <div className="dashboard-stat-icon"><StatIcon type={card.icon} /></div>
-                            <div className="dashboard-stat-value">{card.value}</div>
-                            <div className="dashboard-stat-label">{card.label}</div>
-                        </div>
-                    ))}
+                    <StatCarousel
+                        items={statCards}
+                        autoRotate={true}
+                        rotateInterval={4000}
+                        renderCard={(card) => (
+                            <div className="dashboard-stat-card">
+                                <div className="dashboard-stat-icon"><StatIcon type={card.icon} color="#ffffff" /></div>
+                                <div className="dashboard-stat-value">{card.value}</div>
+                                <div className="dashboard-stat-label">{card.label}</div>
+                            </div>
+                        )}
+                    />
                 </section>
 
                 <section className="dashboard-modules">

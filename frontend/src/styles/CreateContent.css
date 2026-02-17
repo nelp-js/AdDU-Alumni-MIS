@@ -52,6 +52,13 @@
     font-size: 15px;
 }
 
+.create-content-loading {
+    text-align: center;
+    padding: 24px;
+    color: #6d7280;
+    font-size: 15px;
+}
+
 .create-content-error {
     background: #f8d7da;
     border: 1px solid #f5c6cb;

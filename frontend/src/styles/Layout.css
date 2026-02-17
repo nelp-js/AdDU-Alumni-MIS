@@ -67,23 +67,25 @@
     text-decoration: none;
 }
 
-/* 👇 NEW: HEADER NOTIFICATION BADGE (Floating Top-Right) 👇 */
+/* 👇 HEADER NOTIFICATION BADGE (Dashboard link) 👇 */
 .header-badge {
     position: absolute;
-    top: -8px;        /* Adjust up/down */
-    right: -9px;      /* Adjust left/right */
-    
-    color: #ef4444;    /* Bright Red Text */
-    font-weight: 900;  /* Extra Bold to make it visible */
-    font-size: 12px;
-    
-    /* Remove Circle & Background */
-    background: transparent;
-    box-shadow: none;
-    padding: 0;
-    min-width: auto;
-    border-radius: 0;
+    top: -11px;
+    right: -12px;
+    background-color: #ffffff;
+    color: #040354;
+    font-size: 9px;
+    font-weight: 700;
+    min-width: 10px;
+    height: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.12);
     z-index: 10;
+    padding: 2px;
 }
 
 /* Footer */
