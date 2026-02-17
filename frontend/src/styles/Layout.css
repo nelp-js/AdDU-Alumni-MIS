@@ -7,7 +7,7 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    z-index: 1;
+    z-index: 100; /* Increased to ensure it stays above content */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
 }
@@ -72,30 +72,6 @@
     opacity: 0.8;
 }
 
-.site-header .header-nav .header-nav-link.active {
-    text-decoration: none;
-}
-
-.site-header .header-badge {
-    position: absolute;
-    top: -11px;
-    right: -12px;
-    background-color: #ffffff;
-    color: #040354;
-    font-size: 9px;
-    font-weight: 700;
-    min-width: 10px;
-    height: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-    z-index: 10;
-    padding: 2px;
-}
-
 /* Footer */
 .site-footer {
     background-color: #040354;
@@ -147,116 +123,21 @@
     margin: 0;
 }
 
-.footer-section h3 {
-    color: white;
-    font-size: 16px;
-    font-weight: 400;
-    margin: 0 0 10px 0;
-}
-
-.footer-links {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.footer-links a {
-    color: white;
-    text-decoration: none;
-    font-size: 14px;
-    transition: opacity 0.3s ease;
-}
-
-.footer-links a:hover {
-    opacity: 0.8;
-}
-
-/* Social Icons */
-.social-icons {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.social-icons a {
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    transition: opacity 0.3s ease;
-}
-
-.social-icons a:hover {
-    opacity: 0.8;
-}
-
-.social-icons svg {
-    width: 24px;
-    height: 24px;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-    .footer-content {
-        grid-template-columns: 2fr 1fr 1fr;
-        gap: 30px;
-    }
-
-    .footer-events {
-        grid-column: 1 / -1;
-    }
-}
-
-@media (max-width: 768px) {
-    .site-header .header-content {
-        flex-direction: column;
-        gap: 15px;
-        padding: 20px;
-    }
-
-    .site-header .header-nav {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 15px;
-    }
-
-    .footer-content {
-        grid-template-columns: 1fr;
-        gap: 30px;
-    }
-
-    .footer-section {
-        text-align: center;
-    }
-
-    .footer-logo-section {
-        justify-content: center;
-    }
-
-    .social-icons {
-        justify-content: center;
-    }
-}
-
 /* --- Profile Dropdown & Button Styles --- */
 
-/* Wrapper to position the dropdown relative to the button */
 .profile-container {
     position: relative;
     display: flex;
     align-items: center;
 }
 
-/* The Profile Button (Matches your .header-nav a styles) */
 .profile-btn {
     background: none;
     border: none;
     color: white;
     font-size: 14px;
     font-weight: 500;
-    font-family: inherit; /* Inherits your site's font */
+    font-family: inherit;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -269,14 +150,6 @@
     opacity: 0.8;
 }
 
-/* Logged-in avatar: initials pill + chevron */
-.profile-btn-avatar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 0;
-}
-
 .profile-initials {
     display: inline-flex;
     align-items: center;
@@ -285,28 +158,20 @@
     height: 30px;
     background-color: #ffffff;
     color: #333333;
-    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
+    font-family: 'Avenir LT Std', sans-serif;
     font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0.02em;
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-.profile-chevron {
-    font-size: 1.1em;
-    color: white;
-    flex-shrink: 0;
-}
-
-/* The Dropdown Card (Dark Moodle Style) */
+/* The Dropdown Card */
 .profile-dropdown {
     position: absolute;
-    top: 45px; /* Pushes it just below the header */
+    top: 45px;
     right: 0;
-    width: 260px;
-    background-color: #333333; /* Dark Grey Background */
+    width: 280px; /* Width increased for better spacing */
+    background-color: #333333;
     color: white;
     border-radius: 4px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -315,12 +180,12 @@
     border: 1px solid #444;
 }
 
-/* User Info Section */
+/* User Info Section - FIXES OVERLAP */
 .dropdown-info {
     padding: 16px;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-direction: column; /* Stack name, email, and button vertically */
+    gap: 10px; /* Space out the items so they don't overlap */
 }
 
 .user-fullname {
@@ -331,17 +196,34 @@
 
 .user-email {
     font-size: 13px;
-    color: #bbbbbb; /* Light Grey */
+    color: #bbbbbb;
     word-break: break-all;
+}
+
+/* Explicit Button Styling for 'Edit cover' */
+.dropdown-info button, 
+.dropdown-info .edit-cover-btn {
+    align-self: flex-start; /* Keeps button from stretching full width */
+    background-color: white;
+    color: #040354;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .user-username {
     font-size: 12px;
-    color: #999999; /* Darker Grey */
+    color: #999999;
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-top: 6px;
 }
 
 /* Divider Line */
@@ -351,7 +233,7 @@
     width: 100%;
 }
 
-/* Profile & Logout buttons */
+/* Dropdown Items (Profile, Logout) */
 .dropdown-item,
 .dropdown-logout {
     width: 100%;
@@ -363,17 +245,13 @@
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px; /* Consistent gap for icons */
     font-size: 14px;
     transition: background-color 0.2s;
 }
 
+.dropdown-item:hover,
 .dropdown-logout:hover {
-    background-color: #444; /* Hover effect inside dropdown */
+    background-color: #444;
     color: white;
-}
-
-/* Icons */
-.info-icon, .logout-icon, .dropdown-icon {
-    font-size: 14px;
 }

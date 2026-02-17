@@ -15,11 +15,11 @@
     transition: box-shadow 0.2s, border-color 0.2s;
 }
 
-/* --- CARD HEADER (Title + Combined Icons) --- */
+/* --- CARD HEADER --- */
 .card-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: center; /* Vertically centers Title and Plus icon */
     margin-bottom: 20px;
 }
 
@@ -30,14 +30,12 @@
     margin: 0;
 }
 
-/* Grouping the + and Pencil icons together on the right */
 .card-header-actions {
     display: flex;
     align-items: center;
-    gap: 8px; /* Space between the two icons */
+    gap: 12px;
 }
 
-/* Base style for bare header icons (+ and pencil) */
 .icon-btn {
     background: none;
     border: none;
@@ -57,19 +55,20 @@
 }
 
 /* --- ITEM LAYOUT (Experience & Education) --- */
-.profile-exp-item, 
+.profile-exp-item,
 .profile-edu-item {
     display: flex;
+    align-items: flex-start; 
     gap: 16px;
     padding: 16px 0;
 }
 
-.profile-exp-item-divider, 
+.profile-exp-item-divider,
 .profile-edu-item-divider {
     border-top: 1px solid #e5e7eb;
 }
 
-.profile-exp-logo, 
+.profile-exp-logo,
 .profile-edu-logo {
     flex-shrink: 0;
     width: 48px;
@@ -82,21 +81,36 @@
     overflow: hidden;
 }
 
-.profile-exp-logo-img, 
+.profile-exp-logo-img,
 .profile-edu-logo-img {
     width: 100%;
     height: 100%;
     object-fit: contain;
 }
 
-/* Body Content */
-.profile-exp-body, 
+.profile-edu-logo-fallback {
+    font-size: 16px;
+    font-weight: 700;
+    color: #374151;
+}
+
+/* Body Content Wrapper */
+.profile-exp-body,
 .profile-edu-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Middle-aligns the underlined pencil with the text block */
+}
+
+.profile-exp-content {
     flex: 1;
     min-width: 0;
 }
 
-.profile-exp-title, 
+/* Typography */
+.profile-exp-title,
 .profile-edu-title {
     margin: 0 0 2px 0;
     font-size: 16px;
@@ -104,22 +118,23 @@
     color: #111827;
 }
 
-.profile-exp-company, 
+.profile-exp-company,
 .profile-edu-subtitle {
     margin: 0 0 2px 0;
     font-size: 14px;
     color: #111827;
 }
 
-.profile-exp-meta, 
+.profile-exp-meta,
 .profile-edu-meta {
-    margin: 0 0 4px 0;
+    margin: 0; 
     font-size: 14px;
     color: #6b7280;
 }
 
-.profile-exp-desc, 
-.profile-edu-desc {
+.profile-exp-desc,
+.profile-edu-desc,
+.profile-edu-activities {
     margin: 8px 0 0 0;
     font-size: 14px;
     color: #4b5563;
@@ -127,45 +142,31 @@
     white-space: pre-wrap;
 }
 
+/* --- INDIVIDUAL ITEM PENCIL (FiEdit3) --- */
+.profile-exp-edit-icon,
+.profile-edu-edit-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666666;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s, color 0.2s;
+    margin-left: 12px;
+    flex-shrink: 0;
+    align-self: center; /* Ensures it stays centered even if text wraps long */
+}
+
+.profile-exp-edit-icon:hover,
+.profile-edu-edit-icon:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+
 /* --- SHARED FORM STYLES --- */
-.profile-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.profile-form-row {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.profile-form-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #374151;
-}
-
-.profile-form-input {
-    padding: 10px 14px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 15px;
-}
-
-.profile-form-input:focus {
-    outline: none;
-    border-color: #040354;
-    box-shadow: 0 0 0 1px #040354;
-}
-
-.profile-form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 12px;
-}
-
 .profile-form-submit {
     padding: 10px 24px;
     background: #040354;

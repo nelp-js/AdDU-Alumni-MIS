@@ -1,6 +1,5 @@
 import { useState } from 'react';
-// 👇 Use FiPlus and FiEdit2 for that specific thin-line look
-import { FiPlus, FiEdit2 } from 'react-icons/fi';
+import { FiPlus, FiEdit3 } from 'react-icons/fi';
 import EditModal from './EditModal';
 import UniversityAutocomplete from './UniversityAutocomplete';
 import { extractDomain, getFaviconUrl } from '../utils/autocomplete';
@@ -8,7 +7,7 @@ import '../styles/ProfileSection.css';
 import '../styles/ExperienceModal.css';
 
 const currentYear = new Date().getFullYear();
-const YEARS = Array.from({ length: 50 }, (_, i) => (currentYear + 5) - i); // Extended to include future graduation
+const YEARS = Array.from({ length: 50 }, (_, i) => (currentYear + 5) - i); 
 const MONTHS = [
     { value: '', label: 'Month' },
     { value: '1', label: 'January' }, { value: '2', label: 'February' }, { value: '3', label: 'March' },
@@ -140,7 +139,6 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
     return (
         <section className="profile-section">
             <div className="profile-card">
-                {/* 👇 1. Combined Header Actions */}
                 <div className="card-header">
                     <h2 className="card-title">Education</h2>
                     <div className="card-header-actions">
@@ -152,13 +150,6 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
                         >
                             <FiPlus size={24} />
                         </button>
-                        <button 
-                            type="button" 
-                            className="icon-btn" 
-                            onClick={() => {/* Section-wide edit logic */}}
-                        >
-                            <FiEdit2 size={20} />
-                        </button>
                     </div>
                 </div>
 
@@ -168,32 +159,45 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
                     ) : (
                         educations.map((edu, idx) => {
                             const dateStr = formatEduDateRange(edu.start_month, edu.start_year, edu.end_month, edu.end_year);
+                            
+                            // AdDU Specific Seal Logic
+                            const isAdDU = edu.school_name?.toLowerCase().includes("ateneo de davao");
+                            const adduSeal = "https://res.cloudinary.com/dwi7oftcs/image/upload/v1770416948/UniversitySeal240px_zblv2w.png";
+                            
+                            const logoUrl = edu.school_logo_url;
+                            const domain = extractDomain(edu.school_website);
+                            const faviconUrl = domain ? getFaviconUrl(domain) : null;
+                            const src = isAdDU ? adduSeal : (logoUrl || faviconUrl);
+
                             return (
                                 <div key={edu.id} className={`profile-edu-item ${idx > 0 ? 'profile-edu-item-divider' : ''}`}>
-                                    <div className="profile-edu-logo">
-                                        {(() => {
-                                            const logoUrl = edu.school_logo_url;
-                                            const domain = extractDomain(edu.school_website);
-                                            const faviconUrl = domain ? getFaviconUrl(domain) : null;
-                                            const src = logoUrl || faviconUrl;
-                                            if (src) {
-                                                return (
-                                                    <img
-                                                        src={src}
-                                                        alt=""
-                                                        className="profile-edu-logo-img"
-                                                        onError={(e) => {
-                                                            e.target.style.display = 'none';
-                                                            e.target.nextSibling.style.display = 'flex';
-                                                        }}
-                                                    />
-                                                );
-                                            }
-                                            return null;
-                                        })()}
-                                        <span className="profile-edu-logo-fallback">
-                                            {edu.school_name ? edu.school_name.slice(0, 1).toUpperCase() : '?'}
-                                        </span>
+                                    <div 
+                                        className="profile-edu-logo" 
+                                        style={{ 
+                                            backgroundColor: isAdDU ? '#ffffff' : '#ffffff',
+                                            padding: isAdDU ? '4px' : '0' 
+                                        }}
+                                    >
+                                        {src ? (
+                                            <>
+                                                <img
+                                                    src={src}
+                                                    alt={edu.school_name}
+                                                    className="profile-edu-logo-img"
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                                                    }}
+                                                />
+                                                <span className="profile-edu-logo-fallback" style={{ display: 'none' }}>
+                                                    {edu.school_name ? edu.school_name.slice(0, 1).toUpperCase() : '?'}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <span className="profile-edu-logo-fallback">
+                                                {edu.school_name ? edu.school_name.slice(0, 1).toUpperCase() : '?'}
+                                            </span>
+                                        )}
                                     </div>
 
                                     <div className="profile-edu-body">
@@ -211,14 +215,13 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
                                             {edu.description && <p className="profile-edu-desc">{edu.description}</p>}
                                         </div>
                                         
-                                        {/* 👇 Individual Edit Icon */}
                                         <button
                                             type="button"
                                             className="profile-edu-edit-icon"
                                             onClick={() => openEdit(edu)}
                                             title="Edit Item"
                                         >
-                                            <FiEdit2 size={18} />
+                                            <FiEdit3 size={20} />
                                         </button>
                                     </div>
                                 </div>
@@ -252,7 +255,6 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
                             required
                         />
                     </div>
-                    {/* ... (rest of the form fields remain the same) */}
                     <div className="exp-form-row">
                         <label className="exp-form-label">Degree</label>
                         <input type="text" name="degree" value={form.degree} onChange={handleChange} className="exp-form-input" placeholder="Ex: Bachelor's" />
@@ -270,7 +272,9 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
                                 </select>
                                 <select name="start_year" value={form.start_year} onChange={handleChange} className="exp-form-input exp-form-select">
                                     <option value="">Year</option>
-                                    {YEARS.map((y) => (<option key={y} value={y}>{y}</option>))}
+                                    {YEARS.map((y) => (
+                                        <option key={y} value={y}>{y}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
@@ -282,7 +286,9 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
                                 </select>
                                 <select name="end_year" value={form.end_year} onChange={handleChange} className="exp-form-input exp-form-select">
                                     <option value="">Year</option>
-                                    {YEARS.map((y) => (<option key={y} value={y}>{y}</option>))}
+                                    {YEARS.map((y) => (
+                                        <option key={y} value={y}>{y}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
