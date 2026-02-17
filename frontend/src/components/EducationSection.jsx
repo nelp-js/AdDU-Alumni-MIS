@@ -99,8 +99,8 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
         <section className="profile-section">
             <div className="profile-section-header">
                 <h2 className="profile-section-title">Education</h2>
-                <button type="button" className="profile-section-add" onClick={openAdd}>
-                    + Add Education
+                <button type="button" className="profile-section-add-outline" onClick={openAdd}>
+                    Add Education
                 </button>
             </div>
             <div className="profile-section-cards">
@@ -108,20 +108,23 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
                     <p className="profile-section-empty">No education added yet.</p>
                 ) : (
                     educations.map((edu) => (
-                        <div key={edu.id} className="profile-card">
-                            <div className="profile-card-main">
-                                <h3 className="profile-card-title">{edu.school_name || '—'}</h3>
-                                <p className="profile-card-subtitle">
-                                    {[edu.degree, edu.field_of_study].filter(Boolean).join(' · ') || '—'}
+                        <div key={edu.id} className="profile-edu-item">
+                            <div className="profile-edu-logo">
+                                <img src="https://res.cloudinary.com/dwi7oftcs/image/upload/f_auto,q_auto/v1770416947/addulogo_gexxac.jpg" alt="" className="profile-edu-logo-img" />
+                            </div>
+                            <div className="profile-edu-content">
+                                <h3 className="profile-edu-title">{edu.school_name || '—'}</h3>
+                                <p className="profile-edu-subtitle">
+                                    {[edu.degree, edu.field_of_study].filter(Boolean).join(', ') || '—'}
                                 </p>
-                                <p className="profile-card-meta">
+                                <p className="profile-edu-meta">
                                     {formatYearRange(edu.start_year, edu.end_year)}
                                 </p>
                                 {edu.description && (
-                                    <p className="profile-card-desc">{edu.description}</p>
+                                    <p className="profile-edu-desc">{edu.description}</p>
                                 )}
                             </div>
-                            <div className="profile-card-actions">
+                            <div className="profile-edu-actions">
                                 <button type="button" className="profile-card-btn" onClick={() => openEdit(edu)}>
                                     Edit
                                 </button>

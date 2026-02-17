@@ -31,6 +31,8 @@ function Profile() {
     const [infoError, setInfoError] = useState('');
     const [profilePicFile, setProfilePicFile] = useState(null);
     const [coverFile, setCoverFile] = useState(null);
+    const [dismissEnhance, setDismissEnhance] = useState(false);
+    const [openExperienceAdd, setOpenExperienceAdd] = useState(false);
 
     const fetchProfile = useCallback(() => {
         api.get('/api/profile/')
@@ -108,7 +110,9 @@ function Profile() {
             <div className="profile-page">
                 <Header />
                 <main className="profile-main">
-                    <p className="profile-loading">Loading…</p>
+                    <div className="profile-wrapper">
+                        <p className="profile-loading">Loading…</p>
+                    </div>
                 </main>
                 <Footer />
             </div>
@@ -120,10 +124,12 @@ function Profile() {
             <div className="profile-page">
                 <Header />
                 <main className="profile-main">
-                    <p className="profile-error">{error || 'Please log in to view your profile.'}</p>
-                    <button type="button" className="profile-login-btn" onClick={() => navigate('/login')}>
-                        Go to Login
-                    </button>
+                    <div className="profile-wrapper">
+                        <p className="profile-error">{error || 'Please log in to view your profile.'}</p>
+                        <button type="button" className="profile-login-btn" onClick={() => navigate('/login')}>
+                            Go to Login
+                        </button>
+                    </div>
                 </main>
                 <Footer />
             </div>
@@ -134,49 +140,79 @@ function Profile() {
         <div className="profile-page">
             <Header />
             <main className="profile-main">
-                <ProfileHeader
-                    profile={profile}
-                    onCoverChange={setCoverFile}
-                    onProfilePicChange={setProfilePicFile}
-                    isEditing
-                />
+                <div className="profile-wrapper">
+                    <ProfileHeader
+                        profile={profile}
+                        onCoverChange={setCoverFile}
+                        onProfilePicChange={setProfilePicFile}
+                        isEditing
+                    />
 
-                <div className="profile-content">
+                    <div className="profile-content">
                     <div className="profile-info-card">
-                        <div className="profile-info-header">
-                            <h2 className="profile-info-name" style={{ textTransform: 'capitalize' }}>
-                                {fullName}
-                            </h2>
-                            <span className="profile-info-username">@{profile.username}</span>
+                        <div className="profile-info-top">
+                            <div className="profile-info-main">
+                                <h1 className="profile-info-name" style={{ textTransform: 'capitalize' }}>
+                                    {fullName}
+                                </h1>
+                                {profile.bio && (
+                                    <p className="profile-info-title">{profile.bio}</p>
+                                )}
+                                <div className="profile-info-meta">
+                                    {profile.location && (
+                                        <span className="profile-info-meta-item">{profile.location}</span>
+                                    )}
+                                    {profile.website && (
+                                        <a
+                                            href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="profile-info-meta-item profile-info-contact"
+                                        >
+                                            Contact Info
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="profile-info-actions">
+                                <button
+                                    type="button"
+                                    className="profile-info-edit-btn"
+                                    onClick={() => setEditingInfo(true)}
+                                    title="Edit profile"
+                                >
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                    </svg>
+                                    Edit Profile
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {!dismissEnhance && (profile.experiences || []).length === 0 && (
+                        <div className="profile-enhance">
+                            <p className="profile-enhance-text">
+                                Enhance your own profile by adding a work experience.{' '}
+                                <button
+                                    type="button"
+                                    className="profile-enhance-link"
+                                    onClick={() => setOpenExperienceAdd(true)}
+                                >
+                                    Add Experience
+                                </button>
+                            </p>
                             <button
                                 type="button"
-                                className="profile-info-edit-btn"
-                                onClick={() => setEditingInfo(true)}
+                                className="profile-enhance-dismiss"
+                                onClick={() => setDismissEnhance(true)}
+                                aria-label="Dismiss"
                             >
-                                Edit Profile
+                                ×
                             </button>
                         </div>
-                        {profile.bio && (
-                            <p className="profile-info-bio">{profile.bio}</p>
-                        )}
-                        {(profile.location || profile.website) && (
-                            <div className="profile-info-meta">
-                                {profile.location && (
-                                    <span className="profile-info-meta-item">📍 {profile.location}</span>
-                                )}
-                                {profile.website && (
-                                    <a
-                                        href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="profile-info-meta-item profile-info-link"
-                                    >
-                                        🔗 {profile.website}
-                                    </a>
-                                )}
-                            </div>
-                        )}
-                    </div>
+                    )}
 
                     <ExperienceSection
                         experiences={profile.experiences || []}
@@ -184,6 +220,8 @@ function Profile() {
                         onUpdate={fetchProfile}
                         onDelete={fetchProfile}
                         api={api}
+                        openAddTrigger={openExperienceAdd}
+                        onOpenAddConsumed={() => setOpenExperienceAdd(false)}
                     />
 
                     <EducationSection
@@ -193,6 +231,7 @@ function Profile() {
                         onDelete={fetchProfile}
                         api={api}
                     />
+                    </div>
                 </div>
             </main>
             <Footer />

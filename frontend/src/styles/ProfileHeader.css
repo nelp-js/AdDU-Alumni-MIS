@@ -8,6 +8,7 @@
     height: 200px;
     background: linear-gradient(135deg, #040354 0%, #1e3a8a 100%);
     overflow: hidden;
+    border-radius: 12px 12px 0 0;
 }
 
 .profile-cover {
@@ -26,24 +27,26 @@
     display: none;
 }
 
-.profile-cover-edit {
+.profile-cover-gear {
     position: absolute;
-    bottom: 16px;
+    top: 16px;
     right: 16px;
-    padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.95);
-    color: #040354;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.9);
+    color: #4b5563;
     border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
+    border-radius: 50%;
     cursor: pointer;
-    transition: background 0.2s, transform 0.2s;
+    transition: background 0.2s, color 0.2s;
 }
 
-.profile-cover-edit:hover {
+.profile-cover-gear:hover {
     background: #fff;
-    transform: translateY(-1px);
+    color: #040354;
 }
 
 .profile-avatar-wrap {
@@ -83,28 +86,27 @@
     display: none;
 }
 
-.profile-avatar-edit {
+.profile-avatar-pencil {
     position: absolute;
     right: 0;
     bottom: 0;
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: #040354;
-    color: #fff;
-    border: 2px solid #fff;
-    font-size: 12px;
-    font-weight: 600;
+    background: #fff;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s, transform 0.2s;
+    transition: background 0.2s, color 0.2s;
 }
 
-.profile-avatar-edit:hover {
-    background: #1e3a8a;
-    transform: scale(1.05);
+.profile-avatar-pencil:hover {
+    background: #f9fafb;
+    color: #040354;
 }
 
 @media (max-width: 640px) {

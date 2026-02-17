@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { FiSettings, FiEdit3 } from 'react-icons/fi';
 import { getOptimizedUrl } from '../utils/imageUtils';
 import '../styles/ProfileHeader.css';
 
@@ -48,10 +49,12 @@ function ProfileHeader({ profile, onCoverChange, onProfilePicChange, isEditing }
                         />
                         <button
                             type="button"
-                            className="profile-cover-edit"
+                            className="profile-cover-gear"
                             onClick={() => coverInputRef.current?.click()}
+                            title="Change cover photo"
+                            aria-label="Change cover photo"
                         >
-                            Change cover photo
+                            <FiSettings size={20} />
                         </button>
                     </>
                 )}
@@ -84,10 +87,12 @@ function ProfileHeader({ profile, onCoverChange, onProfilePicChange, isEditing }
                             />
                             <button
                                 type="button"
-                                className="profile-avatar-edit"
+                                className="profile-avatar-pencil"
                                 onClick={() => profilePicInputRef.current?.click()}
+                                title="Edit profile picture"
+                                aria-label="Edit profile picture"
                             >
-                                Edit
+                                <FiEdit3 size={16} />
                             </button>
                         </>
                     )}

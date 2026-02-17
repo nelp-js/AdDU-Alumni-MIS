@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import EditModal from './EditModal';
 import '../styles/ProfileSection.css';
 
@@ -22,13 +22,22 @@ const emptyExperience = () => ({
 });
 
 function formatDateRange(start, end, isCurrent) {
-    if (!start && !end) return '';
-    const s = start ? new Date(start).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
-    const e = isCurrent ? 'Present' : (end ? new Date(end).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '');
-    return [s, e].filter(Boolean).join(' – ');
+    if (!start && !end && !isCurrent) return '';
+    const s = start ? new Date(start).getFullYear() : '';
+    const e = isCurrent ? 'Present' : (end ? new Date(end).getFullYear() : '');
+    const range = [s, e].filter(Boolean).join(' - ');
+    return range;
 }
 
-function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api }) {
+function getYearsDiff(start, end, isCurrent) {
+    if (!start) return null;
+    const startDate = new Date(start);
+    const endDate = isCurrent ? new Date() : (end ? new Date(end) : new Date());
+    const years = Math.floor((endDate - startDate) / (365.25 * 24 * 60 * 60 * 1000));
+    return years >= 0 ? years : null;
+}
+
+function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api, openAddTrigger, onOpenAddConsumed }) {
     const [modalOpen, setModalOpen] = useState(false);
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState(emptyExperience());
@@ -41,6 +50,16 @@ function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api }) {
         setError('');
         setModalOpen(true);
     };
+
+    useEffect(() => {
+        if (openAddTrigger) {
+            setEditing(null);
+            setForm(emptyExperience());
+            setError('');
+            setModalOpen(true);
+            onOpenAddConsumed?.();
+        }
+    }, [openAddTrigger, onOpenAddConsumed]);
 
     const openEdit = (exp) => {
         setEditing(exp);
@@ -112,35 +131,37 @@ function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api }) {
                     + Add Experience
                 </button>
             </div>
-            <div className="profile-section-cards">
+            <div className={`profile-section-cards ${experiences.length > 0 ? 'profile-experience-card' : ''}`}>
                 {experiences.length === 0 ? (
                     <p className="profile-section-empty">No experience added yet.</p>
                 ) : (
-                    experiences.map((exp) => (
-                        <div key={exp.id} className="profile-card">
-                            <div className="profile-card-main">
-                                <h3 className="profile-card-title">{exp.job_title || '—'}</h3>
-                                <p className="profile-card-subtitle">{exp.company_name || '—'}</p>
-                                <p className="profile-card-meta">
-                                    {EMPLOYMENT_TYPES.find((t) => t.value === exp.employment_type)?.label || exp.employment_type}
-                                    {exp.start_date || exp.end_date || exp.is_current ? (
-                                        <span> · {formatDateRange(exp.start_date, exp.end_date, exp.is_current)}</span>
-                                    ) : null}
-                                </p>
-                                {exp.description && (
-                                    <p className="profile-card-desc">{exp.description}</p>
-                                )}
+                    experiences.map((exp, idx) => {
+                        const range = formatDateRange(exp.start_date, exp.end_date, exp.is_current);
+                        const yrs = getYearsDiff(exp.start_date, exp.end_date, exp.is_current);
+                        const durationStr = range ? (yrs != null ? `${range} • ${yrs} yr${yrs !== 1 ? 's' : ''}` : range) : '';
+                        return (
+                            <div key={exp.id} className={`profile-exp-item ${idx > 0 ? 'profile-exp-item-divider' : ''}`}>
+                                <div className="profile-exp-content">
+                                    <h3 className="profile-exp-title">{exp.job_title || '—'}</h3>
+                                    <p className="profile-exp-company">{exp.company_name || '—'}</p>
+                                    {durationStr && (
+                                        <p className="profile-exp-meta">{durationStr}</p>
+                                    )}
+                                    {exp.description && (
+                                        <p className="profile-exp-desc">{exp.description}</p>
+                                    )}
+                                </div>
+                                <div className="profile-exp-actions">
+                                    <button type="button" className="profile-card-btn" onClick={() => openEdit(exp)}>
+                                        Edit
+                                    </button>
+                                    <button type="button" className="profile-card-btn profile-card-btn-danger" onClick={() => handleDelete(exp.id)}>
+                                        Delete
+                                    </button>
+                                </div>
                             </div>
-                            <div className="profile-card-actions">
-                                <button type="button" className="profile-card-btn" onClick={() => openEdit(exp)}>
-                                    Edit
-                                </button>
-                                <button type="button" className="profile-card-btn profile-card-btn-danger" onClick={() => handleDelete(exp.id)}>
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
 

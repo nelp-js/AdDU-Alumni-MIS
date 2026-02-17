@@ -98,8 +98,8 @@ class EducationSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    experiences = ExperienceSerializer(many=True, read_only=True)
-    educations = EducationSerializer(many=True, read_only=True)
+    experiences = ExperienceSerializer(many=True, read_only=True, source='user.experiences')
+    educations = EducationSerializer(many=True, read_only=True, source='user.educations')
     first_name = serializers.CharField(source='user.first_name', required=False)
     middle_name = serializers.CharField(source='user.middle_name', required=False, allow_blank=True)
     last_name = serializers.CharField(source='user.last_name', required=False)
