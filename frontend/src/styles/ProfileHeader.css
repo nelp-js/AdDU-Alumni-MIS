@@ -12,7 +12,7 @@
 }
 
 /* --- COVER PHOTO --- */
-.header-cover {
+.profile-header-card .header-cover {
     width: 100%;
     height: 200px;
     background-color: #a0b4b7;
@@ -22,17 +22,17 @@
     border-radius: 12px 12px 0 0;
 }
 
-.header-cover.editable {
+.profile-header-card .header-cover.editable {
     cursor: pointer;
 }
 
-.header-cover-placeholder {
+.profile-header-card .header-cover-placeholder {
     width: 100%;
     height: 100%;
     background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
 }
 
-.header-edit-cover-btn {
+.profile-header-card .header-edit-cover-btn {
     position: absolute;
     top: 16px;
     right: 16px;
@@ -52,12 +52,12 @@
     z-index: 10;
 }
 
-.header-edit-cover-btn:hover {
+.profile-header-card .header-edit-cover-btn:hover {
     background: #f3f4f6;
 }
 
 /* --- PROFILE PICTURE --- */
-.header-pic-wrapper {
+.profile-header-card .header-pic-wrapper {
     position: relative;
     width: 160px;
     height: 160px;
@@ -67,7 +67,7 @@
     z-index: 5;
 }
 
-.header-pic-inner {
+.profile-header-card .header-pic-inner {
     width: 100%;
     height: 100%;
     border-radius: 50%;
@@ -78,13 +78,14 @@
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.header-pic, .header-pic-placeholder {
+.profile-header-card .header-pic,
+.profile-header-card .header-pic-placeholder {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.header-pic-placeholder {
+.profile-header-card .header-pic-placeholder {
     background: #e0e0e0;
     display: flex;
     align-items: center;
@@ -95,23 +96,23 @@
 }
 
 /* --- CONTENT AREA --- */
-.header-content {
+.profile-header-card .header-content {
     padding: 0 24px 24px 24px;
 }
 
-.header-row {
+.profile-header-card .header-row {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     width: 100%;
 }
 
-.header-info {
+.profile-header-card .header-info {
     flex: 1;
     margin-right: 24px;
 }
 
-.header-name {
+.profile-header-card .header-name {
     font-size: 24px;
     font-weight: 600;
     color: #1a1a1a;
@@ -120,14 +121,14 @@
     text-transform: capitalize;
 }
 
-.header-headline {
+.profile-header-card .header-headline {
     font-size: 16px;
     color: #1a1a1a;
     margin: 0 0 8px 0;
     line-height: 1.4;
 }
 
-.header-meta {
+.profile-header-card .header-meta {
     font-size: 14px;
     color: #6b7280;
     margin-bottom: 8px;
@@ -137,12 +138,12 @@
     gap: 6px;
 }
 
-.header-dot {
+.profile-header-card .header-dot {
     font-weight: bold;
     margin: 0 2px;
 }
 
-.header-contact-btn {
+.profile-header-card .header-contact-btn {
     background: none;
     border: none;
     color: #0a66c2;
@@ -153,17 +154,17 @@
     text-decoration: none;
 }
 
-.header-contact-btn:hover {
+.profile-header-card .header-contact-btn:hover {
     text-decoration: underline;
 }
 
 /* --- RIGHT ACTION (Edit Button) --- */
-.header-right-action {
+.profile-header-card .header-right-action {
     margin-left: auto;
     margin-top: 4px;
 }
 
-.edit-profile-btn {
+.profile-header-card .edit-profile-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -177,7 +178,7 @@
     transition: background 0.2s;
 }
 
-.edit-profile-btn:hover {
+.profile-header-card .edit-profile-btn:hover {
     background-color: #f3f4f6;
     color: #1a1a1a;
 }
@@ -199,13 +200,13 @@
 
 
 @media (max-width: 640px) {
-    .header-pic-wrapper {
+    .profile-header-card .header-pic-wrapper {
         width: 130px;
         height: 130px;
         margin-top: -80px;
     }
     
-    .header-right-action {
+    .profile-header-card .header-right-action {
         position: absolute;
         top: 216px; /* Adjust based on cover height */
         right: 24px;

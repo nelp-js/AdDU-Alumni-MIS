@@ -3,22 +3,27 @@
 /* Header */
 .site-header {
     background-color: #040354;
-    padding: 15px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: relative;
     z-index: 1;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
 }
 
-.header-content {
+.site-header .header-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 30px;
+    padding: 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.header-logo-section {
+.site-header .header-logo-section {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -26,48 +31,52 @@
     color: white;
 }
 
-.header-logo-section:hover {
+.site-header .header-logo-section:hover {
     opacity: 0.9;
 }
 
-.header-logo {
+.site-header .header-logo {
     width: 40px;
     height: 40px;
     object-fit: contain;
+    display: block;
+    vertical-align: middle;
 }
 
-.header-title {
+.site-header .header-title {
     color: white;
     font-size: 18px;
     letter-spacing: 0.5px;
     font-family: 'Trajan Pro', serif;
+    line-height: 1;
 }
 
-.header-nav {
+.site-header .header-nav {
     display: flex;
     gap: 25px;
     align-items: center;
 }
 
-.header-nav a,
-.header-nav .header-nav-link {
+.site-header .header-nav a,
+.site-header .header-nav .header-nav-link {
     color: white;
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
+    line-height: 1;
     transition: opacity 0.3s ease;
 }
 
-.header-nav a:hover,
-.header-nav .header-nav-link:hover {
+.site-header .header-nav a:hover,
+.site-header .header-nav .header-nav-link:hover {
     opacity: 0.8;
 }
 
-.header-nav .header-nav-link.active {
+.site-header .header-nav .header-nav-link.active {
     text-decoration: none;
 }
 
-.header-badge {
+.site-header .header-badge {
     position: absolute;
     top: -11px;
     right: -12px;
@@ -201,13 +210,13 @@
 }
 
 @media (max-width: 768px) {
-    .header-content {
+    .site-header .header-content {
         flex-direction: column;
         gap: 15px;
-        padding: 0 20px;
+        padding: 20px;
     }
 
-    .header-nav {
+    .site-header .header-nav {
         flex-wrap: wrap;
         justify-content: center;
         gap: 15px;
