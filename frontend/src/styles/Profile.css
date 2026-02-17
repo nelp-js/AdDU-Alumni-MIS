@@ -1,3 +1,5 @@
+/* src/styles/Profile.css */
+
 .profile-page {
     min-height: 100vh;
     display: flex;
@@ -22,19 +24,60 @@
     padding-top: 0;
 }
 
+/* --- SHARED CARD STYLES (Used for Info, Experience, Education) --- */
+.profile-card, 
 .profile-info-card {
     background: #fff;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08); /* Subtle shadow like LinkedIn */
     padding: 24px;
     margin-bottom: 24px;
+    border: 1px solid #e0e0e0; /* Clean border */
     transition: box-shadow 0.2s;
 }
 
+.profile-card:hover,
 .profile-info-card:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
+/* --- CARD HEADER (Title + Add Button inside the card) --- */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px; /* Space between title and list */
+}
+
+.card-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+    font-family: 'Avenir LT Std', sans-serif;
+}
+
+.add-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #040354; /* Ateneo Blue */
+    padding: 8px 12px;
+    border-radius: 24px;
+    transition: background 0.2s;
+    text-decoration: none;
+}
+
+.add-btn:hover {
+    background-color: #ebf4fd; /* Light blue hover */
+}
+
+/* --- PROFILE INFO SECTION (Top Card) --- */
 .profile-info-top {
     display: flex;
     flex-wrap: wrap;
@@ -58,8 +101,8 @@
 
 .profile-info-title {
     margin: 0 0 8px 0;
-    font-size: 15px;
-    color: #4b5563;
+    font-size: 16px;
+    color: #1a1a1a;
     line-height: 1.5;
 }
 
@@ -68,6 +111,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 8px 16px;
+    margin-top: 8px;
 }
 
 .profile-info-meta-item {
@@ -78,7 +122,7 @@
 .profile-info-contact {
     color: #040354;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .profile-info-contact:hover {
@@ -93,7 +137,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 20px;
+    padding: 6px 16px;
     background: transparent;
     color: #040354;
     border: 1px solid #040354;
@@ -105,10 +149,11 @@
 }
 
 .profile-info-edit-btn:hover {
-    background: #040354;
-    color: #fff;
+    background: #ebf4fd;
+    box-shadow: inset 0 0 0 1px #040354; /* Thicker border on hover */
 }
 
+/* --- ENHANCE PROFILE BANNER --- */
 .profile-enhance {
     display: flex;
     align-items: flex-start;
@@ -154,22 +199,7 @@
     color: #111827;
 }
 
-.profile-title {
-    font-size: 28px;
-    font-weight: 400;
-    color: #333;
-    text-align: center;
-    margin: 0 0 32px 0;
-    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
-}
-
-.profile-card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-    padding: 32px;
-}
-
+/* --- GENERIC FIELDS (For About/Bio sections) --- */
 .profile-field {
     display: flex;
     flex-direction: column;
@@ -192,13 +222,16 @@
 .profile-value {
     font-size: 16px;
     color: #333;
+    line-height: 1.5;
 }
 
+/* --- STATES (Loading, Error) --- */
 .profile-loading,
 .profile-error {
     text-align: center;
     color: #6d7280;
     font-size: 15px;
+    padding: 40px;
 }
 
 .profile-error {

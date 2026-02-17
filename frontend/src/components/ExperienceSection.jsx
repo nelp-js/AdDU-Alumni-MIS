@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import EditModal from './EditModal';
-import CompanyAutocomplete from './CompanyAutocomplete';
-import { extractDomain, getCompanyLogoUrl, getFaviconUrl } from '../utils/autocomplete';
-import '../styles/ProfileSection.css';
+// 👇 Use FiPlus and FiEdit2 for the clean, thin line style
+import { FiPlus, FiEdit2 } from 'react-icons/fi';
+import EditModal from './EditModal'; 
+import { extractDomain, getCompanyLogoUrl } from '../utils/autocomplete';
+import '../styles/ProfileSection.css'; 
 import '../styles/ExperienceModal.css';
 
 const EMPLOYMENT_TYPES = [
@@ -43,11 +44,19 @@ function formatDuration(start, end, isCurrent) {
     if (!start) return '';
     const startDate = new Date(start);
     const endDate = isCurrent ? new Date() : (end ? new Date(end) : new Date());
-    const months = Math.max(0, (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth()));
-    if (months < 12) return `${months} mos`;
+    
+    let months = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth());
+    if (endDate.getDate() >= startDate.getDate()) months++;
+    if (months < 1) months = 0;
+
     const yrs = Math.floor(months / 12);
     const mos = months % 12;
-    return mos ? `${yrs} yr${yrs !== 1 ? 's' : ''} ${mos} mos` : `${yrs} yr${yrs !== 1 ? 's' : ''}`;
+
+    const parts = [];
+    if (yrs > 0) parts.push(`${yrs} yr${yrs !== 1 ? 's' : ''}`);
+    if (mos > 0) parts.push(`${mos} mos`);
+    
+    return parts.join(' ');
 }
 
 function getCompanyInitials(name) {
@@ -73,18 +82,14 @@ function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api, openAd
 
     useEffect(() => {
         if (openAddTrigger) {
-            setEditing(null);
-            setForm(emptyExperience());
-            setError('');
-            setModalOpen(true);
-            onOpenAddConsumed?.();
+            openAdd();
+            if (onOpenAddConsumed) onOpenAddConsumed();
         }
     }, [openAddTrigger, onOpenAddConsumed]);
 
     const openEdit = (exp) => {
         setEditing(exp);
         let website = exp.website || '';
-        if (website && !website.startsWith('http')) website = `https://${website}`;
         setForm({
             job_title: exp.job_title || '',
             company_name: exp.company_name || '',
@@ -162,6 +167,7 @@ function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api, openAd
         try {
             await api.delete(`/api/profile/experiences/${id}/`);
             onDelete();
+            closeModal();
         } catch {
             alert('Failed to delete.');
         }
@@ -169,232 +175,157 @@ function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api, openAd
 
     return (
         <section className="profile-section">
-            <div className="profile-section-header">
-                <h2 className="profile-section-title">Experience</h2>
-                <button type="button" className="profile-section-add-outline" onClick={openAdd}>
-                    Add experience
-                </button>
-            </div>
-            <div className={`profile-section-cards ${experiences.length > 0 ? 'profile-experience-card' : ''}`}>
-                {experiences.length === 0 ? (
-                    <p className="profile-section-empty">No experience added yet.</p>
-                ) : (
-                    experiences.map((exp, idx) => {
-                        const range = formatExpDateRange(exp.start_date, exp.end_date, exp.is_current);
-                        const duration = formatDuration(exp.start_date, exp.end_date, exp.is_current);
-                        const empLabel = EMPLOYMENT_TYPES.find((t) => t.value === exp.employment_type)?.label || '';
-                        const companyLine = [exp.company_name, empLabel].filter(Boolean).join(' · ');
-                        const dateLine = range ? (duration ? `${range} · ${duration}` : range) : '';
-                        return (
-                            <div key={exp.id} className={`profile-exp-item ${idx > 0 ? 'profile-exp-item-divider' : ''}`}>
-                                <div className="profile-exp-logo">
-                                    {(() => {
-                                        const domain = extractDomain(exp.website);
-                                        if (domain) {
-                                            const logoUrl = getCompanyLogoUrl(domain);
-                                            return (
-                                                <>
-                                                    <img
-                                                        src={logoUrl}
-                                                        alt=""
-                                                        className="profile-exp-logo-img"
-                                                        onError={(e) => {
-                                                            const el = e.target;
-                                                            el.onerror = null;
-                                                            el.src = getFaviconUrl(domain);
-                                                            el.onerror = () => { el.style.display = 'none'; };
-                                                        }}
-                                                    />
-                                                    <span className="profile-exp-logo-initials profile-exp-logo-fallback">
-                                                        {getCompanyInitials(exp.company_name)}
-                                                    </span>
-                                                </>
-                                            );
-                                        }
-                                        return <span className="profile-exp-logo-initials">{getCompanyInitials(exp.company_name)}</span>;
-                                    })()}
-                                </div>
-                                <div className="profile-exp-body">
-                                    <div className="profile-exp-content">
-                                        <h3 className="profile-exp-title">{exp.job_title || '—'}</h3>
-                                        {companyLine && (
-                                            <p className="profile-exp-company">{companyLine}</p>
-                                        )}
-                                        {dateLine && (
-                                            <p className="profile-exp-meta">{dateLine}</p>
-                                        )}
-                                        {exp.description && (
-                                            <p className="profile-exp-desc">{exp.description}</p>
+            <div className="profile-card">
+                <div className="card-header">
+                    <h2 className="card-title">Experience</h2>
+                    
+                    {/* 👇 COMBINED ACTION ROW: Plus and Pencil in one line */}
+                    <div className="card-header-actions">
+                        <button 
+                            type="button" 
+                            className="icon-btn" 
+                            onClick={openAdd}
+                            title="Add Experience"
+                        >
+                            <FiPlus size={24} />
+                        </button>
+                        <button 
+                            type="button" 
+                            className="icon-btn" 
+                            onClick={() => {/* logic to toggle global edit mode if needed */}}
+                            title="Edit Section"
+                        >
+                            <FiEdit2 size={20} />
+                        </button>
+                    </div>
+                </div>
+
+                <div className="card-body">
+                    {experiences.length === 0 ? (
+                        <p className="section-empty">No experience added yet.</p>
+                    ) : (
+                        experiences.map((exp, idx) => {
+                            const range = formatExpDateRange(exp.start_date, exp.end_date, exp.is_current);
+                            const duration = formatDuration(exp.start_date, exp.end_date, exp.is_current);
+                            const empLabel = EMPLOYMENT_TYPES.find((t) => t.value === exp.employment_type)?.label || '';
+                            const companyLine = [exp.company_name, empLabel].filter(Boolean).join(' · ');
+                            const dateLine = range ? (duration ? `${range} · ${duration}` : range) : '';
+                            
+                            const domain = extractDomain(exp.website);
+                            const logoUrl = domain ? getCompanyLogoUrl(domain) : null;
+                            const initials = getCompanyInitials(exp.company_name);
+
+                            return (
+                                <div key={exp.id} className={`profile-exp-item ${idx > 0 ? 'profile-exp-item-divider' : ''}`}>
+                                    <div className="profile-exp-logo">
+                                        {logoUrl ? (
+                                            <>
+                                                <img
+                                                    src={logoUrl}
+                                                    alt=""
+                                                    className="profile-exp-logo-img"
+                                                    onError={(e) => {
+                                                        e.currentTarget.style.display = 'none';
+                                                        e.currentTarget.nextSibling.style.display = 'flex';
+                                                    }}
+                                                />
+                                                <span className="profile-exp-logo-initials profile-exp-logo-fallback" style={{display: 'none'}}>
+                                                    {initials}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <span className="profile-exp-logo-initials">{initials}</span>
                                         )}
                                     </div>
-                                    <button
-                                        type="button"
-                                        className="profile-exp-edit-icon"
-                                        onClick={() => openEdit(exp)}
-                                        title="Edit"
-                                        aria-label="Edit"
-                                    >
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                        </svg>
-                                    </button>
+
+                                    <div className="profile-exp-body">
+                                        <div className="profile-exp-content">
+                                            <h3 className="profile-exp-title">{exp.job_title || '—'}</h3>
+                                            {companyLine && <p className="profile-exp-company">{companyLine}</p>}
+                                            {dateLine && <p className="profile-exp-meta">{dateLine}</p>}
+                                            {exp.location && <p className="profile-exp-location">{exp.location}</p>}
+                                            {exp.description && <p className="profile-exp-desc">{exp.description}</p>}
+                                        </div>
+
+                                        {/* Individual edit icon remains optional here or can be removed if header edit covers all */}
+                                        <button
+                                            type="button"
+                                            className="profile-exp-edit-icon"
+                                            onClick={() => openEdit(exp)}
+                                            title="Edit Item"
+                                        >
+                                            <FiEdit2 size={18} />
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })
-                )}
+                            );
+                        })
+                    )}
+                </div>
             </div>
 
-            <div className={modalOpen ? 'exp-modal' : ''}>
-                <EditModal
-                    isOpen={modalOpen}
-                    onClose={closeModal}
-                    title={editing ? 'Edit experience' : 'Add experience'}
-                    subtitle="Share where you've worked on your profile."
-                >
-                    <form onSubmit={handleSubmit} className="exp-form">
-                        {error && <div className="exp-form-error">{error}</div>}
-                        <div className="exp-form-row">
-                            <label className="exp-form-label">Title *</label>
-                            <input
-                                type="text"
-                                name="job_title"
-                                value={form.job_title}
-                                onChange={handleChange}
-                                className="exp-form-input"
-                                placeholder="e.g. Product Designer"
-                                required
-                            />
+            <EditModal
+                isOpen={modalOpen}
+                onClose={closeModal}
+                title={editing ? 'Edit experience' : 'Add experience'}
+            >
+               <form onSubmit={handleSubmit} className="exp-form">
+                    {error && <div className="exp-form-error">{error}</div>}
+                    <div className="exp-form-row">
+                        <label className="exp-form-label">Title *</label>
+                        <input type="text" name="job_title" value={form.job_title} onChange={handleChange} className="exp-form-input" required />
+                    </div>
+                    <div className="exp-form-row">
+                        <label className="exp-form-label">Company *</label>
+                        <input type="text" name="company_name" value={form.company_name} onChange={handleChange} className="exp-form-input" required />
+                    </div>
+                    <div className="exp-form-row">
+                        <label className="exp-form-label">Website</label>
+                        <div className="exp-form-url-wrap">
+                            <span className="exp-form-url-prefix">https://</span>
+                            <input type="text" name="website" value={form.website} onChange={handleChange} className="exp-form-input exp-form-url-input" />
                         </div>
-                        <div className="exp-form-row">
-                            <label className="exp-form-label">Company *</label>
-                            <CompanyAutocomplete
-                                value={form.company_name}
-                                onChange={handleChange}
-                                onSelect={({ company_name: name, domain }) => {
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        company_name: name,
-                                        website: domain ? domain.replace(/^https?:\/\//, '').replace(/^www\./, '') : prev.website,
-                                    }));
-                                }}
-                                placeholder="e.g. Google"
-                                required
-                            />
+                    </div>
+                    <div className="exp-form-row">
+                        <label className="exp-form-label">Location</label>
+                        <input type="text" name="location" value={form.location} onChange={handleChange} className="exp-form-input" />
+                    </div>
+                    <div className="exp-form-row">
+                        <label className="exp-form-label">Employment *</label>
+                        <select name="employment_type" value={form.employment_type} onChange={handleChange} className="exp-form-input exp-form-select">
+                            {EMPLOYMENT_TYPES.map((t) => (<option key={t.value} value={t.value}>{t.label}</option>))}
+                        </select>
+                    </div>
+                    <div className="exp-form-row exp-form-row-inline">
+                        <div style={{flex: 1, marginRight: '16px'}}>
+                            <label className="exp-form-label">Start date</label>
+                            <input type="date" name="start_date" value={form.start_date} onChange={handleChange} className="exp-form-input" />
                         </div>
-                        <div className="exp-form-row">
-                            <label className="exp-form-label">Website</label>
-                            <div className="exp-form-url-wrap">
-                                <span className="exp-form-url-prefix">https://</span>
-                                <input
-                                    type="text"
-                                    name="website"
-                                    value={form.website}
-                                    onChange={handleChange}
-                                    className="exp-form-input exp-form-url-input"
-                                    placeholder="www.example.com"
-                                />
-                            </div>
+                        <div style={{flex: 1}}>
+                            <label className="exp-form-label">End date</label>
+                            <input type="date" name="end_date" value={form.end_date} onChange={handleChange} className="exp-form-input" disabled={form.is_current} />
                         </div>
-                        <div className="exp-form-row">
-                            <label className="exp-form-label">Location</label>
-                            <input
-                                type="text"
-                                name="location"
-                                value={form.location}
-                                onChange={handleChange}
-                                className="exp-form-input"
-                                placeholder="e.g. San Francisco"
-                            />
+                    </div>
+                    <div className="exp-form-row">
+                        <label className="exp-form-check">
+                            <input type="checkbox" name="is_current" checked={form.is_current} onChange={handleChange} />
+                            I currently work here
+                        </label>
+                    </div>
+                    <div className="exp-form-row">
+                        <label className="exp-form-label">Description</label>
+                        <textarea name="description" value={form.description} onChange={handleChange} className="exp-form-input exp-form-textarea" rows={4} />
+                        <div className="exp-form-char-count">{form.description.length}/{DESC_MAX}</div>
+                    </div>
+                    <div className="exp-form-actions">
+                        {editing && (<button type="button" className="exp-form-delete" onClick={() => handleDelete(editing.id)}>Delete experience</button>)}
+                        <div className="exp-form-actions-right">
+                            <button type="button" className="exp-form-draft" onClick={closeModal}>Cancel</button>
+                            <button type="submit" className="exp-form-submit" disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
                         </div>
-                        <div className="exp-form-row">
-                            <label className="exp-form-label">Employment *</label>
-                            <select
-                                name="employment_type"
-                                value={form.employment_type}
-                                onChange={handleChange}
-                                className="exp-form-input exp-form-select"
-                            >
-                                {EMPLOYMENT_TYPES.map((t) => (
-                                    <option key={t.value} value={t.value}>{t.label}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="exp-form-row">
-                            <label className="exp-form-label">Description</label>
-                            <textarea
-                                name="description"
-                                value={form.description}
-                                onChange={handleChange}
-                                className="exp-form-input exp-form-textarea"
-                                rows={4}
-                                placeholder="Describe your responsibilities and achievements..."
-                            />
-                            <span className={`exp-form-char-count ${form.description.length > DESC_MAX ? 'over' : ''}`}>
-                                {DESC_MAX - form.description.length} characters left
-                            </span>
-                        </div>
-                        <div className="exp-form-row exp-form-row-inline">
-                            <div className="exp-form-row">
-                                <label className="exp-form-label">Start date</label>
-                                <input
-                                    type="date"
-                                    name="start_date"
-                                    value={form.start_date}
-                                    onChange={handleChange}
-                                    className="exp-form-input"
-                                />
-                            </div>
-                            <div className="exp-form-row">
-                                <label className="exp-form-label">End date</label>
-                                <input
-                                    type="date"
-                                    name="end_date"
-                                    value={form.end_date}
-                                    onChange={handleChange}
-                                    className="exp-form-input"
-                                    disabled={form.is_current}
-                                    title={form.is_current ? 'Clear "I currently work here" to add end date' : ''}
-                                />
-                            </div>
-                        </div>
-                        <div className="exp-form-row">
-                            <label className="exp-form-check">
-                                <input
-                                    type="checkbox"
-                                    name="is_current"
-                                    checked={form.is_current}
-                                    onChange={handleChange}
-                                />
-                                I currently work here
-                            </label>
-                        </div>
-                        <div className={`exp-form-actions ${editing ? 'exp-form-actions-edu' : ''}`}>
-                            {editing && (
-                                <button type="button" className="exp-form-delete" onClick={async () => {
-                                    if (!window.confirm('Delete this experience?')) return;
-                                    closeModal();
-                                    try {
-                                        await api.delete(`/api/profile/experiences/${editing.id}/`);
-                                        onDelete();
-                                    } catch { alert('Failed to delete.'); }
-                                }}>
-                                    Delete experience
-                                </button>
-                            )}
-                            <div className="exp-form-actions-right">
-                                <button type="button" className="exp-form-draft" onClick={closeModal}>
-                                    Cancel
-                                </button>
-                                <button type="submit" className="exp-form-submit" disabled={saving}>
-                                    {saving ? 'Saving…' : (editing ? 'Save' : 'Add experience')}
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </EditModal>
-            </div>
+                    </div>
+                </form>
+            </EditModal>
         </section>
     );
 }

@@ -1,284 +1,213 @@
-.profile-header {
+/* src/styles/ProfileHeader.css */
+
+.profile-header-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     position: relative;
     margin-bottom: 24px;
+    border: 1px solid #e0e0e0;
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overflow: visible;
 }
 
-.profile-header-linkedin {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.profile-header-linkedin .profile-cover-wrap {
+/* --- COVER PHOTO --- */
+.header-cover {
+    width: 100%;
+    height: 200px;
+    background-color: #a0b4b7;
+    background-size: cover;
+    background-position: center;
+    position: relative;
     border-radius: 12px 12px 0 0;
 }
 
-.profile-cover-wrap {
-    position: relative;
-    height: 200px;
-    background: #CAD2D8;
-    overflow: hidden;
+.header-cover.editable {
+    cursor: pointer;
 }
 
-.profile-cover {
+.header-cover-placeholder {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
 }
 
-.profile-cover-placeholder {
-    width: 100%;
-    height: 100%;
-    background: #CAD2D8;
-}
-
-.profile-cover-input {
-    display: none;
-}
-
-.profile-cover-gear {
+.header-edit-cover-btn {
     position: absolute;
     top: 16px;
     right: 16px;
-    width: 40px;
-    height: 40px;
+    background: #ffffff;
+    color: #0a66c2;
+    border: none;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.9);
-    color: #4b5563;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
+    gap: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: background 0.2s;
+    z-index: 10;
 }
 
-.profile-cover-gear:hover {
-    background: #fff;
-    color: #040354;
+.header-edit-cover-btn:hover {
+    background: #f3f4f6;
 }
 
-.profile-avatar-wrap {
-    position: absolute;
-    left: 24px;
-    bottom: -60px;
-}
-
-.profile-avatar-inner {
+/* --- PROFILE PICTURE --- */
+.header-pic-wrapper {
     position: relative;
-    width: 140px;
-    height: 140px;
+    width: 160px;
+    height: 160px;
+    margin-top: -100px;
+    margin-left: 24px;
+    margin-bottom: 12px;
+    z-index: 5;
 }
 
-.profile-avatar-img,
-.profile-avatar-placeholder {
+.header-pic-inner {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    border: 4px solid #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 4px solid #ffffff;
+    background: #ffffff;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.header-pic, .header-pic-placeholder {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
 }
 
-.profile-avatar-placeholder {
+.header-pic-placeholder {
+    background: #e0e0e0;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #e5e7eb;
-    color: #6b7280;
-    font-size: 48px;
-    font-weight: 700;
-    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
+    font-size: 50px;
+    color: #757575;
+    font-weight: 600;
 }
 
-.profile-avatar-input {
-    display: none;
+/* --- CONTENT AREA --- */
+.header-content {
+    padding: 0 24px 24px 24px;
 }
 
-.profile-avatar-pencil {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #fff;
-    color: #4b5563;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
+.header-row {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s, color 0.2s;
-}
-
-.profile-avatar-pencil:hover {
-    background: #f9fafb;
-    color: #040354;
-}
-
-/* LinkedIn-style info bar below cover - padding-top clears the overlapping avatar (extends 60px below cover) */
-.profile-header-info {
-    padding: 0 24px 24px;
-    padding-top: 72px;
-}
-
-.profile-header-info-inner {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
     justify-content: space-between;
-    gap: 16px;
+    align-items: flex-start;
+    width: 100%;
 }
 
-.profile-header-info-main {
+.header-info {
     flex: 1;
-    min-width: 200px;
-    padding-left: 164px;
+    margin-right: 24px;
 }
 
-.profile-header-actions {
-    margin-top: 16px;
-}
-
-.profile-header-institution {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-}
-
-.profile-header-name {
-    margin: 0 0 2px 0;
+.header-name {
     font-size: 24px;
     font-weight: 600;
-    color: #000;
-    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
+    color: #1a1a1a;
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+    text-transform: capitalize;
 }
 
-.profile-header-headline {
-    margin: 0 0 4px 0;
-    font-size: 15px;
-    color: #000;
+.header-headline {
+    font-size: 16px;
+    color: #1a1a1a;
+    margin: 0 0 8px 0;
     line-height: 1.4;
 }
 
-.profile-header-meta {
+.header-meta {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 8px;
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 4px 12px;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
-.profile-header-meta-item {
-    font-size: 14px;
-    color: #666;
+.header-dot {
+    font-weight: bold;
+    margin: 0 2px;
 }
 
-.profile-header-contact {
-    font-size: 14px;
+.header-contact-btn {
+    background: none;
+    border: none;
     color: #0a66c2;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    font-size: 14px;
     text-decoration: none;
-    font-weight: 500;
 }
 
-.profile-header-contact:hover {
+.header-contact-btn:hover {
     text-decoration: underline;
 }
 
-.profile-header-institution-logo {
-    width: 48px;
-    height: 48px;
+/* --- RIGHT ACTION (Edit Button) --- */
+.header-right-action {
+    margin-left: auto;
+    margin-top: 4px;
+}
+
+.edit-profile-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    overflow: hidden;
-    background: #e5e7eb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
+    background: transparent;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    transition: background 0.2s;
 }
 
-.profile-header-institution-fallback {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: -1;
+.edit-profile-btn:hover {
+    background-color: #f3f4f6;
+    color: #1a1a1a;
 }
 
-.profile-header-institution-logo img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
 
-.profile-header-institution-initials {
-    font-size: 14px;
-    font-weight: 700;
-    color: #374151;
-}
-
-.profile-header-institution-name {
-    font-size: 14px;
-    color: #000;
-    font-weight: 500;
-}
-
-.profile-header-edit {
+/* .edit-profile-btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    background-color: transparent;
+    border: 1px solid #040354;
+    color: #040354;
+    border-radius: 999px;
     padding: 6px 16px;
-    background: transparent;
-    color: #0a66c2;
-    border: 1px solid #0a66c2;
-    border-radius: 24px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-}
+} */
 
-.profile-header-edit:hover {
-    background: rgba(10, 102, 194, 0.08);
-}
 
 @media (max-width: 640px) {
-    .profile-cover-wrap {
-        height: 160px;
+    .header-pic-wrapper {
+        width: 130px;
+        height: 130px;
+        margin-top: -80px;
     }
-
-    .profile-avatar-wrap {
-        left: 24px;
-        bottom: -50px;
-    }
-
-    .profile-avatar-inner {
-        width: 100px;
-        height: 100px;
-    }
-
-    .profile-avatar-placeholder {
-        font-size: 36px;
-    }
-
-    .profile-header-info {
-        padding-top: 64px;
-    }
-
-    .profile-header-info-main {
-        padding-left: 124px;
-    }
-
-    .profile-header-info-inner {
-        flex-direction: column;
-    }
-
-    .profile-header-institution {
-        align-self: flex-start;
+    
+    .header-right-action {
+        position: absolute;
+        top: 216px; /* Adjust based on cover height */
+        right: 24px;
     }
 }

@@ -1,7 +1,6 @@
 import { useRef } from 'react';
-import { FiSettings, FiEdit3 } from 'react-icons/fi';
+import { FiCamera, FiEdit3 } from 'react-icons/fi';
 import { getOptimizedUrl } from '../utils/imageUtils';
-import { extractDomain, getCompanyLogoUrl, getFaviconUrl } from '../utils/autocomplete';
 import '../styles/ProfileHeader.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://sia-2.onrender.com';
@@ -12,191 +11,110 @@ function getFullImageUrl(url) {
     return `${API_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
-/** Get primary institution (school or company) for headline display */
-function getPrimaryInstitution(profile) {
-    const educations = profile?.educations || [];
-    const experiences = profile?.experiences || [];
-    if (educations.length > 0) {
-        const edu = educations[0];
-        return {
-            name: edu.school_name,
-            logoUrl: edu.school_logo_url,
-            website: edu.school_website,
-        };
-    }
-    if (experiences.length > 0) {
-        const exp = experiences[0];
-        const domain = extractDomain(exp.website);
-        return {
-            name: exp.company_name,
-            logoUrl: domain ? getCompanyLogoUrl(domain) : null,
-            website: exp.website,
-        };
-    }
-    return null;
-}
-
 function ProfileHeader({ profile, onCoverChange, onProfilePicChange, isEditing, onEditProfile }) {
     const coverInputRef = useRef(null);
     const profilePicInputRef = useRef(null);
 
     const coverUrl = profile?.cover_photo ? getFullImageUrl(profile.cover_photo) : null;
     const profilePicUrl = profile?.profile_picture ? getFullImageUrl(profile.profile_picture) : null;
-
-    const fullName = [profile?.first_name, profile?.middle_name, profile?.last_name]
-        .filter(Boolean)
-        .join(' ') || '—';
-
-    const institution = getPrimaryInstitution(profile);
+    const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || '—';
 
     return (
-        <header className="profile-header profile-header-linkedin">
-            <div className="profile-cover-wrap">
-                {coverUrl ? (
-                    <img
-                        src={getOptimizedUrl(coverUrl, 'hero')}
-                        alt="Cover"
-                        className="profile-cover"
-                    />
-                ) : (
-                    <div className="profile-cover-placeholder" />
-                )}
+        <header className="profile-header-card">
+            {/* 1. Cover Photo */}
+            <div 
+                className={`header-cover ${isEditing ? 'editable' : ''}`}
+                onClick={() => isEditing && coverInputRef.current?.click()}
+                style={{ 
+                    backgroundImage: coverUrl ? `url(${getOptimizedUrl(coverUrl, 'hero')})` : 'none',
+                    backgroundColor: coverUrl ? 'transparent' : '#a0b4b7'
+                }}
+            >
+                {!coverUrl && <div className="header-cover-placeholder" />}
+                
                 {isEditing && (
-                    <>
-                        <input
-                            ref={coverInputRef}
-                            type="file"
-                            accept="image/*"
-                            className="profile-cover-input"
-                            onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) onCoverChange(file);
-                                e.target.value = '';
-                            }}
-                        />
-                        <button
-                            type="button"
-                            className="profile-cover-gear"
-                            onClick={() => coverInputRef.current?.click()}
-                            title="Change cover photo"
-                            aria-label="Change cover photo"
-                        >
-                            <FiSettings size={20} />
-                        </button>
-                    </>
+                    <button className="header-edit-cover-btn">
+                        <FiCamera size={16} />
+                        <span>Edit cover</span>
+                    </button>
                 )}
+                
+                <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) => e.target.files?.[0] && onCoverChange(e.target.files[0])}
+                />
             </div>
-            <div className="profile-avatar-wrap">
-                <div className="profile-avatar-inner">
+
+            {/* 2. Profile Picture */}
+            <div className="header-pic-wrapper">
+                <div 
+                    className={`header-pic-inner ${isEditing ? 'editable' : ''}`}
+                    onClick={() => isEditing && profilePicInputRef.current?.click()}
+                >
                     {profilePicUrl ? (
                         <img
                             src={getOptimizedUrl(profilePicUrl, 'avatar')}
                             alt={fullName}
-                            className="profile-avatar-img"
+                            className="header-pic"
                         />
                     ) : (
-                        <div className="profile-avatar-placeholder">
+                        <div className="header-pic-placeholder">
                             {fullName.charAt(0).toUpperCase()}
                         </div>
                     )}
-                    {isEditing && (
-                        <>
-                            <input
-                                ref={profilePicInputRef}
-                                type="file"
-                                accept="image/*"
-                                className="profile-avatar-input"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) onProfilePicChange(file);
-                                    e.target.value = '';
-                                }}
-                            />
-                            <button
-                                type="button"
-                                className="profile-avatar-pencil"
-                                onClick={() => profilePicInputRef.current?.click()}
-                                title="Edit profile picture"
-                                aria-label="Edit profile picture"
-                            >
-                                <FiEdit3 size={16} />
-                            </button>
-                        </>
-                    )}
+                    
+                    <input
+                        ref={profilePicInputRef}
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={(e) => e.target.files?.[0] && onProfilePicChange(e.target.files[0])}
+                    />
                 </div>
             </div>
 
-            <div className="profile-header-info">
-                <div className="profile-header-info-inner">
-                    <div className="profile-header-info-main">
-                        <h1 className="profile-header-name" style={{ textTransform: 'capitalize' }}>
-                            {fullName}
-                        </h1>
-                        {profile?.bio && (
-                            <p className="profile-header-headline">{profile.bio}</p>
-                        )}
-                        <div className="profile-header-meta">
+            {/* 3. Main Info Row */}
+            <div className="header-content">
+                <div className="header-row">
+                    
+                    {/* LEFT: Info */}
+                    <div className="header-info">
+                        <h1 className="header-name">{fullName}</h1>
+                        
+                        {profile?.bio && <p className="header-headline">{profile.bio}</p>}
+
+                        <div className="header-meta">
                             {profile?.location && (
-                                <span className="profile-header-meta-item">{profile.location}</span>
+                                <span className="header-location">{profile.location}</span>
+                            )}
+                            {(profile?.location && (profile?.website || profile?.email)) && (
+                                <span className="header-dot">·</span>
                             )}
                             {(profile?.website || profile?.email) && (
                                 <a
-                                    href={profile.website
-                                        ? (profile.website.startsWith('http') ? profile.website : `https://${profile.website}`)
-                                        : `mailto:${profile.email || ''}`}
-                                    target={profile.website ? '_blank' : undefined}
-                                    rel={profile.website ? 'noopener noreferrer' : undefined}
-                                    className="profile-header-contact"
+                                    href={profile.website || `mailto:${profile.email}`}
+                                    className="header-contact-btn"
+                                    target="_blank" 
+                                    rel="noreferrer"
                                 >
                                     Contact info
                                 </a>
                             )}
                         </div>
-                        {onEditProfile && (
-                            <div className="profile-header-actions">
-                                <button
-                                    type="button"
-                                    className="profile-header-edit"
-                                    onClick={onEditProfile}
-                                    title="Edit profile"
-                                >
-                                    <FiEdit3 size={16} />
-                                    Edit Profile
-                                </button>
-                            </div>
-                        )}
                     </div>
-                    {institution && (
-                        <div className="profile-header-institution">
-                            <div className="profile-header-institution-logo">
-                                {(institution.logoUrl || institution.website) ? (
-                                    <>
-                                        <img
-                                            src={institution.logoUrl || getFaviconUrl(extractDomain(institution.website))}
-                                            alt=""
-                                            onError={(e) => {
-                                                const el = e.target;
-                                                el.onerror = null;
-                                                const d = extractDomain(institution.website);
-                                                if (d) {
-                                                    el.src = getFaviconUrl(d);
-                                                    el.onerror = () => { el.style.display = 'none'; };
-                                                } else {
-                                                    el.style.display = 'none';
-                                                }
-                                            }}
-                                        />
-                                        <span className="profile-header-institution-initials profile-header-institution-fallback">
-                                            {institution.name?.slice(0, 2).toUpperCase() || '?'}
-                                        </span>
-                                    </>
-                                ) : (
-                                    <span className="profile-header-institution-initials">
-                                        {institution.name?.slice(0, 2).toUpperCase() || '?'}
-                                    </span>
-                                )}
-                            </div>
-                            <span className="profile-header-institution-name">{institution.name}</span>
+
+                    {onEditProfile && (
+                        <div className="header-right-action">
+                            <button
+                                type="button"
+                                className="edit-profile-btn"
+                                onClick={onEditProfile}
+                            >
+                                <FiEdit3 size={16} />
+                            </button>
                         </div>
                     )}
                 </div>
