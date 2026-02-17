@@ -282,6 +282,7 @@ function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api, openAd
                                 placeholder="e.g. Google"
                                 required
                             />
+                        </div>
                         <div className="exp-form-row">
                             <label className="exp-form-label">Website</label>
                             <div className="exp-form-url-wrap">
