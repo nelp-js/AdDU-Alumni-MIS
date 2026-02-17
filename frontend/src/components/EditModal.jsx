@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import '../styles/EditModal.css';
 
-function EditModal({ isOpen, onClose, title, children }) {
+function EditModal({ isOpen, onClose, title, subtitle, children }) {
     useEffect(() => {
         const handleEscape = (e) => {
             if (e.key === 'Escape') onClose();
@@ -22,7 +22,10 @@ function EditModal({ isOpen, onClose, title, children }) {
         <div className="edit-modal-overlay" onClick={onClose}>
             <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
                 <div className="edit-modal-header">
-                    <h2 className="edit-modal-title">{title}</h2>
+                    <div className="edit-modal-header-text">
+                        <h2 className="edit-modal-title">{title}</h2>
+                        {subtitle && <p className="edit-modal-subtitle">{subtitle}</p>}
+                    </div>
                     <button type="button" className="edit-modal-close" onClick={onClose} aria-label="Close">
                         ×
                     </button>

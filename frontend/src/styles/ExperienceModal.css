@@ -1,0 +1,209 @@
+/* Experience Add/Edit Modal - blue theme */
+
+.exp-modal .edit-modal {
+    max-width: 560px;
+}
+
+.exp-modal .edit-modal-title {
+    text-transform: capitalize;
+}
+
+.exp-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.exp-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.exp-form-row-inline {
+    flex-direction: row;
+    gap: 16px;
+}
+
+.exp-form-row-inline > .exp-form-row {
+    flex: 1;
+}
+
+.exp-form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.exp-form-input {
+    padding: 12px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.2s;
+}
+
+.exp-form-input:focus {
+    outline: none;
+    border-color: #040354;
+}
+
+.exp-form-input::placeholder {
+    color: #9ca3af;
+}
+
+.exp-form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.exp-form-url-wrap {
+    display: flex;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.exp-form-url-prefix {
+    padding: 12px 14px;
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 15px;
+    border-right: 1px solid #d1d5db;
+}
+
+.exp-form-url-input {
+    flex: 1;
+    border: none;
+    padding: 12px 14px;
+    font-size: 15px;
+}
+
+.exp-form-url-input:focus {
+    outline: none;
+}
+
+.exp-form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+}
+
+.exp-form-char-count {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.exp-form-char-count.over {
+    color: #dc2626;
+}
+
+.exp-form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    color: #374151;
+}
+
+.exp-form-check input {
+    width: 18px;
+    height: 18px;
+    accent-color: #040354;
+}
+
+.exp-form-error {
+    padding: 12px;
+    background: #fef2f2;
+    color: #dc2626;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.exp-form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 8px;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 8px;
+}
+
+.exp-form-draft {
+    padding: 10px 24px;
+    background: #fff;
+    color: #040354;
+    border: 1px solid #040354;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.exp-form-draft:hover {
+    background: #f0f0f5;
+}
+
+.exp-form-submit {
+    padding: 10px 24px;
+    background: #040354;
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.exp-form-submit:hover:not(:disabled) {
+    background: #1e3a8a;
+}
+
+.exp-form-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Education modal additions */
+.exp-form-required {
+    margin: 0 0 4px 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.exp-form-date-row {
+    display: flex;
+    gap: 12px;
+}
+
+.exp-form-date-row .exp-form-select {
+    flex: 1;
+}
+
+.exp-form-actions-edu {
+    justify-content: space-between;
+}
+
+.exp-form-actions-right {
+    display: flex;
+    gap: 12px;
+}
+
+.exp-form-delete {
+    background: none;
+    border: none;
+    color: #111827;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.exp-form-delete:hover {
+    color: #dc2626;
+}

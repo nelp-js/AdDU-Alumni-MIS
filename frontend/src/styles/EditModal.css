@@ -41,10 +41,16 @@
 
 .edit-modal-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    padding: 20px 24px;
+    gap: 16px;
+    padding: 24px 24px 20px;
     border-bottom: 1px solid #e5e7eb;
+}
+
+.edit-modal-header-text {
+    flex: 1;
+    min-width: 0;
 }
 
 .edit-modal-title {
@@ -53,6 +59,12 @@
     font-weight: 600;
     color: #111827;
     font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
+}
+
+.edit-modal-subtitle {
+    margin: 4px 0 0 0;
+    font-size: 14px;
+    color: #6b7280;
 }
 
 .edit-modal-close {

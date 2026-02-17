@@ -1,22 +1,42 @@
 import { useState } from 'react';
 import EditModal from './EditModal';
+import UniversityAutocomplete from './UniversityAutocomplete';
+import { extractDomain, getFaviconUrl } from '../utils/autocomplete';
 import '../styles/ProfileSection.css';
+import '../styles/ExperienceModal.css';
 
 const currentYear = new Date().getFullYear();
 const YEARS = Array.from({ length: 50 }, (_, i) => currentYear - i);
+const MONTHS = [
+    { value: '', label: 'Month' },
+    { value: '1', label: 'January' }, { value: '2', label: 'February' }, { value: '3', label: 'March' },
+    { value: '4', label: 'April' }, { value: '5', label: 'May' }, { value: '6', label: 'June' },
+    { value: '7', label: 'July' }, { value: '8', label: 'August' }, { value: '9', label: 'September' },
+    { value: '10', label: 'October' }, { value: '11', label: 'November' }, { value: '12', label: 'December' },
+];
+
+const DESC_MAX = 1000;
+const ACTIVITIES_MAX = 500;
 
 const emptyEducation = () => ({
     school_name: '',
+    school_website: '',
+    school_logo_url: '',
     degree: '',
     field_of_study: '',
+    start_month: '',
     start_year: '',
+    end_month: '',
     end_year: '',
+    activities: '',
     description: '',
 });
 
-function formatYearRange(start, end) {
-    if (!start && !end) return '';
-    return [start || '—', end || '—'].join(' – ');
+function formatEduDateRange(startMonth, startYear, endMonth, endYear) {
+    const s = startYear ? String(startYear) : '';
+    const e = endYear ? String(endYear) : '';
+    if (!s && !e) return '';
+    return [s || '—', e || '—'].join(' - ');
 }
 
 function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
@@ -37,10 +57,15 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
         setEditing(edu);
         setForm({
             school_name: edu.school_name || '',
+            school_website: edu.school_website || '',
+            school_logo_url: edu.school_logo_url || '',
             degree: edu.degree || '',
             field_of_study: edu.field_of_study || '',
+            start_month: edu.start_month ? String(edu.start_month) : '',
             start_year: edu.start_year ? String(edu.start_year) : '',
+            end_month: edu.end_month ? String(edu.end_month) : '',
             end_year: edu.end_year ? String(edu.end_year) : '',
+            activities: edu.activities || '',
             description: edu.description || '',
         });
         setError('');
@@ -56,7 +81,13 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
+        if (name === 'description') {
+            setForm((prev) => ({ ...prev, [name]: value.slice(0, DESC_MAX) }));
+        } else if (name === 'activities') {
+            setForm((prev) => ({ ...prev, [name]: value.slice(0, ACTIVITIES_MAX) }));
+        } else {
+            setForm((prev) => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -65,9 +96,17 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
         setError('');
         try {
             const payload = {
-                ...form,
+                school_name: form.school_name,
+                school_website: form.school_website || '',
+                school_logo_url: form.school_logo_url || '',
+                degree: form.degree,
+                field_of_study: form.field_of_study,
+                start_month: form.start_month ? parseInt(form.start_month, 10) : null,
                 start_year: form.start_year ? parseInt(form.start_year, 10) : null,
+                end_month: form.end_month ? parseInt(form.end_month, 10) : null,
                 end_year: form.end_year ? parseInt(form.end_year, 10) : null,
+                activities: form.activities,
+                description: form.description,
             };
             if (editing) {
                 await api.patch(`/api/profile/educations/${editing.id}/`, payload);
@@ -100,129 +139,247 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
             <div className="profile-section-header">
                 <h2 className="profile-section-title">Education</h2>
                 <button type="button" className="profile-section-add-outline" onClick={openAdd}>
-                    Add Education
+                    Add education
                 </button>
             </div>
-            <div className="profile-section-cards">
+            <div className={`profile-section-cards ${educations.length > 0 ? 'profile-experience-card' : ''}`}>
                 {educations.length === 0 ? (
                     <p className="profile-section-empty">No education added yet.</p>
                 ) : (
-                    educations.map((edu) => (
-                        <div key={edu.id} className="profile-edu-item">
+                    educations.map((edu, idx) => {
+                        const dateStr = formatEduDateRange(edu.start_month, edu.start_year, edu.end_month, edu.end_year);
+                        return (
+                        <div key={edu.id} className={`profile-edu-item ${idx > 0 ? 'profile-edu-item-divider' : ''}`}>
                             <div className="profile-edu-logo">
-                                <img src="https://res.cloudinary.com/dwi7oftcs/image/upload/f_auto,q_auto/v1770416947/addulogo_gexxac.jpg" alt="" className="profile-edu-logo-img" />
+                                {(() => {
+                                    const logoUrl = edu.school_logo_url;
+                                    const domain = extractDomain(edu.school_website);
+                                    const faviconUrl = domain ? getFaviconUrl(domain) : null;
+                                    const src = logoUrl || faviconUrl;
+                                    if (src) {
+                                        return (
+                                            <>
+                                                <img
+                                                    src={src}
+                                                    alt=""
+                                                    className="profile-edu-logo-img"
+                                                    onError={(e) => {
+                                                        const el = e.target;
+                                                        el.onerror = null;
+                                                        if (faviconUrl && src === logoUrl) {
+                                                            el.src = faviconUrl;
+                                                            el.onerror = () => { el.style.display = 'none'; };
+                                                        } else {
+                                                            el.style.display = 'none';
+                                                        }
+                                                    }}
+                                                />
+                                                <span className="profile-edu-logo-fallback profile-edu-logo-fallback-inner">
+                                                    {edu.school_name ? edu.school_name.slice(0, 2).toUpperCase() : '?'}
+                                                </span>
+                                            </>
+                                        );
+                                    }
+                                    return (
+                                        <span className="profile-edu-logo-fallback">
+                                            {edu.school_name ? edu.school_name.slice(0, 2).toUpperCase() : '?'}
+                                        </span>
+                                    );
+                                })()}
                             </div>
-                            <div className="profile-edu-content">
-                                <h3 className="profile-edu-title">{edu.school_name || '—'}</h3>
-                                <p className="profile-edu-subtitle">
-                                    {[edu.degree, edu.field_of_study].filter(Boolean).join(', ') || '—'}
-                                </p>
-                                <p className="profile-edu-meta">
-                                    {formatYearRange(edu.start_year, edu.end_year)}
-                                </p>
-                                {edu.description && (
-                                    <p className="profile-edu-desc">{edu.description}</p>
-                                )}
-                            </div>
-                            <div className="profile-edu-actions">
-                                <button type="button" className="profile-card-btn" onClick={() => openEdit(edu)}>
-                                    Edit
-                                </button>
-                                <button type="button" className="profile-card-btn profile-card-btn-danger" onClick={() => handleDelete(edu.id)}>
-                                    Delete
+                            <div className="profile-edu-body">
+                                <div className="profile-exp-content">
+                                    <h3 className="profile-edu-title">{edu.school_name || '—'}</h3>
+                                    <p className="profile-edu-subtitle">
+                                        {[edu.degree, edu.field_of_study].filter(Boolean).join(', ') || '—'}
+                                    </p>
+                                    {dateStr && (
+                                        <p className="profile-edu-meta">{dateStr}</p>
+                                    )}
+                                    {edu.activities && (
+                                        <p className="profile-edu-activities">
+                                            Activities and societies: {edu.activities}
+                                        </p>
+                                    )}
+                                    {edu.description && (
+                                        <p className="profile-edu-desc">{edu.description}</p>
+                                    )}
+                                </div>
+                                <button
+                                    type="button"
+                                    className="profile-edu-edit-icon"
+                                    onClick={() => openEdit(edu)}
+                                    title="Edit"
+                                    aria-label="Edit"
+                                >
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                    </svg>
                                 </button>
                             </div>
                         </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
 
-            <EditModal isOpen={modalOpen} onClose={closeModal} title={editing ? 'Edit Education' : 'Add Education'}>
-                <form onSubmit={handleSubmit} className="profile-form">
-                    {error && <div className="profile-form-error">{error}</div>}
-                    <div className="profile-form-row">
-                        <label className="profile-form-label">School Name *</label>
-                        <input
-                            type="text"
-                            name="school_name"
-                            value={form.school_name}
-                            onChange={handleChange}
-                            className="profile-form-input"
-                            required
-                        />
-                    </div>
-                    <div className="profile-form-row">
-                        <label className="profile-form-label">Degree</label>
-                        <input
-                            type="text"
-                            name="degree"
-                            value={form.degree}
-                            onChange={handleChange}
-                            className="profile-form-input"
-                            placeholder="e.g. Bachelor of Science"
-                        />
-                    </div>
-                    <div className="profile-form-row">
-                        <label className="profile-form-label">Field of Study</label>
-                        <input
-                            type="text"
-                            name="field_of_study"
-                            value={form.field_of_study}
-                            onChange={handleChange}
-                            className="profile-form-input"
-                            placeholder="e.g. Computer Science"
-                        />
-                    </div>
-                    <div className="profile-form-row profile-form-row-inline">
-                        <div>
-                            <label className="profile-form-label">Start Year</label>
-                            <select
-                                name="start_year"
-                                value={form.start_year}
+            <div className={modalOpen ? 'exp-modal edu-modal' : ''}>
+                <EditModal
+                    isOpen={modalOpen}
+                    onClose={closeModal}
+                    title={editing ? 'Edit education' : 'Add education'}
+                    subtitle="Add your education to your profile."
+                >
+                    <form onSubmit={handleSubmit} className="exp-form">
+                        {error && <div className="exp-form-error">{error}</div>}
+                        <p className="exp-form-required">* Indicates required</p>
+                        <div className="exp-form-row">
+                            <label className="exp-form-label">School *</label>
+                            <UniversityAutocomplete
+                                value={form.school_name}
                                 onChange={handleChange}
-                                className="profile-form-input"
-                            >
-                                <option value="">—</option>
-                                {YEARS.map((y) => (
-                                    <option key={y} value={y}>{y}</option>
-                                ))}
-                            </select>
+                                onSelect={({ school_name: name, school_logo_url: logoUrl, school_website: website }) => {
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        school_name: name,
+                                        school_logo_url: logoUrl || '',
+                                        school_website: website || '',
+                                    }));
+                                }}
+                                placeholder="Ex: Ateneo de Davao University"
+                                required
+                            />
                         </div>
-                        <div>
-                            <label className="profile-form-label">End Year</label>
-                            <select
-                                name="end_year"
-                                value={form.end_year}
+                        <div className="exp-form-row">
+                            <label className="exp-form-label">Degree</label>
+                            <input
+                                type="text"
+                                name="degree"
+                                value={form.degree}
                                 onChange={handleChange}
-                                className="profile-form-input"
-                            >
-                                <option value="">—</option>
-                                {YEARS.map((y) => (
-                                    <option key={y} value={y}>{y}</option>
-                                ))}
-                            </select>
+                                className="exp-form-input"
+                                placeholder="Ex: Bachelor's"
+                            />
                         </div>
-                    </div>
-                    <div className="profile-form-row">
-                        <label className="profile-form-label">Description</label>
-                        <textarea
-                            name="description"
-                            value={form.description}
-                            onChange={handleChange}
-                            className="profile-form-input profile-form-textarea"
-                            rows={4}
-                        />
-                    </div>
-                    <div className="profile-form-actions">
-                        <button type="button" className="profile-form-cancel" onClick={closeModal}>
-                            Cancel
-                        </button>
-                        <button type="submit" className="profile-form-submit" disabled={saving}>
-                            {saving ? 'Saving…' : (editing ? 'Save' : 'Add')}
-                        </button>
-                    </div>
-                </form>
-            </EditModal>
+                        <div className="exp-form-row">
+                            <label className="exp-form-label">Field of study</label>
+                            <input
+                                type="text"
+                                name="field_of_study"
+                                value={form.field_of_study}
+                                onChange={handleChange}
+                                className="exp-form-input"
+                                placeholder="Ex: Business"
+                            />
+                        </div>
+                        <div className="exp-form-row exp-form-row-inline">
+                            <div className="exp-form-row">
+                                <label className="exp-form-label">Start date</label>
+                                <div className="exp-form-date-row">
+                                    <select
+                                        name="start_month"
+                                        value={form.start_month}
+                                        onChange={handleChange}
+                                        className="exp-form-input exp-form-select"
+                                    >
+                                        {MONTHS.map((m) => (
+                                            <option key={m.value || 'm'} value={m.value}>{m.label}</option>
+                                        ))}
+                                    </select>
+                                    <select
+                                        name="start_year"
+                                        value={form.start_year}
+                                        onChange={handleChange}
+                                        className="exp-form-input exp-form-select"
+                                    >
+                                        <option value="">Year</option>
+                                        {YEARS.map((y) => (
+                                            <option key={y} value={y}>{y}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="exp-form-row">
+                                <label className="exp-form-label">End date (or expected)</label>
+                                <div className="exp-form-date-row">
+                                    <select
+                                        name="end_month"
+                                        value={form.end_month}
+                                        onChange={handleChange}
+                                        className="exp-form-input exp-form-select"
+                                    >
+                                        {MONTHS.map((m) => (
+                                            <option key={m.value || 'em'} value={m.value}>{m.label}</option>
+                                        ))}
+                                    </select>
+                                    <select
+                                        name="end_year"
+                                        value={form.end_year}
+                                        onChange={handleChange}
+                                        className="exp-form-input exp-form-select"
+                                    >
+                                        <option value="">Year</option>
+                                        {YEARS.map((y) => (
+                                            <option key={y} value={y}>{y}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="exp-form-row">
+                            <label className="exp-form-label">Activities and societies</label>
+                            <textarea
+                                name="activities"
+                                value={form.activities}
+                                onChange={handleChange}
+                                className="exp-form-input exp-form-textarea"
+                                rows={3}
+                                placeholder="Ex: Alpha Phi Omega, Marching Band, Volleyball"
+                            />
+                            <span className={`exp-form-char-count ${form.activities.length > ACTIVITIES_MAX ? 'over' : ''}`}>
+                                {form.activities.length}/{ACTIVITIES_MAX}
+                            </span>
+                        </div>
+                        <div className="exp-form-row">
+                            <label className="exp-form-label">Description</label>
+                            <textarea
+                                name="description"
+                                value={form.description}
+                                onChange={handleChange}
+                                className="exp-form-input exp-form-textarea"
+                                rows={4}
+                                placeholder="Describe your experience..."
+                            />
+                            <span className={`exp-form-char-count ${form.description.length > DESC_MAX ? 'over' : ''}`}>
+                                {form.description.length}/{DESC_MAX}
+                            </span>
+                        </div>
+                        <div className="exp-form-actions exp-form-actions-edu">
+                            {editing && (
+                                <button type="button" className="exp-form-delete" onClick={async () => {
+                                    if (!window.confirm('Delete this education?')) return;
+                                    closeModal();
+                                    try {
+                                        await api.delete(`/api/profile/educations/${editing.id}/`);
+                                        onDelete();
+                                    } catch { alert('Failed to delete.'); }
+                                }}>
+                                    Delete education
+                                </button>
+                            )}
+                            <div className="exp-form-actions-right">
+                                <button type="button" className="exp-form-draft" onClick={closeModal}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="exp-form-submit" disabled={saving}>
+                                    {saving ? 'Saving…' : 'Save'}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </EditModal>
+            </div>
         </section>
     );
 }

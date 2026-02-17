@@ -1,14 +1,23 @@
 .profile-header {
     position: relative;
-    margin-bottom: 80px;
+    margin-bottom: 24px;
+}
+
+.profile-header-linkedin {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.profile-header-linkedin .profile-cover-wrap {
+    border-radius: 12px 12px 0 0;
 }
 
 .profile-cover-wrap {
     position: relative;
     height: 200px;
-    background: linear-gradient(135deg, #040354 0%, #1e3a8a 100%);
+    background: #CAD2D8;
     overflow: hidden;
-    border-radius: 12px 12px 0 0;
 }
 
 .profile-cover {
@@ -20,7 +29,7 @@
 .profile-cover-placeholder {
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #040354 0%, #1e3a8a 100%);
+    background: #CAD2D8;
 }
 
 .profile-cover-input {
@@ -109,14 +118,142 @@
     color: #040354;
 }
 
+/* LinkedIn-style info bar below cover - padding-top clears the overlapping avatar (extends 60px below cover) */
+.profile-header-info {
+    padding: 0 24px 24px;
+    padding-top: 72px;
+}
+
+.profile-header-info-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.profile-header-info-main {
+    flex: 1;
+    min-width: 200px;
+    padding-left: 164px;
+}
+
+.profile-header-actions {
+    margin-top: 16px;
+}
+
+.profile-header-institution {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.profile-header-name {
+    margin: 0 0 2px 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #000;
+    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
+}
+
+.profile-header-headline {
+    margin: 0 0 4px 0;
+    font-size: 15px;
+    color: #000;
+    line-height: 1.4;
+}
+
+.profile-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 12px;
+}
+
+.profile-header-meta-item {
+    font-size: 14px;
+    color: #666;
+}
+
+.profile-header-contact {
+    font-size: 14px;
+    color: #0a66c2;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.profile-header-contact:hover {
+    text-decoration: underline;
+}
+
+.profile-header-institution-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.profile-header-institution-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: -1;
+}
+
+.profile-header-institution-logo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.profile-header-institution-initials {
+    font-size: 14px;
+    font-weight: 700;
+    color: #374151;
+}
+
+.profile-header-institution-name {
+    font-size: 14px;
+    color: #000;
+    font-weight: 500;
+}
+
+.profile-header-edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    background: transparent;
+    color: #0a66c2;
+    border: 1px solid #0a66c2;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.profile-header-edit:hover {
+    background: rgba(10, 102, 194, 0.08);
+}
+
 @media (max-width: 640px) {
     .profile-cover-wrap {
         height: 160px;
     }
 
     .profile-avatar-wrap {
-        left: 50%;
-        transform: translateX(-50%);
+        left: 24px;
         bottom: -50px;
     }
 
@@ -129,7 +266,19 @@
         font-size: 36px;
     }
 
-    .profile-header {
-        margin-bottom: 60px;
+    .profile-header-info {
+        padding-top: 64px;
+    }
+
+    .profile-header-info-main {
+        padding-left: 124px;
+    }
+
+    .profile-header-info-inner {
+        flex-direction: column;
+    }
+
+    .profile-header-institution {
+        align-self: flex-start;
     }
 }

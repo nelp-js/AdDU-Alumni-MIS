@@ -86,14 +86,14 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 class ExperienceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Experience
-        fields = ["id", "job_title", "company_name", "employment_type", "start_date", "end_date", "description", "is_current"]
+        fields = ["id", "job_title", "company_name", "website", "location", "employment_type", "start_date", "end_date", "description", "is_current"]
         read_only_fields = ["id"]
 
 
 class EducationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Education
-        fields = ["id", "school_name", "degree", "field_of_study", "start_year", "end_year", "description"]
+        fields = ["id", "school_name", "school_website", "school_logo_url", "degree", "field_of_study", "start_month", "start_year", "end_month", "end_year", "activities", "description"]
         read_only_fields = ["id"]
 
 

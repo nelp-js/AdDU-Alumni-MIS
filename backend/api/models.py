@@ -60,6 +60,8 @@ class Experience(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='experiences')
     job_title = models.CharField(max_length=200)
     company_name = models.CharField(max_length=200)
+    website = models.URLField(blank=True, default='')
+    location = models.CharField(max_length=255, blank=True, default='')
     employment_type = models.CharField(max_length=50, choices=EMPLOYMENT_TYPES, default='full_time')
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
@@ -77,10 +79,15 @@ class Experience(models.Model):
 class Education(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='educations')
     school_name = models.CharField(max_length=255)
+    school_website = models.URLField(blank=True, default='')  # for logo favicon fallback
+    school_logo_url = models.URLField(blank=True, default='')   # cached logo from Wikidata
     degree = models.CharField(max_length=200, blank=True, default='')
     field_of_study = models.CharField(max_length=200, blank=True, default='')
+    start_month = models.PositiveSmallIntegerField(null=True, blank=True)  # 1-12
     start_year = models.PositiveIntegerField(null=True, blank=True)
+    end_month = models.PositiveSmallIntegerField(null=True, blank=True)  # 1-12
     end_year = models.PositiveIntegerField(null=True, blank=True)
+    activities = models.TextField(blank=True, default='')  # activities and societies
     description = models.TextField(blank=True, default='')
     order = models.PositiveIntegerField(default=0)
 

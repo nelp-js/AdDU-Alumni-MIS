@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { FiSettings, FiEdit3 } from 'react-icons/fi';
 import { getOptimizedUrl } from '../utils/imageUtils';
+import { extractDomain, getCompanyLogoUrl, getFaviconUrl } from '../utils/autocomplete';
 import '../styles/ProfileHeader.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://sia-2.onrender.com';
@@ -11,7 +12,31 @@ function getFullImageUrl(url) {
     return `${API_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
-function ProfileHeader({ profile, onCoverChange, onProfilePicChange, isEditing }) {
+/** Get primary institution (school or company) for headline display */
+function getPrimaryInstitution(profile) {
+    const educations = profile?.educations || [];
+    const experiences = profile?.experiences || [];
+    if (educations.length > 0) {
+        const edu = educations[0];
+        return {
+            name: edu.school_name,
+            logoUrl: edu.school_logo_url,
+            website: edu.school_website,
+        };
+    }
+    if (experiences.length > 0) {
+        const exp = experiences[0];
+        const domain = extractDomain(exp.website);
+        return {
+            name: exp.company_name,
+            logoUrl: domain ? getCompanyLogoUrl(domain) : null,
+            website: exp.website,
+        };
+    }
+    return null;
+}
+
+function ProfileHeader({ profile, onCoverChange, onProfilePicChange, isEditing, onEditProfile }) {
     const coverInputRef = useRef(null);
     const profilePicInputRef = useRef(null);
 
@@ -22,8 +47,10 @@ function ProfileHeader({ profile, onCoverChange, onProfilePicChange, isEditing }
         .filter(Boolean)
         .join(' ') || '—';
 
+    const institution = getPrimaryInstitution(profile);
+
     return (
-        <header className="profile-header">
+        <header className="profile-header profile-header-linkedin">
             <div className="profile-cover-wrap">
                 {coverUrl ? (
                     <img
@@ -95,6 +122,82 @@ function ProfileHeader({ profile, onCoverChange, onProfilePicChange, isEditing }
                                 <FiEdit3 size={16} />
                             </button>
                         </>
+                    )}
+                </div>
+            </div>
+
+            <div className="profile-header-info">
+                <div className="profile-header-info-inner">
+                    <div className="profile-header-info-main">
+                        <h1 className="profile-header-name" style={{ textTransform: 'capitalize' }}>
+                            {fullName}
+                        </h1>
+                        {profile?.bio && (
+                            <p className="profile-header-headline">{profile.bio}</p>
+                        )}
+                        <div className="profile-header-meta">
+                            {profile?.location && (
+                                <span className="profile-header-meta-item">{profile.location}</span>
+                            )}
+                            {(profile?.website || profile?.email) && (
+                                <a
+                                    href={profile.website
+                                        ? (profile.website.startsWith('http') ? profile.website : `https://${profile.website}`)
+                                        : `mailto:${profile.email || ''}`}
+                                    target={profile.website ? '_blank' : undefined}
+                                    rel={profile.website ? 'noopener noreferrer' : undefined}
+                                    className="profile-header-contact"
+                                >
+                                    Contact info
+                                </a>
+                            )}
+                        </div>
+                        {onEditProfile && (
+                            <div className="profile-header-actions">
+                                <button
+                                    type="button"
+                                    className="profile-header-edit"
+                                    onClick={onEditProfile}
+                                    title="Edit profile"
+                                >
+                                    <FiEdit3 size={16} />
+                                    Edit Profile
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    {institution && (
+                        <div className="profile-header-institution">
+                            <div className="profile-header-institution-logo">
+                                {(institution.logoUrl || institution.website) ? (
+                                    <>
+                                        <img
+                                            src={institution.logoUrl || getFaviconUrl(extractDomain(institution.website))}
+                                            alt=""
+                                            onError={(e) => {
+                                                const el = e.target;
+                                                el.onerror = null;
+                                                const d = extractDomain(institution.website);
+                                                if (d) {
+                                                    el.src = getFaviconUrl(d);
+                                                    el.onerror = () => { el.style.display = 'none'; };
+                                                } else {
+                                                    el.style.display = 'none';
+                                                }
+                                            }}
+                                        />
+                                        <span className="profile-header-institution-initials profile-header-institution-fallback">
+                                            {institution.name?.slice(0, 2).toUpperCase() || '?'}
+                                        </span>
+                                    </>
+                                ) : (
+                                    <span className="profile-header-institution-initials">
+                                        {institution.name?.slice(0, 2).toUpperCase() || '?'}
+                                    </span>
+                                )}
+                            </div>
+                            <span className="profile-header-institution-name">{institution.name}</span>
+                        </div>
                     )}
                 </div>
             </div>
