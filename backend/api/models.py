@@ -34,6 +34,63 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+
+class UserProfile(models.Model):
+    """Extended profile: picture, cover, bio, location, website."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
+    cover_photo = models.ImageField(upload_to='cover_photos/', null=True, blank=True)
+    bio = models.TextField(blank=True, default='')
+    location = models.CharField(max_length=255, blank=True, default='')
+    website = models.URLField(blank=True, default='')
+
+    def __str__(self):
+        return f"Profile of {self.user.username}"
+
+
+class Experience(models.Model):
+    EMPLOYMENT_TYPES = [
+        ('full_time', 'Full-time'),
+        ('part_time', 'Part-time'),
+        ('freelance', 'Freelance'),
+        ('contract', 'Contract'),
+        ('internship', 'Internship'),
+        ('volunteer', 'Volunteer'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='experiences')
+    job_title = models.CharField(max_length=200)
+    company_name = models.CharField(max_length=200)
+    employment_type = models.CharField(max_length=50, choices=EMPLOYMENT_TYPES, default='full_time')
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    description = models.TextField(blank=True, default='')
+    is_current = models.BooleanField(default=False)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-order', '-start_date']
+
+    def __str__(self):
+        return f"{self.job_title} at {self.company_name}"
+
+
+class Education(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='educations')
+    school_name = models.CharField(max_length=255)
+    degree = models.CharField(max_length=200, blank=True, default='')
+    field_of_study = models.CharField(max_length=200, blank=True, default='')
+    start_year = models.PositiveIntegerField(null=True, blank=True)
+    end_year = models.PositiveIntegerField(null=True, blank=True)
+    description = models.TextField(blank=True, default='')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-order', '-start_year']
+
+    def __str__(self):
+        return f"{self.degree} at {self.school_name}"
+
+
 class Event(models.Model):
     # Existing fields
     event_name = models.CharField(max_length=200)

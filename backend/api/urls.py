@@ -5,6 +5,11 @@ from .views import ActivityLogListView
 urlpatterns = [
     # --- USER VIEWS ---
     path("user/me/", views.current_user, name="current-user"),
+    path("profile/", views.profile_detail, name="profile-detail"),
+    path("profile/experiences/", views.ExperienceListCreate.as_view(), name="experience-list"),
+    path("profile/experiences/<int:pk>/", views.ExperienceDetail.as_view(), name="experience-detail"),
+    path("profile/educations/", views.EducationListCreate.as_view(), name="education-list"),
+    path("profile/educations/<int:pk>/", views.EducationDetail.as_view(), name="education-detail"),
     path("users/", views.UserListView.as_view(), name="user-list"),
     path("users/<int:pk>/", views.UserDetailView.as_view(), name="user-detail"),
     path("users/<int:user_id>/approve/", views.approve_user, name="approve-user"),

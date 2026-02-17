@@ -10,11 +10,12 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 import random
 from django.core.mail import send_mail
-from .models import User, Event, Article, ActivityLog, PasswordReset
+from .models import User, Event, Article, ActivityLog, PasswordReset, UserProfile, Experience, Education
 from .serializers import (
     UserSerializer, CurrentUserSerializer, UserListSerializer, UserUpdateSerializer,
     EventSerializer, EventUpdateSerializer, CustomTokenObtainPairSerializer, ActivityLogSerializer,
     ArticleSerializer, ArticleUpdateSerializer,
+    UserProfileSerializer, ExperienceSerializer, EducationSerializer,
 )
 
 
@@ -51,6 +52,83 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 def current_user(request):
     serializer = CurrentUserSerializer(request.user)
     return Response(serializer.data)
+
+
+# --- PROFILE VIEWS ---
+
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def profile_detail(request):
+    """GET or PATCH current user's profile."""
+    user = request.user
+    profile, _ = UserProfile.objects.get_or_create(user=user, defaults={})
+
+    if request.method == 'GET':
+        serializer = UserProfileSerializer(profile)
+        return Response(serializer.data)
+
+    if request.method == 'PATCH':
+        data = request.data
+        # Update User fields if provided
+        if 'first_name' in data:
+            user.first_name = data['first_name'] or ''
+        if 'last_name' in data:
+            user.last_name = data['last_name'] or ''
+        user.save()
+
+        # Update Profile text fields
+        for field in ['bio', 'location', 'website']:
+            if field in data:
+                val = data[field]
+                setattr(profile, field, val if val is not None and val != '' else '')
+
+        # Update file fields
+        if 'profile_picture' in request.FILES:
+            profile.profile_picture = request.FILES['profile_picture']
+        if 'cover_photo' in request.FILES:
+            profile.cover_photo = request.FILES['cover_photo']
+
+        profile.save()
+        serializer = UserProfileSerializer(profile)
+        return Response(serializer.data)
+
+
+class ExperienceListCreate(generics.ListCreateAPIView):
+    serializer_class = ExperienceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Experience.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class ExperienceDetail(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ExperienceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Experience.objects.filter(user=self.request.user)
+
+
+class EducationListCreate(generics.ListCreateAPIView):
+    serializer_class = EducationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Education.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class EducationDetail(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = EducationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Education.objects.filter(user=self.request.user)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdminUser])

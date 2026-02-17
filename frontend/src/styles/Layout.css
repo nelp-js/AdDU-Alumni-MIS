@@ -67,7 +67,6 @@
     text-decoration: none;
 }
 
-/* 👇 HEADER NOTIFICATION BADGE (Dashboard link) 👇 */
 .header-badge {
     position: absolute;
     top: -11px;
@@ -261,6 +260,37 @@
     opacity: 0.8;
 }
 
+/* Logged-in avatar: initials pill + chevron */
+.profile-btn-avatar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+}
+
+.profile-initials {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background-color: #ffffff;
+    color: #333333;
+    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.profile-chevron {
+    font-size: 1.1em;
+    color: white;
+    flex-shrink: 0;
+}
+
 /* The Dropdown Card (Dark Moodle Style) */
 .profile-dropdown {
     position: absolute;
@@ -312,7 +342,8 @@
     width: 100%;
 }
 
-/* Logout Button */
+/* Profile & Logout buttons */
+.dropdown-item,
 .dropdown-logout {
     width: 100%;
     padding: 14px 16px;
@@ -334,6 +365,6 @@
 }
 
 /* Icons */
-.info-icon, .logout-icon {
+.info-icon, .logout-icon, .dropdown-icon {
     font-size: 14px;
 }

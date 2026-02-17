@@ -3,7 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import '../styles/Layout.css';
 import { ACCESS_TOKEN, USER_IS_ADMIN } from '../constants';
 import api from '../api';
-import { FiInfo, FiLogOut, FiChevronDown } from 'react-icons/fi';
+import { FiInfo, FiLogOut, FiChevronDown, FiUser } from 'react-icons/fi';
 
 // 👇 IMPORT THE NEW HOOK
 import { useNotifications } from '../Hooks/NotificationContext'; 
@@ -46,12 +46,27 @@ function Header() {
         window.location.reload(); 
     };
 
+    const handleProfileNav = () => {
+        setShowDropdown(false);
+        navigate('/profile');
+    };
+
     const handleProfileClick = () => {
         if (!user) {
             navigate('/login');
         } else {
             setShowDropdown(!showDropdown);
         }
+    };
+
+    const getInitials = () => {
+        if (!user) return '?';
+        const first = (user.first_name || '').trim().charAt(0).toUpperCase();
+        const last = (user.last_name || '').trim().charAt(0).toUpperCase();
+        if (first && last) return `${first}${last}`;
+        if (first) return first;
+        if (last) return last;
+        return (user.username || '?').charAt(0).toUpperCase();
     };
 
     return (
@@ -85,8 +100,15 @@ function Header() {
                     )}
 
                     <div className="profile-container">
-                        <button className="profile-btn header-nav-link" onClick={handleProfileClick}>
-                            Profile {user && <FiChevronDown style={{ fontSize: '1.1em' }} />}
+                        <button className={`profile-btn header-nav-link ${user ? 'profile-btn-avatar' : ''}`} onClick={handleProfileClick}>
+                            {user ? (
+                                <>
+                                    <span className="profile-initials">{getInitials()}</span>
+                                    <FiChevronDown className="profile-chevron" />
+                                </>
+                            ) : (
+                                <>Profile</>
+                            )}
                         </button>
 
                         {showDropdown && user && (
@@ -100,6 +122,10 @@ function Header() {
                                         <FiInfo className="info-icon" /> {user.username}
                                     </div>
                                 </div>
+                                <div className="dropdown-divider"></div>
+                                <button onClick={handleProfileNav} className="dropdown-item">
+                                    <FiUser className="dropdown-icon" /> Profile
+                                </button>
                                 <div className="dropdown-divider"></div>
                                 <button onClick={handleLogout} className="dropdown-logout">
                                     <FiLogOut className="logout-icon" /> Log out

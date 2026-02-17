@@ -1,7 +1,7 @@
 import re
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import User, Event, Article
+from .models import User, Event, Article, UserProfile, Experience, Education
 from .models import ActivityLog
 
 
@@ -79,8 +79,48 @@ class UserSerializer(serializers.ModelSerializer):
 class CurrentUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username", "is_superuser", "first_name", "last_name", "email"]
+        fields = ["id", "username", "is_superuser", "first_name", "middle_name", "last_name", "email"]
         read_only_fields = ["id", "username", "is_superuser", "first_name", "last_name", "email"]
+
+
+class ExperienceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Experience
+        fields = ["id", "job_title", "company_name", "employment_type", "start_date", "end_date", "description", "is_current"]
+        read_only_fields = ["id"]
+
+
+class EducationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Education
+        fields = ["id", "school_name", "degree", "field_of_study", "start_year", "end_year", "description"]
+        read_only_fields = ["id"]
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    experiences = ExperienceSerializer(many=True, read_only=True)
+    educations = EducationSerializer(many=True, read_only=True)
+    first_name = serializers.CharField(source='user.first_name', required=False)
+    middle_name = serializers.CharField(source='user.middle_name', required=False, allow_blank=True)
+    last_name = serializers.CharField(source='user.last_name', required=False)
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+
+    class Meta:
+        model = UserProfile
+        fields = [
+            "id", "profile_picture", "cover_photo", "bio", "location", "website",
+            "first_name", "middle_name", "last_name", "username", "email",
+            "experiences", "educations"
+        ]
+        read_only_fields = ["id"]
+        extra_kwargs = {
+            "profile_picture": {"required": False},
+            "cover_photo": {"required": False},
+            "bio": {"required": False},
+            "location": {"required": False},
+            "website": {"required": False},
+        }
 
 
 class UserListSerializer(serializers.ModelSerializer):

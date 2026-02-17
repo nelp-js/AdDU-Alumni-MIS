@@ -8,6 +8,12 @@ import { useTitle } from '../Hooks/useTitle';
 import { ACCESS_TOKEN } from '../constants';
 import { getOptimizedUrl } from '../utils/imageUtils';
 
+// Strips formatting from copy-pasted "Math Bold" text so CSS fonts apply
+function cleanText(text) {
+    if (!text) return "";
+    return text.normalize("NFKD");
+}
+
 function Home() {
     useTitle('Home');
     const isLoggedIn = !!localStorage.getItem(ACCESS_TOKEN);
@@ -75,6 +81,8 @@ function Home() {
                     )}
                     {!loading && latestArticles.map((article) => {
                         const imageUrl = getOptimizedUrl(article.cover_image, 'card');
+                        const displayTitle = cleanText(article.title || '—');
+                        const displaySubtitle = cleanText(article.subtitle || '');
                         return (
                             <Link
                                 key={article.id}
@@ -83,14 +91,14 @@ function Home() {
                             >
                                 <div className="home-card-image-wrap">
                                     {imageUrl ? (
-                                        <img src={imageUrl} alt="" className="home-card-image" />
+                                        <img src={imageUrl} alt={displayTitle} className="home-card-image" />
                                     ) : (
                                         <div className="home-card-image-placeholder" />
                                     )}
                                 </div>
                                 <div className="home-card-content">
-                                    <h3 className="home-card-title">{article.title || '—'}</h3>
-                                    <p className="home-card-description">{article.subtitle || ''}</p>
+                                    <h3 className="home-card-title">{displayTitle}</h3>
+                                    <p className="home-card-description">{displaySubtitle}</p>
                                     <span className="home-card-btn">Read More</span>
                                 </div>
                             </Link>

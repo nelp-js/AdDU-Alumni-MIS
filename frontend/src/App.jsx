@@ -14,7 +14,9 @@ import ContentManagement from "./pages/ContentManagement"
 import Stories from "./pages/Stories"
 import ArticleView from "./pages/ArticleView"
 import Error from "./pages/Error"
+import Profile from "./pages/Profile"
 import AdminProtectedRoute from "./components/AdminProtectedRoute"
+import ProtectedRoute from "./components/ProtectedRoute"
 import ScrollToTop from "./components/ScrollToTop"
 import AutoLogout from "./components/AutoLogout"
 import { NotificationProvider } from './Hooks/NotificationContext';
@@ -44,6 +46,7 @@ function App() {
         <Route path="/events/:id" element={<EventView />} />
         <Route path="/create-event" element={<CreateEvent />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<RegisterAndLogout />} />
         <Route path="/dashboard" element={<AdminProtectedRoute><Dashboard /></AdminProtectedRoute>} />

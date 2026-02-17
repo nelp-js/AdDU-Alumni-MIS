@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Event
+from .models import User, Event, UserProfile, Experience, Education
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
@@ -41,3 +41,20 @@ class EventAdmin(admin.ModelAdmin):
         self.message_user(request, "Selected events have been approved.")
     
     approve_events.short_description = "Approve Selected Events"
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'location')
+    search_fields = ('user__username', 'user__email')
+
+
+@admin.register(Experience)
+class ExperienceAdmin(admin.ModelAdmin):
+    list_display = ('job_title', 'company_name', 'user', 'is_current')
+    list_filter = ('employment_type', 'is_current')
+
+
+@admin.register(Education)
+class EducationAdmin(admin.ModelAdmin):
+    list_display = ('school_name', 'degree', 'user')
