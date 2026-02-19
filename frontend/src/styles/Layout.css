@@ -1,21 +1,23 @@
 /* Shared Header & Footer styles */
 
-/* Header */
+/* =========================================
+   HEADER STYLES
+   ========================================= */
 .site-header {
     background-color: #040354;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    z-index: 100; /* Increased to ensure it stays above content */
+    z-index: 100; /* High z-index to stay above content */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box;
+    width: 100%;
 }
 
 .site-header .header-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 24px;
+    padding: 15px 30px; /* Reduced padding for cleaner look */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -23,12 +25,14 @@
     box-sizing: border-box;
 }
 
+/* Logo Section */
 .site-header .header-logo-section {
     display: flex;
     align-items: center;
     gap: 12px;
     text-decoration: none;
     color: white;
+    transition: opacity 0.3s;
 }
 
 .site-header .header-logo-section:hover {
@@ -40,7 +44,6 @@
     height: 40px;
     object-fit: contain;
     display: block;
-    vertical-align: middle;
 }
 
 .site-header .header-title {
@@ -49,8 +52,10 @@
     letter-spacing: 0.5px;
     font-family: 'Trajan Pro', serif;
     line-height: 1;
+    white-space: nowrap; /* Prevents title breaking on small screens */
 }
 
+/* Navigation */
 .site-header .header-nav {
     display: flex;
     gap: 25px;
@@ -63,8 +68,8 @@
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
-    line-height: 1;
     transition: opacity 0.3s ease;
+    cursor: pointer;
 }
 
 .site-header .header-nav a:hover,
@@ -72,13 +77,37 @@
     opacity: 0.8;
 }
 
-/* Footer */
+/* Notification Badge */
+.site-header .header-badge {
+    position: absolute;
+    top: -8px;
+    right: -10px;
+    background-color: #ffffff;
+    color: #040354;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+    z-index: 10;
+}
+
+
+/* =========================================
+   FOOTER STYLES (Restored & Responsive)
+   ========================================= */
 .site-footer {
     background-color: #040354;
     padding: 40px 0 30px;
     position: relative;
     z-index: 1;
     margin-top: auto;
+    width: 100%;
 }
 
 .footer-content {
@@ -86,7 +115,7 @@
     margin: 0 auto;
     padding: 0 30px;
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr 1fr 1fr; /* 4 Columns: Info, Connect, Engage, Events */
     gap: 40px;
 }
 
@@ -96,6 +125,37 @@
     gap: 15px;
 }
 
+/* Footer Headings */
+.footer-section h3 {
+    color: white;
+    font-size: 16px;
+    font-weight: 400; /* Matching original look */
+    margin: 0 0 10px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Footer Links List */
+.footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.footer-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    transition: opacity 0.3s ease;
+    width: fit-content;
+}
+
+.footer-links a:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+/* Footer Logo Area */
 .footer-logo-section {
     display: flex;
     align-items: center;
@@ -121,9 +181,39 @@
     font-size: 13px;
     line-height: 1.6;
     margin: 0;
+    max-width: 300px;
 }
 
-/* --- Profile Dropdown & Button Styles --- */
+/* Social Icons */
+.social-icons {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.social-icons a {
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    transition: opacity 0.3s;
+}
+
+.social-icons a:hover {
+    opacity: 0.8;
+}
+
+.social-icons svg {
+    width: 24px;
+    height: 24px;
+}
+
+
+/* =========================================
+   PROFILE DROPDOWN STYLES (Fixed Overlap)
+   ========================================= */
 
 .profile-container {
     position: relative;
@@ -141,7 +231,7 @@
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     padding: 0;
     transition: opacity 0.3s ease;
 }
@@ -154,8 +244,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     background-color: #ffffff;
     color: #333333;
     font-family: 'Avenir LT Std', sans-serif;
@@ -165,12 +255,12 @@
     border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* The Dropdown Card */
+/* Dropdown Card */
 .profile-dropdown {
     position: absolute;
-    top: 45px;
+    top: 50px;
     right: 0;
-    width: 280px; /* Width increased for better spacing */
+    width: 280px; /* Wider for better spacing */
     background-color: #333333;
     color: white;
     border-radius: 4px;
@@ -180,61 +270,58 @@
     border: 1px solid #444;
 }
 
-/* User Info Section - FIXES OVERLAP */
+/* User Info Section - STACKED LAYOUT */
 .dropdown-info {
     padding: 16px;
     display: flex;
-    flex-direction: column; /* Stack name, email, and button vertically */
-    gap: 10px; /* Space out the items so they don't overlap */
+    flex-direction: column; /* Critical fix for overlap */
+    gap: 8px; /* Spacing between elements */
 }
 
 .user-fullname {
     font-size: 15px;
     font-weight: 700;
     color: #ffffff;
+    margin: 0;
 }
 
 .user-email {
     font-size: 13px;
     color: #bbbbbb;
     word-break: break-all;
+    margin: 0;
 }
 
-/* Explicit Button Styling for 'Edit cover' */
-.dropdown-info button, 
+/* Edit Cover Button - Styled */
 .dropdown-info .edit-cover-btn {
-    align-self: flex-start; /* Keeps button from stretching full width */
+    align-self: flex-start;
+    margin-top: 5px;
     background-color: white;
     color: #040354;
-    border: none;
     padding: 6px 14px;
     border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.user-username {
     font-size: 12px;
-    color: #999999;
-    display: flex;
+    font-weight: 600;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: background-color 0.2s;
 }
 
-/* Divider Line */
+.dropdown-info .edit-cover-btn:hover {
+    background-color: #f0f0f0;
+}
+
 .dropdown-divider {
     height: 1px;
     background-color: #555;
     width: 100%;
 }
 
-/* Dropdown Items (Profile, Logout) */
-.dropdown-item,
+.dropdown-item, 
 .dropdown-logout {
     width: 100%;
     padding: 14px 16px;
@@ -245,13 +332,78 @@
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 12px; /* Consistent gap for icons */
+    gap: 12px;
     font-size: 14px;
     transition: background-color 0.2s;
 }
 
-.dropdown-item:hover,
+.dropdown-item:hover, 
 .dropdown-logout:hover {
     background-color: #444;
     color: white;
+}
+
+
+/* =========================================
+   RESPONSIVE DESIGN (Media Queries)
+   ========================================= */
+
+/* Tablet (Landscape) & Small Laptops */
+@media (max-width: 1024px) {
+    .footer-content {
+        grid-template-columns: 2fr 1fr 1fr; /* Drops 'Events' column down or merges */
+        gap: 30px;
+    }
+}
+
+/* Mobile Devices & Tablets (Portrait) */
+@media (max-width: 768px) {
+    /* Header Stack */
+    .site-header .header-content {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 20px;
+    }
+    
+    .site-header .header-nav {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    /* Footer Stack */
+    .footer-content {
+        grid-template-columns: 1fr; /* Single column layout */
+        gap: 40px;
+        text-align: center;
+    }
+
+    .footer-section {
+        align-items: center;
+    }
+    
+    .footer-logo-section {
+        justify-content: center;
+    }
+    
+    .footer-address {
+        margin: 0 auto;
+    }
+    
+    .footer-links {
+        align-items: center;
+    }
+    
+    .social-icons {
+        justify-content: center;
+    }
+
+    /* Profile Dropdown Adjustments for Mobile */
+    .profile-dropdown {
+        right: 50%;
+        transform: translateX(50%); /* Centers dropdown on mobile */
+        width: 90vw; /* Full width on small screens */
+        max-width: 300px;
+    }
 }
