@@ -377,5 +377,3 @@ def reset_password(request):
         return Response({"detail": "Invalid OTP."}, status=400)
     except:
          return Response({"detail": "Invalid request."}, status=400)
-def health_check(request):
-    return HttpResponse("OK")
