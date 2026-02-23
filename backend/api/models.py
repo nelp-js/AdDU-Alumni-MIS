@@ -50,11 +50,15 @@ class UserProfile(models.Model):
 
 class Experience(models.Model):
     EMPLOYMENT_TYPES = [
+        ('', 'Please select'),
         ('full_time', 'Full-time'),
         ('part_time', 'Part-time'),
+        ('self_employed', 'Self-employed'),
         ('freelance', 'Freelance'),
         ('contract', 'Contract'),
         ('internship', 'Internship'),
+        ('apprenticeship', 'Apprenticeship'),
+        ('seasonal', 'Seasonal'),
         ('volunteer', 'Volunteer'),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='experiences')
@@ -62,7 +66,14 @@ class Experience(models.Model):
     company_name = models.CharField(max_length=200)
     website = models.URLField(blank=True, default='')
     location = models.CharField(max_length=255, blank=True, default='')
-    employment_type = models.CharField(max_length=50, choices=EMPLOYMENT_TYPES, default='full_time')
+    employment_type = models.CharField(max_length=50, choices=EMPLOYMENT_TYPES, blank=True, default='')
+    SITE_TYPES = [
+        ('', ''),
+        ('on_site', 'On-site'),
+        ('remote', 'Remote'),
+        ('hybrid', 'Hybrid'),
+    ]
+    site_type = models.CharField(max_length=20, choices=SITE_TYPES, blank=True, default='')
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
     description = models.TextField(blank=True, default='')

@@ -60,12 +60,14 @@
     display: flex;
     align-items: flex-start; 
     gap: 16px;
-    padding: 16px 0;
+    padding: 20px 0;
 }
 
 .profile-exp-item-divider,
 .profile-edu-item-divider {
     border-top: 1px solid #e5e7eb;
+    margin-top: 4px;
+    padding-top: 20px;
 }
 
 .profile-exp-logo,
@@ -88,6 +90,7 @@
     object-fit: contain;
 }
 
+.profile-exp-logo-initials,
 .profile-edu-logo-fallback {
     font-size: 16px;
     font-weight: 700;
@@ -101,7 +104,7 @@
     min-width: 0;
     display: flex;
     justify-content: space-between;
-    align-items: center; /* Middle-aligns the underlined pencil with the text block */
+    align-items: flex-start;
 }
 
 .profile-exp-content {
@@ -122,7 +125,7 @@
 .profile-edu-subtitle {
     margin: 0 0 2px 0;
     font-size: 14px;
-    color: #111827;
+    color: #6b7280;
 }
 
 .profile-exp-meta,
@@ -135,9 +138,9 @@
 .profile-exp-desc,
 .profile-edu-desc,
 .profile-edu-activities {
-    margin: 8px 0 0 0;
+    margin: 10px 0 0 0;
     font-size: 14px;
-    color: #4b5563;
+    color: #374151;
     line-height: 1.5;
     white-space: pre-wrap;
 }
@@ -157,7 +160,6 @@
     transition: background 0.2s, color 0.2s;
     margin-left: 12px;
     flex-shrink: 0;
-    align-self: center; /* Ensures it stays centered even if text wraps long */
 }
 
 .profile-exp-edit-icon:hover,
@@ -187,4 +189,11 @@
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
+}
+
+.section-empty {
+    color: #6b7280;
+    font-size: 14px;
+    margin: 0;
+    padding: 16px 0;
 }

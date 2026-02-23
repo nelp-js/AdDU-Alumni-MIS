@@ -31,8 +31,18 @@ function Login() {
     });
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
+    const [showSlowHint, setShowSlowHint] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showForgotModal, setShowForgotModal] = useState(false);
+
+    useEffect(() => {
+        if (!loading) {
+            setShowSlowHint(false);
+            return;
+        }
+        const t = setTimeout(() => setShowSlowHint(true), 10000);
+        return () => clearTimeout(t);
+    }, [loading]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -44,21 +54,33 @@ function Login() {
         e.preventDefault();
 
         if (!formData.username || !formData.password) {
-            setErrors({ general: 'Username and password are required.' });
+            setErrors({ general: 'Email/username and password are required.' });
             return;
         }
 
         setLoading(true);
         setErrors({});
 
+        const apiBase = import.meta.env.VITE_API_URL || 'https://sia-2.onrender.com';
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 90000);
+
         try {
-            const response = await fetch('https://sia-2.onrender.com/api/token/', {
+            const response = await fetch(`${apiBase}/api/token/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(formData),
+                signal: controller.signal,
             });
 
-            const data = await response.json();
+            clearTimeout(timeoutId);
+
+            let data;
+            try {
+                data = await response.json();
+            } catch {
+                data = { detail: 'Invalid server response.' };
+            }
 
             if (response.ok) {
                 localStorage.setItem(ACCESS_TOKEN, data.access);
@@ -80,15 +102,20 @@ function Login() {
                 navigate(from, { replace: true }); 
 
             } else {
-                console.log('Error details:', data);
-                if (data.detail) {
+                if (response.status === 502 || response.status === 503) {
+                    setErrors({ general: 'Server is starting up. Please wait a moment and try again.' });
+                } else if (data.detail) {
                     setErrors({ general: data.detail });
                 } else {
                     setErrors(data);
                 }
             }
         } catch (error) {
-            setErrors({ general: 'Unable to connect to server.' });
+            if (error.name === 'AbortError') {
+                setErrors({ general: 'Request timed out. The server may be starting up—please try again.' });
+            } else {
+                setErrors({ general: 'Unable to connect to server. Please check your connection and try again.' });
+            }
         } finally {
             setLoading(false);
         }
@@ -163,6 +190,9 @@ function Login() {
                             <button type="submit" disabled={loading} className="submit-btn">
                                 {loading ? 'Logging in...' : 'Log in'}
                             </button>
+                            {showSlowHint && (
+                                <p className="login-slow-hint">Server may be starting up. Please wait—this can take up to a minute.</p>
+                            )}
 
                             <div className="form-links">
                                 <a 

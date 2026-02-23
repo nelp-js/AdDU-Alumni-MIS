@@ -48,6 +48,40 @@ export async function fetchCompanySuggestions(query) {
     }
 }
 
+/** Guess domain from school name for logo lookup (e.g. typed manually or before Wikidata fetch) */
+export function guessDomainFromSchoolName(name) {
+    if (!name || !name.trim()) return null;
+    const n = name.trim().toLowerCase();
+    const known = [
+        ['ateneo de davao', 'addu.edu.ph'],
+        ['ateneo de manila', 'ateneo.edu'],
+        ['boston university', 'bu.edu'],
+        ['harvard', 'harvard.edu'],
+        ['mit', 'mit.edu'],
+        ['stanford', 'stanford.edu'],
+        ['yale', 'yale.edu'],
+        ['princeton', 'princeton.edu'],
+        ['columbia', 'columbia.edu'],
+        ['ucla', 'ucla.edu'],
+        ['berkeley', 'berkeley.edu'],
+        ['oxford', 'ox.ac.uk'],
+        ['cambridge', 'cam.ac.uk'],
+    ];
+    for (const [key, domain] of known) {
+        if (n.includes(key)) return domain;
+    }
+    const clean = n.replace(/[^a-z0-9]/g, '');
+    return clean ? `${clean}.edu` : null;
+}
+
+/** Logo URL for a school - Clearbit or favicon from guessed/known domain */
+export function getSchoolLogoUrl(domainOrName) {
+    if (!domainOrName) return null;
+    const d = extractDomain(domainOrName) || guessDomainFromSchoolName(domainOrName);
+    if (!d) return null;
+    return `https://logo.clearbit.com/${d}`;
+}
+
 /** Fetch university suggestions from Wikidata (no API key) */
 export async function fetchUniversitySuggestions(query) {
     if (!query || query.trim().length < 2) return [];

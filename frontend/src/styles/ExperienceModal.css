@@ -36,6 +36,8 @@
 }
 
 .exp-form-input {
+    width: 100%;
+    box-sizing: border-box;
     padding: 12px 14px;
     border: 1px solid #d1d5db;
     border-radius: 8px;
@@ -133,6 +135,10 @@
     margin-top: 8px;
 }
 
+.exp-form-actions-space {
+    justify-content: space-between;
+}
+
 .exp-form-draft {
     padding: 10px 24px;
     background: #fff;
@@ -172,7 +178,7 @@
 
 /* Education modal additions */
 .exp-form-required {
-    margin: 0 0 4px 0;
+    margin: 0 0 16px 0;
     font-size: 12px;
     color: #6b7280;
 }
@@ -206,4 +212,19 @@
 
 .exp-form-delete:hover {
     color: #dc2626;
+}
+
+.confirm-modal-delete {
+    background: #dc2626 !important;
+}
+
+.confirm-modal-delete:hover {
+    background: #b91c1c !important;
+}
+
+.confirm-modal-message {
+    margin: 0;
+    font-size: 15px;
+    color: #374151;
+    line-height: 1.5;
 }

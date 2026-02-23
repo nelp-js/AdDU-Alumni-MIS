@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import api from '../api';
 import '../styles/CreateEvent.css';
 import { useTitle } from '../Hooks/useTitle';
-import { ACCESS_TOKEN } from '../constants';
 import { useNavigate } from 'react-router-dom';
 
 function CreateEvent() {
@@ -87,36 +87,27 @@ function CreateEvent() {
         }
 
         try {
-            const token = localStorage.getItem(ACCESS_TOKEN);
-
-            const response = await fetch('https://sia-2.onrender.com/api/events/', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                    // Do NOT set Content-Type manually
-                },
-                body: dataToSend
+            await api.post('/api/events/', dataToSend);
+            setSuccess(true);
+            setFormData({
+                eventName: '', previewText: '', coverPhoto: null, description: '',
+                actionButtonEnabled: false, actionButtonLabel: '', actionButtonLink: '',
+                startDate: '', endDate: '', startTime: '', endTime: '',
+                cost: '', venue: '', organizer1: '', organizer2: '', organizer3: '',
             });
-
-            if (response.ok) {
-                setSuccess(true);
-                // Clear form
-                setFormData({
-                    eventName: '', previewText: '', coverPhoto: null, description: '',
-                    actionButtonEnabled: false, actionButtonLabel: '', actionButtonLink: '',
-                    startDate: '', endDate: '', startTime: '', endTime: '',
-                    cost: '', venue: '', organizer1: '', organizer2: '', organizer3: '',
-                });
-                
-                setTimeout(() => navigate('/dashboard'), 3000); // Shortened delay to 3s for better UX
-            } else {
-                const errorData = await response.json().catch(() => ({}));
-                console.error("Backend Error:", errorData);
-                alert(`Failed to create event: ${JSON.stringify(errorData)}`);
-            }
+            setTimeout(() => navigate('/dashboard/events'), 3000);
         } catch (error) {
-            console.error('Network Error:', error);
-            alert('Something went wrong connecting to the server.');
+            const data = error.response?.data;
+            let msg = 'Something went wrong.';
+            if (error.response?.status === 401) {
+                msg = 'Please log in to create an event.';
+            } else if (error.response?.status === 403) {
+                msg = 'You do not have permission to create events.';
+            } else if (data) {
+                if (typeof data.detail === 'string') msg = data.detail;
+                else if (typeof data === 'object') msg = Object.entries(data).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join(' ');
+            }
+            alert(`Failed to create event: ${msg}`);
         } finally {
             setLoading(false);
         }

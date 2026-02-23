@@ -5,7 +5,7 @@ import { ACCESS_TOKEN, USER_IS_ADMIN } from '../constants';
 import api from '../api';
 import { FiInfo, FiLogOut, FiChevronDown, FiUser } from 'react-icons/fi';
 
-// 👇 IMPORT THE NEW HOOK
+// IMPORT THE NEW HOOK
 import { useNotifications } from '../Hooks/NotificationContext'; 
 
 function Header() {
@@ -13,7 +13,7 @@ function Header() {
     const [user, setUser] = useState(null);
     const [showDropdown, setShowDropdown] = useState(false);
     
-    // 👇 NEW: Get notifications directly from the global context
+    // NEW: Get notifications directly from the global context
     const { notifications } = useNotifications();
     
     const navigate = useNavigate();
@@ -107,7 +107,7 @@ function Header() {
                                     <FiChevronDown className="profile-chevron" />
                                 </>
                             ) : (
-                                <>Profile</>
+                                <>Log In</>
                             )}
                         </button>
 

@@ -31,9 +31,6 @@ function Profile() {
     const [infoError, setInfoError] = useState('');
     const [profilePicFile, setProfilePicFile] = useState(null);
     const [coverFile, setCoverFile] = useState(null);
-    const [dismissEnhance, setDismissEnhance] = useState(false);
-    const [openExperienceAdd, setOpenExperienceAdd] = useState(false);
-
     const fetchProfile = useCallback(() => {
         api.get('/api/profile/')
             .then((res) => {
@@ -146,37 +143,12 @@ function Profile() {
                     />
 
                     <div className="profile-content">
-                    {!dismissEnhance && (profile.experiences || []).length === 0 && (
-                        <div className="profile-enhance">
-                            <p className="profile-enhance-text">
-                                Enhance your own profile by adding a work experience.{' '}
-                                <button
-                                    type="button"
-                                    className="profile-enhance-link"
-                                    onClick={() => setOpenExperienceAdd(true)}
-                                >
-                                    Add Experience
-                                </button>
-                            </p>
-                            <button
-                                type="button"
-                                className="profile-enhance-dismiss"
-                                onClick={() => setDismissEnhance(true)}
-                                aria-label="Dismiss"
-                            >
-                                ×
-                            </button>
-                        </div>
-                    )}
-
                     <ExperienceSection
                         experiences={profile.experiences || []}
                         onAdd={fetchProfile}
                         onUpdate={fetchProfile}
                         onDelete={fetchProfile}
                         api={api}
-                        openAddTrigger={openExperienceAdd}
-                        onOpenAddConsumed={() => setOpenExperienceAdd(false)}
                     />
 
                     <EducationSection

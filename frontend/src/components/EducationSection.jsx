@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { FiPlus, FiEdit3 } from 'react-icons/fi';
 import EditModal from './EditModal';
+import ConfirmModal from './ConfirmModal';
 import UniversityAutocomplete from './UniversityAutocomplete';
-import { extractDomain, getFaviconUrl } from '../utils/autocomplete';
+import TextAutocomplete from './TextAutocomplete';
+import { DEGREES, FIELDS_OF_STUDY } from '../data/educationOptions';
+import { extractDomain, getSchoolLogoUrl, getFaviconUrl, guessDomainFromSchoolName } from '../utils/autocomplete';
 import '../styles/ProfileSection.css';
 import '../styles/ExperienceModal.css';
 
 const currentYear = new Date().getFullYear();
-const YEARS = Array.from({ length: 50 }, (_, i) => (currentYear + 5) - i); 
+const YEARS = Array.from({ length: 50 }, (_, i) => currentYear + 5 - i);
 const MONTHS = [
     { value: '', label: 'Month' },
     { value: '1', label: 'January' }, { value: '2', label: 'February' }, { value: '3', label: 'March' },
@@ -15,9 +18,6 @@ const MONTHS = [
     { value: '7', label: 'July' }, { value: '8', label: 'August' }, { value: '9', label: 'September' },
     { value: '10', label: 'October' }, { value: '11', label: 'November' }, { value: '12', label: 'December' },
 ];
-
-const DESC_MAX = 1000;
-const ACTIVITIES_MAX = 500;
 
 const emptyEducation = () => ({
     school_name: '',
@@ -42,6 +42,8 @@ function formatEduDateRange(startMonth, startYear, endMonth, endYear) {
 
 function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
     const [modalOpen, setModalOpen] = useState(false);
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [confirmDeleteId, setConfirmDeleteId] = useState(null);
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState(emptyEducation());
     const [saving, setSaving] = useState(false);
@@ -82,13 +84,7 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        if (name === 'description') {
-            setForm((prev) => ({ ...prev, [name]: value.slice(0, DESC_MAX) }));
-        } else if (name === 'activities') {
-            setForm((prev) => ({ ...prev, [name]: value.slice(0, ACTIVITIES_MAX) }));
-        } else {
-            setForm((prev) => ({ ...prev, [name]: value }));
-        }
+        setForm((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e) => {
@@ -125,14 +121,22 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Delete this education?')) return;
+    const handleDeleteClick = (id) => {
+        setConfirmDeleteId(id);
+        setConfirmDeleteOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        const id = confirmDeleteId;
+        if (!id) return;
         try {
             await api.delete(`/api/profile/educations/${id}/`);
             onDelete();
             closeModal();
         } catch {
             alert('Failed to delete.');
+        } finally {
+            setConfirmDeleteId(null);
         }
     };
 
@@ -142,12 +146,7 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
                 <div className="card-header">
                     <h2 className="card-title">Education</h2>
                     <div className="card-header-actions">
-                        <button 
-                            type="button" 
-                            className="icon-btn" 
-                            onClick={openAdd}
-                            title="Add Education"
-                        >
+                        <button type="button" className="icon-btn" onClick={openAdd} title="Add Education">
                             <FiPlus size={24} />
                         </button>
                     </div>
@@ -159,25 +158,16 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
                     ) : (
                         educations.map((edu, idx) => {
                             const dateStr = formatEduDateRange(edu.start_month, edu.start_year, edu.end_month, edu.end_year);
-                            
-                            // AdDU Specific Seal Logic
-                            const isAdDU = edu.school_name?.toLowerCase().includes("ateneo de davao");
-                            const adduSeal = "https://res.cloudinary.com/dwi7oftcs/image/upload/v1770416948/UniversitySeal240px_zblv2w.png";
-                            
-                            const logoUrl = edu.school_logo_url;
-                            const domain = extractDomain(edu.school_website);
+                            const isAdDU = edu.school_name?.toLowerCase().includes('ateneo de davao');
+                            const adduSeal = 'https://res.cloudinary.com/dwi7oftcs/image/upload/v1770416948/UniversitySeal240px_zblv2w.png';
+                            const domain = extractDomain(edu.school_website) || guessDomainFromSchoolName(edu.school_name);
+                            const logoUrl = edu.school_logo_url || (domain ? getSchoolLogoUrl(domain) : null);
                             const faviconUrl = domain ? getFaviconUrl(domain) : null;
                             const src = isAdDU ? adduSeal : (logoUrl || faviconUrl);
 
                             return (
                                 <div key={edu.id} className={`profile-edu-item ${idx > 0 ? 'profile-edu-item-divider' : ''}`}>
-                                    <div 
-                                        className="profile-edu-logo" 
-                                        style={{ 
-                                            backgroundColor: isAdDU ? '#ffffff' : '#ffffff',
-                                            padding: isAdDU ? '4px' : '0' 
-                                        }}
-                                    >
+                                    <div className="profile-edu-logo" style={{ backgroundColor: '#ffffff', padding: isAdDU ? '4px' : '0' }}>
                                         {src ? (
                                             <>
                                                 <img
@@ -208,19 +198,11 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
                                             </p>
                                             {dateStr && <p className="profile-edu-meta">{dateStr}</p>}
                                             {edu.activities && (
-                                                <p className="profile-edu-activities">
-                                                    <strong>Activities:</strong> {edu.activities}
-                                                </p>
+                                                <p className="profile-edu-activities">Activities and societies: {edu.activities}</p>
                                             )}
                                             {edu.description && <p className="profile-edu-desc">{edu.description}</p>}
                                         </div>
-                                        
-                                        <button
-                                            type="button"
-                                            className="profile-edu-edit-icon"
-                                            onClick={() => openEdit(edu)}
-                                            title="Edit Item"
-                                        >
+                                        <button type="button" className="profile-edu-edit-icon" onClick={() => openEdit(edu)} title="Edit">
                                             <FiEdit3 size={20} />
                                         </button>
                                     </div>
@@ -231,18 +213,17 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
                 </div>
             </div>
 
-            <EditModal
-                isOpen={modalOpen}
-                onClose={closeModal}
-                title={editing ? 'Edit education' : 'Add education'}
-            >
+            <EditModal isOpen={modalOpen} onClose={closeModal} title={editing ? 'Edit education' : 'Add education'}>
                 <form onSubmit={handleSubmit} className="exp-form">
                     {error && <div className="exp-form-error">{error}</div>}
+                    <p className="exp-form-required">* Indicates required</p>
                     <div className="exp-form-row">
                         <label className="exp-form-label">School *</label>
                         <UniversityAutocomplete
                             value={form.school_name}
-                            onChange={handleChange}
+                            selectedLogoUrl={form.school_logo_url}
+                            selectedWebsite={form.school_website}
+                            onChange={(e) => setForm((p) => ({ ...p, school_name: e.target.value }))}
                             onSelect={({ school_name: name, school_logo_url: logoUrl, school_website: website }) => {
                                 setForm((prev) => ({
                                     ...prev,
@@ -251,24 +232,39 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
                                     school_website: website || '',
                                 }));
                             }}
-                            placeholder="Ex: Ateneo de Davao University"
+                            onClear={() => setForm((p) => ({ ...p, school_name: '', school_logo_url: '', school_website: '' }))}
+                            placeholder="Ex: Boston University"
                             required
                         />
                     </div>
                     <div className="exp-form-row">
                         <label className="exp-form-label">Degree</label>
-                        <input type="text" name="degree" value={form.degree} onChange={handleChange} className="exp-form-input" placeholder="Ex: Bachelor's" />
+                        <TextAutocomplete
+                            name="degree"
+                            value={form.degree}
+                            onChange={handleChange}
+                            options={DEGREES}
+                            placeholder="Ex: Bachelor's"
+                        />
                     </div>
                     <div className="exp-form-row">
                         <label className="exp-form-label">Field of study</label>
-                        <input type="text" name="field_of_study" value={form.field_of_study} onChange={handleChange} className="exp-form-input" placeholder="Ex: Business" />
+                        <TextAutocomplete
+                            name="field_of_study"
+                            value={form.field_of_study}
+                            onChange={handleChange}
+                            options={FIELDS_OF_STUDY}
+                            placeholder="Ex: Business"
+                        />
                     </div>
                     <div className="exp-form-row exp-form-row-inline">
-                        <div style={{flex: 1, marginRight: '16px'}}>
+                        <div style={{ flex: 1, marginRight: '16px' }}>
                             <label className="exp-form-label">Start date</label>
-                            <div className="exp-form-date-row" style={{display: 'flex', gap: '8px'}}>
+                            <div className="exp-form-date-row" style={{ display: 'flex', gap: '8px' }}>
                                 <select name="start_month" value={form.start_month} onChange={handleChange} className="exp-form-input exp-form-select">
-                                    {MONTHS.map((m) => (<option key={m.value || 'm'} value={m.value}>{m.label}</option>))}
+                                    {MONTHS.map((m) => (
+                                        <option key={m.value || 'm'} value={m.value}>{m.label}</option>
+                                    ))}
                                 </select>
                                 <select name="start_year" value={form.start_year} onChange={handleChange} className="exp-form-input exp-form-select">
                                     <option value="">Year</option>
@@ -278,11 +274,13 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
                                 </select>
                             </div>
                         </div>
-                        <div style={{flex: 1}}>
-                            <label className="exp-form-label">End date (expected)</label>
-                            <div className="exp-form-date-row" style={{display: 'flex', gap: '8px'}}>
+                        <div style={{ flex: 1 }}>
+                            <label className="exp-form-label">End date (or expected)</label>
+                            <div className="exp-form-date-row" style={{ display: 'flex', gap: '8px' }}>
                                 <select name="end_month" value={form.end_month} onChange={handleChange} className="exp-form-input exp-form-select">
-                                    {MONTHS.map((m) => (<option key={m.value || 'em'} value={m.value}>{m.label}</option>))}
+                                    {MONTHS.map((m) => (
+                                        <option key={m.value || 'em'} value={m.value}>{m.label}</option>
+                                    ))}
                                 </select>
                                 <select name="end_year" value={form.end_year} onChange={handleChange} className="exp-form-input exp-form-select">
                                     <option value="">Year</option>
@@ -295,7 +293,7 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
                     </div>
                     <div className="exp-form-actions">
                         {editing && (
-                            <button type="button" className="exp-form-delete" onClick={() => handleDelete(editing.id)}>
+                            <button type="button" className="exp-form-delete" onClick={() => handleDeleteClick(editing.id)}>
                                 Delete education
                             </button>
                         )}
@@ -306,6 +304,18 @@ function EducationSection({ educations, onAdd, onUpdate, onDelete, api }) {
                     </div>
                 </form>
             </EditModal>
+
+            <ConfirmModal
+                isOpen={confirmDeleteOpen}
+                onClose={() => {
+                    setConfirmDeleteOpen(false);
+                    setConfirmDeleteId(null);
+                }}
+                onConfirm={handleDeleteConfirm}
+                title="Delete education"
+                message="Are you sure you want to delete this education? This cannot be undone."
+                confirmLabel="Delete"
+            />
         </section>
     );
 }

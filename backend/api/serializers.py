@@ -18,12 +18,20 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """Add is_superuser to JWT so frontend can show Dashboard without calling /api/user/me/."""
+    """Add is_superuser to JWT. Allow login with username OR email."""
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
         token["is_superuser"] = user.is_superuser
         return token
+
+    def validate(self, attrs):
+        login_value = attrs.get("username", "").strip()
+        if "@" in login_value:
+            user = User.objects.filter(email__iexact=login_value).first()
+            if user:
+                attrs["username"] = user.username
+        return super().validate(attrs)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -84,10 +92,20 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
 
 class ExperienceSerializer(serializers.ModelSerializer):
+    location = serializers.CharField(required=False, allow_blank=True, default='')
+    employment_type = serializers.CharField(required=False, allow_blank=True, default='')
+    site_type = serializers.CharField(required=False, allow_blank=True, default='')
+
     class Meta:
         model = Experience
-        fields = ["id", "job_title", "company_name", "website", "location", "employment_type", "start_date", "end_date", "description", "is_current"]
+        fields = ["id", "job_title", "company_name", "website", "location", "employment_type", "site_type", "start_date", "end_date", "description", "is_current"]
         read_only_fields = ["id"]
+
+    def validate(self, data):
+        """When is_current is True, end_date must be null."""
+        if data.get('is_current'):
+            data['end_date'] = None
+        return data
 
 
 class EducationSerializer(serializers.ModelSerializer):
