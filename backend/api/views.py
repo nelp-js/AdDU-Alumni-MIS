@@ -17,8 +17,6 @@ from .serializers import (
     ArticleSerializer, ArticleUpdateSerializer,
     UserProfileSerializer, ExperienceSerializer, EducationSerializer,
 )
-from django.http import HttpResponse
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdminUser])
