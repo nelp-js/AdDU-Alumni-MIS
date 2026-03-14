@@ -10,25 +10,80 @@ class User(AbstractUser):
         ('IT', 'Information Technology'),
         ('IS', 'Information Systems'),
     ]
-    
+
+    SEX_CHOICES = [
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('prefer_not_to_say', 'Prefer not to say'),
+    ]
+
+    MARITAL_STATUS_CHOICES = [
+        ('single', 'Single'),
+        ('married', 'Married'),
+        ('living_in', 'Living In'),
+        ('separated', 'Separated'),
+        ('annulled', 'Annulled'),
+        ('divorced', 'Divorced'),
+        ('widowed', 'Widowed'),
+    ]
+
+    # --- 1. PERSONAL INFO ---
     first_name = models.CharField(max_length=150)
     middle_name = models.CharField(max_length=150, blank=True, null=True)
     last_name = models.CharField(max_length=150)
+    # name field is concatenated on the frontend
+    name = models.CharField(max_length=255, blank=True, null=True) 
+    
+    email = models.EmailField(unique=True)
+    birth_date = models.DateField(null=True, blank=True)
+    sex = models.CharField(max_length=20, choices=SEX_CHOICES, blank=True, null=True)
+    
+    # role is sent as 'alumni' by default
+    role = models.CharField(max_length=50, default='alumni') 
+
+    # --- 2. CONTACT & LOCATION ---
+    phone_number = models.CharField(max_length=20)
+    telephone_number = models.CharField(max_length=20, blank=True, null=True)
+    current_address = models.TextField(blank=True, null=True)
+    country = models.CharField(max_length=100, default='Philippines')
+    geocode = models.CharField(max_length=20, blank=True, null=True)
+    
+    # These are conditional on the frontend (Only for Philippines)
+    region = models.CharField(max_length=100, blank=True, null=True)
+    province = models.CharField(max_length=100, blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+
+    # --- 3. CIVIL / MARITAL STATUS ---
+    religion = models.CharField(max_length=100, blank=True, null=True)
+    religion_other = models.CharField(max_length=100, blank=True, null=True)
+    marital_status = models.CharField(max_length=20, choices=MARITAL_STATUS_CHOICES, blank=True, null=True)
+    
+    # Stored as YYYY-MM string based on frontend input
+    marriage_date = models.CharField(max_length=7, blank=True, null=True) 
+    
+    intend_to_marry = models.CharField(max_length=10, blank=True, null=True)
+    intended_marriage_age = models.PositiveIntegerField(null=True, blank=True)
+    no_marriage_reason = models.CharField(max_length=255, blank=True, null=True)
+
+    # Legacy field (Keep this if you don't want to break existing database rows)
     is_married = models.BooleanField(default=False)
     maiden_name = models.CharField(max_length=150, blank=True, null=True)
-    email = models.EmailField(unique=True)
-    id_type = models.CharField(max_length=50, blank=True, null=True)
-    
-    # 3. VERIFY THIS EXISTS: This looks correct for your file upload!
-    valid_id = models.ImageField(upload_to='valid_ids/', blank=True, null=True)
-    
-    phone_number = models.CharField(max_length=15)
-    
-    # 4. UPDATED MAX_LENGTH: Changed to 4 to hold "2025" safely
-    batch = models.CharField(max_length=4, choices=BATCH_CHOICES)
-    program = models.CharField(max_length=2, choices=PROGRAM_CHOICES)
 
-    # Admin approval: None = pending, True = approved, False = rejected
+    # --- 4. ACADEMIC INFO ---
+    course = models.CharField(max_length=2, choices=PROGRAM_CHOICES, blank=True, null=True)
+    program = models.CharField(max_length=2, choices=PROGRAM_CHOICES, blank=True, null=True) 
+    batch = models.CharField(max_length=4, choices=BATCH_CHOICES, blank=True, null=True)
+    batch_year = models.CharField(max_length=4, choices=BATCH_CHOICES, blank=True, null=True)
+    
+    has_diploma = models.CharField(max_length=10, blank=True, null=True)
+
+    # --- 5. VERIFICATION DOCUMENTS ---
+    id_type = models.CharField(max_length=50, blank=True, null=True)
+    valid_id = models.ImageField(upload_to='valid_ids/', blank=True, null=True)
+    valid_id_file = models.ImageField(upload_to='valid_ids/', blank=True, null=True)
+    diploma_file = models.ImageField(upload_to='diplomas/', blank=True, null=True)
+
+    # Admin approval
     is_approved = models.BooleanField(default=False)
 
     def __str__(self):

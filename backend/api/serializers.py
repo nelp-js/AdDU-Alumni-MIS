@@ -35,46 +35,117 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    confirm_email = serializers.EmailField(write_only=True)
-    
     class Meta:
         model = User
         fields = [
-            "id", "first_name", "middle_name", "last_name", 
-            "is_married", "maiden_name", "email", "confirm_email",
-            "id_type", "valid_id", "phone_number", "batch", "program",
-            "username", "password"
+            "id", "username", "password", "email", 
+            
+            # Personal Info
+            "first_name", "middle_name", "last_name", "name", 
+            "birth_date", "sex", "role",
+            
+            # Contact & Location
+            "phone_number", "telephone_number", "current_address", 
+            "country", "geocode", "region", "province", "city",
+            
+            # Civil Status
+            "religion", "religion_other", "marital_status", 
+            "marriage_date", "intend_to_marry", "intended_marriage_age", 
+            "no_marriage_reason",
+            
+            # Legacy Civil Status (Kept for backwards compatibility)
+            "is_married", "maiden_name",
+            
+            # Academic Info
+            "course", "batch_year", "has_diploma", 
+            "program", "batch",
+            
+            # Documents
+            "id_type", "valid_id_file", "diploma_file",
+            "valid_id"
         ]
         extra_kwargs = {
             "password": {"write_only": True},
             "first_name": {"required": True},
-            "middle_name": {"required": False, "allow_blank": True},
             "last_name": {"required": True},
             "email": {"required": True},
             "phone_number": {"required": True},
-            "batch": {"required": True},
-            "program": {"required": True},
-            "maiden_name": {"required": False},
-            "valid_id": {"required": True},
+            "country": {"required": True},
+            "geocode": {"required": True},
+            "id_type": {"required": True},
+            # Allow blank for conditional fields
+            "middle_name": {"required": False, "allow_blank": True},
+            "telephone_number": {"required": False, "allow_blank": True},
+            "region": {"required": False, "allow_blank": True},
+            "province": {"required": False, "allow_blank": True},
+            "city": {"required": False, "allow_blank": True},
+            "religion_other": {"required": False, "allow_blank": True},
+            "marriage_date": {"required": False, "allow_blank": True},
+            "intend_to_marry": {"required": False, "allow_blank": True},
+            "no_marriage_reason": {"required": False, "allow_blank": True},
         }
 
     def validate(self, data):
-        if data.get('email') != data.get('confirm_email'):
-            raise serializers.ValidationError({"confirm_email": "Email addresses do not match."})
-        
+        # 1. Password Validation
         password = data.get('password', '')
         if len(password) < 8:
             raise serializers.ValidationError({"password": "Password must be at least 8 characters long."})
-            
-        if not data.get('is_married', False):
+
+        # 2. Location Validation
+        country = data.get('country', '').lower()
+        if country == 'philippines':
+            if not data.get('region') or not data.get('province') or not data.get('city'):
+                raise serializers.ValidationError("Region, Province, and City are required for the Philippines.")
+        else:
+            # Wipe local fields if country is not Philippines
+            data['region'] = None
+            data['province'] = None
+            data['city'] = None
+
+        # 3. Civil Status Validation
+        marital_status = data.get('marital_status', '')
+        if marital_status in ['married', 'separated', 'annulled', 'divorced', 'widowed']:
+            if not data.get('marriage_date'):
+                raise serializers.ValidationError({"marriage_date": "Marriage date is required for this status."})
+            # Wipe single-only fields
+            data['intend_to_marry'] = None
+            data['intended_marriage_age'] = None
+            data['no_marriage_reason'] = None
+            # Update legacy field
+            data['is_married'] = True if marital_status == 'married' else False
+        elif marital_status == 'single':
+            # Wipe marriage date
+            data['marriage_date'] = None
+            data['is_married'] = False
             data['maiden_name'] = None
-        
+
+        # 4. Religion Validation
+        if data.get('religion') == 'other' and not data.get('religion_other'):
+             raise serializers.ValidationError({"religion_other": "Please specify your religion."})
+
+        # 5. Diploma Validation
+        if data.get('has_diploma') == 'yes' and not data.get('diploma_file'):
+            raise serializers.ValidationError({"diploma_file": "Please upload your diploma."})
+        elif data.get('has_diploma') == 'no':
+            data['diploma_file'] = None
+
+        # 6. Legacy Academic Fields Mapping
+        # To ensure nothing breaks, we map the new frontend fields back to the old database columns
+        if data.get('course'):
+            data['program'] = data.get('course')
+        if data.get('batch_year'):
+            data['batch'] = data.get('batch_year')
+
+        # 7. Document Required Check
+        if not data.get('valid_id_file') and not data.get('valid_id'):
+            raise serializers.ValidationError({"valid_id_file": "A valid ID document is required."})
+
         return data
 
     def create(self, validated_data):
-        validated_data.pop('confirm_email', None)
         password = validated_data.pop('password')
         
+        # New users are always pending approval
         validated_data['is_approved'] = False 
         validated_data['is_active'] = True  
         
