@@ -253,3 +253,31 @@
 .profile-login-btn:hover {
     opacity: 0.9;
 }
+
+/* ── Add these to the bottom of your existing Profile.css ── */
+
+/* Section label inside Edit modal */
+.profile-modal-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #040354;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 12px 0 4px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 8px;
+    margin-top: 4px;
+}
+
+/* Two-column grid for form rows inside the modal */
+.profile-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0 16px;
+}
+
+@media (max-width: 600px) {
+    .profile-form-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -205,8 +205,19 @@ class UserSerializer(serializers.ModelSerializer):
 class CurrentUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username", "is_superuser", "first_name", "middle_name", "last_name", "email"]
-        read_only_fields = ["id", "username", "is_superuser", "first_name", "last_name", "email"]
+        fields = [
+            "id", "username", "is_superuser",
+            "first_name", "middle_name", "last_name", "email",
+            "phone_number", "telephone_number",
+            "current_address", "country", "geocode",
+            "region", "province", "city",
+            "birth_date", "sex",
+            "religion", "religion_other",
+            "marital_status", "marriage_date",
+            "intend_to_marry", "intended_marriage_age", "no_marriage_reason",
+            "course", "batch_year",
+        ]
+        read_only_fields = ["id", "username", "is_superuser", "email"]
 
 
 class ExperienceSerializer(serializers.ModelSerializer):

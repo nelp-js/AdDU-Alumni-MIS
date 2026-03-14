@@ -21,18 +21,10 @@ from .serializers import (
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def dashboard_stats(request):
-    # 1. Users waiting for approval
     pending_users = User.objects.filter(is_approved=False, is_superuser=False).count()
-    
-    # 2. Events waiting for approval
     pending_events = Event.objects.filter(is_approved=False).count()
-    
-    # 3. Articles still in 'draft' status
     pending_articles = Article.objects.filter(status='draft').count()
-    
-    # The total for your "Thick" Badge
     total_notifications = pending_users + pending_events + pending_articles
-
     return Response({
         'total': total_notifications,
         'users': pending_users,
@@ -46,11 +38,19 @@ def dashboard_stats(request):
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
-@api_view(["GET"])
+@api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
 def current_user(request):
-    serializer = CurrentUserSerializer(request.user)
-    return Response(serializer.data)
+    if request.method == "GET":
+        serializer = CurrentUserSerializer(request.user)
+        return Response(serializer.data)
+
+    if request.method == "PATCH":
+        serializer = CurrentUserSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
 
 
 # --- PROFILE VIEWS ---
@@ -68,20 +68,17 @@ def profile_detail(request):
 
     if request.method == 'PATCH':
         data = request.data
-        # Update User fields if provided
         if 'first_name' in data:
             user.first_name = data['first_name'] or ''
         if 'last_name' in data:
             user.last_name = data['last_name'] or ''
         user.save()
 
-        # Update Profile text fields
         for field in ['bio', 'location', 'website']:
             if field in data:
                 val = data[field]
                 setattr(profile, field, val if val is not None and val != '' else '')
 
-        # Update file fields
         if 'profile_picture' in request.FILES:
             profile.profile_picture = request.FILES['profile_picture']
         if 'cover_photo' in request.FILES:
@@ -156,7 +153,6 @@ class UserDetailView(generics.RetrieveUpdateAPIView):
 @permission_classes([IsAuthenticated, IsAdminUser])
 def approve_user(request, user_id):
     user = get_object_or_404(User, pk=user_id, is_superuser=False)
-    
     user.is_approved = True
     user.is_active = True
     user.save()
@@ -166,7 +162,6 @@ def approve_user(request, user_id):
         message = f'Hi {user.first_name},\n\nYour account has been approved by the admin! You can now log in to the portal.\n\nLogin here: http://addualumni.vervel.app/login'
         email_from = settings.EMAIL_HOST_USER
         recipient_list = [user.email]
-        
         send_mail(subject, message, email_from, recipient_list, fail_silently=False)
         print(f"Approval email sent to {user.email}")
     except Exception as e:
@@ -175,25 +170,22 @@ def approve_user(request, user_id):
     ActivityLog.objects.create(
         action=f"User approved: {user.username}",
         module="User Management",
-        user=request.user, 
+        user=request.user,
         status="Completed"
     )
-    
     return Response({"detail": "User approved and email sent.", "is_approved": True, "is_active": True})
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def reject_user(request, user_id):
     user = get_object_or_404(User, pk=user_id, is_superuser=False)
-    
     user.is_approved = False
     user.is_active = False
     user.save()
-    
     ActivityLog.objects.create(
         action=f"User rejected: {user.username}",
         module="User Management",
-        user=request.user, 
+        user=request.user,
         status="Rejected"
     )
     return Response({"detail": "User rejected.", "is_approved": False, "is_active": False})
@@ -342,16 +334,16 @@ class ActivityLogListView(generics.ListAPIView):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def request_password_reset(request):
-    username = request.data.get('username') 
+    username = request.data.get('username')
     try:
-        user = User.objects.get(username=username) 
+        user = User.objects.get(username=username)
         otp = str(random.randint(100000, 999999))
         PasswordReset.objects.update_or_create(user=user, defaults={'otp': otp})
         send_mail(
             subject='Password Reset OTP',
             message=f'Your code is: {otp}',
             from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[user.email], 
+            recipient_list=[user.email],
             fail_silently=False,
         )
         return Response({"detail": f"OTP sent to {username}."})
@@ -374,4 +366,4 @@ def reset_password(request):
             return Response({"detail": "Success."})
         return Response({"detail": "Invalid OTP."}, status=400)
     except:
-         return Response({"detail": "Invalid request."}, status=400)
+        return Response({"detail": "Invalid request."}, status=400)
