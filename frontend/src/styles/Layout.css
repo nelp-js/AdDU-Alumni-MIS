@@ -285,6 +285,24 @@
     margin: 0;
 }
 
+.user-username {
+    font-size: 13px;
+    color: #bbbbbb;
+    margin-top: 5px;
+    display: flex;        
+    align-items: center;
+    gap: 8px;           
+}
+
+.info-icon {
+    font-size: 14px;
+    color: #bbbbbb;
+    display: flex;
+    align-items: center;
+}
+
+
+
 .user-email {
     font-size: 13px;
     color: #bbbbbb;

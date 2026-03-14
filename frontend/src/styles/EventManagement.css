@@ -117,10 +117,11 @@
 }
 
 .event-mgmt-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
+    display: flex;         
+    flex-direction: row;  
+    gap: 8px;            
+    align-items: center;  
+    white-space: nowrap; 
 }
 
 .event-mgmt-approve-btn,
@@ -447,3 +448,5 @@
         font-size: 13px;
     }
 }
+
+

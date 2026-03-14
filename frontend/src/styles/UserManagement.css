@@ -382,3 +382,114 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* --- VIEW DETAILS LINK STYLE --- */
+.user-mgmt-details-link {
+    background: none;
+    border: none;
+    color: #040354;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+}
+
+.user-mgmt-details-link:hover {
+    color: #06048a;
+}
+
+/* --- DETAILS MODAL STYLES --- */
+/* (Matches Content Management for Uniformity) */
+
+.user-mgmt-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+}
+
+.user-mgmt-modal {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    max-width: 500px; /* Users need slightly less width than articles */
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-mgmt-modal-title {
+    margin: 0;
+    padding: 24px 24px 16px;
+    font-size: 20px;
+    color: #333;
+    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.user-mgmt-details-content {
+    padding: 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.user-mgmt-detail-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.user-mgmt-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #6d7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.user-mgmt-value {
+    font-size: 15px;
+    color: #1f2937;
+    word-break: break-word;
+}
+
+/* Modal Action Footer */
+.user-mgmt-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.user-mgmt-modal-cancel {
+    padding: 10px 24px;
+    background: #040354;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.user-mgmt-modal-cancel:hover {
+    background: #06048a;
+}
+
+/* Ensure the status colors look right in the modal too */
+.user-mgmt-details-content .user-mgmt-status {
+    width: fit-content;
+    margin-top: 4px;
+}
+

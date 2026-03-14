@@ -12,13 +12,13 @@ function UserManagement() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
-    // Action Loading States
     const [approvingId, setApprovingId] = useState(null);
     const [rejectingId, setRejectingId] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
 
-    // Edit Modal States
     const [editingUser, setEditingUser] = useState(null);
+    const [detailsUser, setDetailsUser] = useState(null); // NEW: State for details modal
+
     const [editForm, setEditForm] = useState({
         username: '', first_name: '', middle_name: '', last_name: '',
         email: '', phone_number: '', batch: '', program: '', is_superuser: false, is_staff: false,
@@ -26,19 +26,12 @@ function UserManagement() {
     const [editError, setEditError] = useState(null);
     const [savingEdit, setSavingEdit] = useState(false);
 
-    // --- 1. FETCH USERS ---
     useEffect(() => {
         api.get('/api/users/')
-            .then((res) => {
-                // FIX: We are now showing ALL users (res.data) without filtering.
-                // This ensures your new "Pending" users (who are currently Inactive) appear in the list.
-                setUsers(res.data);
-            })
+            .then((res) => setUsers(res.data))
             .catch((err) => setError(err.response?.status === 403 ? 'Admin access required.' : 'Failed to load users.'))
             .finally(() => setLoading(false));
     }, []);
-
-    // --- 2. ACTIONS ---
 
     const handleApprove = (userId) => {
         setApprovingId(userId);
@@ -57,7 +50,6 @@ function UserManagement() {
         api.post(`/api/users/${userId}/reject/`)
             .then(() => {
                 setUsers((prev) =>
-                    // Rejecting sets them back to Pending state in the UI
                     prev.map((u) => (u.id === userId ? { ...u, is_approved: false, is_active: false } : u))
                 );
             })
@@ -66,51 +58,31 @@ function UserManagement() {
     };
 
     const handleDelete = (userId) => {
-        if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
-
+        if (!window.confirm("Are you sure?")) return;
         setDeletingId(userId);
-        // Soft delete: sets is_active to False
         api.patch(`/api/users/${userId}/`, { is_active: false })
             .then(() => {
-                // Remove from the list immediately
                 setUsers((prev) => prev.filter((u) => u.id !== userId));
-                closeEdit(); 
+                setEditingUser(null); 
             })
-            .catch((err) => {
-                alert("Failed to delete user.");
-                console.error(err);
-            })
+            .catch(() => alert("Failed to delete user."))
             .finally(() => setDeletingId(null));
     };
-
-    // --- 3. HELPERS ---
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '—';
         try {
-            const d = new Date(dateStr);
-            return d.toLocaleString(undefined, {
+            return new Date(dateStr).toLocaleString(undefined, {
                 month: 'short', day: 'numeric', year: 'numeric',
                 hour: 'numeric', minute: '2-digit',
             });
-        } catch {
-            return dateStr;
-        }
+        } catch { return dateStr; }
     };
-
-    const getStatus = (u) => {
-        if (u.is_approved) return 'Approved';
-        return 'Pending';
-    };
-
-    const isPending = (u) => !u.is_approved;
 
     const fullName = (u) => {
         const parts = [u.first_name, u.middle_name, u.last_name].filter(Boolean);
         return parts.join(' ') || '—';
     };
-
-    // --- 4. EDIT MODAL FUNCTIONS ---
 
     const openEdit = (u) => {
         setEditingUser(u.id);
@@ -119,33 +91,14 @@ function UserManagement() {
             last_name: u.last_name || '', email: u.email || '', phone_number: u.phone_number || '',
             batch: u.batch || '', program: u.program || '', is_superuser: !!u.is_superuser, is_staff: !!u.is_staff,
         });
-        setEditError(null);
-    };
-
-    const closeEdit = () => { setEditingUser(null); setEditError(null); };
-
-    const handleEditChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setEditForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     };
 
     const handleEditSave = () => {
-        if (!editingUser) return;
-        setEditError(null);
         setSavingEdit(true);
-        const payload = {
-            username: editForm.username, first_name: editForm.first_name, middle_name: editForm.middle_name || null,
-            last_name: editForm.last_name, email: editForm.email, phone_number: editForm.phone_number,
-            batch: editForm.batch, program: editForm.program, is_superuser: editForm.is_superuser, is_staff: editForm.is_superuser
-        };
-        api.patch(`/api/users/${editingUser}/`, payload)
+        api.patch(`/api/users/${editingUser}/`, editForm)
             .then((res) => {
                 setUsers((prev) => prev.map((u) => (u.id === editingUser ? { ...u, ...res.data } : u)));
-                closeEdit();
-            })
-            .catch((err) => {
-                const data = err.response?.data;
-                setEditError(data && typeof data === 'object' ? (data.detail || Object.values(data).flat().join(' ')) : 'Failed to save.');
+                setEditingUser(null);
             })
             .finally(() => setSavingEdit(false));
     };
@@ -155,21 +108,15 @@ function UserManagement() {
             <Header />
             <main className="user-mgmt-main">
                 <h1 className="user-mgmt-title">User Management</h1>
-                <p className="user-mgmt-subtitle">Registered users and approval status.</p>
-
+                
                 <div className="user-mgmt-card">
-                    {loading && <div className="user-mgmt-loading">Loading users...</div>}
-                    {error && <div className="user-mgmt-error">{error}</div>}
-                    {!loading && !error && users.length === 0 && (
-                        <div className="user-mgmt-empty">No registered users yet.</div>
-                    )}
-                    {!loading && !error && users.length > 0 && (
+                    {!loading && !error && (
                         <div className="user-mgmt-table-wrap">
                             <table className="user-mgmt-table">
                                 <thead>
                                     <tr>
-                                        <th>NAME</th><th>USERNAME</th><th>EMAIL</th><th>PHONE</th>
-                                        <th>BATCH</th><th>PROGRAM</th><th>DATE REGISTERED</th><th>STATUS</th><th>ACTION</th>
+                                        <th>NAME</th><th>USERNAME</th><th>BATCH</th><th>PROGRAM</th>
+                                        <th>DETAILS</th><th>STATUS</th><th>ACTION</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -177,30 +124,27 @@ function UserManagement() {
                                         <tr key={u.id}>
                                             <td>{fullName(u)}</td>
                                             <td>{u.username}</td>
-                                            <td>{u.email || '—'}</td>
-                                            <td>{u.phone_number || '—'}</td>
                                             <td>{u.batch || '—'}</td>
                                             <td>{u.program || '—'}</td>
-                                            <td>{formatDate(u.date_joined)}</td>
+                                            <td>
+                                                {/* NEW: Details link to match other management pages */}
+                                                <button type="button" className="user-mgmt-details-link" onClick={() => setDetailsUser(u)}>
+                                                    View Details
+                                                </button>
+                                            </td>
                                             <td>
                                                 <span className={`user-mgmt-status ${u.is_approved ? 'approved' : 'pending'}`}>
-                                                    {getStatus(u)}
+                                                    {u.is_approved ? 'Approved' : 'Pending'}
                                                 </span>
                                             </td>
                                             <td>
-                                                {isPending(u) ? (
+                                                {!u.is_approved ? (
                                                     <span className="user-mgmt-actions">
-                                                        <button type="button" className="user-mgmt-approve-btn" onClick={() => handleApprove(u.id)} disabled={approvingId === u.id}>
-                                                            {approvingId === u.id ? '...' : 'Approve'}
-                                                        </button>
-                                                        <button type="button" className="user-mgmt-reject-btn" onClick={() => handleReject(u.id)} disabled={rejectingId === u.id}>
-                                                            {rejectingId === u.id ? '...' : 'Reject'}
-                                                        </button>
+                                                        <button type="button" className="user-mgmt-approve-btn" onClick={() => handleApprove(u.id)} disabled={approvingId === u.id}>Approve</button>
+                                                        <button type="button" className="user-mgmt-reject-btn" onClick={() => handleReject(u.id)} disabled={rejectingId === u.id}>Reject</button>
                                                     </span>
                                                 ) : (
-                                                    <button type="button" className="user-mgmt-edit-btn" onClick={() => openEdit(u)}>
-                                                        Edit
-                                                    </button>
+                                                    <button type="button" className="user-mgmt-edit-btn" onClick={() => openEdit(u)}>Edit</button>
                                                 )}
                                             </td>
                                         </tr>
@@ -214,6 +158,57 @@ function UserManagement() {
                 <div className="user-mgmt-back">
                     <Link to="/dashboard" className="user-mgmt-back-link">← Back to Dashboard</Link>
                 </div>
+
+                {/* --- 1. VIEW DETAILS MODAL --- */}
+                {detailsUser && (
+                    <div className="user-mgmt-modal-overlay" onClick={() => setDetailsUser(null)}>
+                        <div className="user-mgmt-modal" onClick={(e) => e.stopPropagation()}>
+                            <h2 className="user-mgmt-modal-title">User Details</h2>
+                            <div className="user-mgmt-details-content" style={{ padding: '10px 0' }}>
+                                <div className="user-mgmt-detail-row">
+                                    <span className="user-mgmt-label">Full Name</span>
+                                    <span className="user-mgmt-value">{fullName(detailsUser)}</span>
+                                </div>
+                                <div className="user-mgmt-detail-row">
+                                    <span className="user-mgmt-label">Username</span>
+                                    <span className="user-mgmt-value">{detailsUser.username}</span>
+                                </div>
+                                <div className="user-mgmt-detail-row">
+                                    <span className="user-mgmt-label">Email</span>
+                                    <span className="user-mgmt-value">{detailsUser.email || '—'}</span>
+                                </div>
+                                <div className="user-mgmt-detail-row">
+                                    <span className="user-mgmt-label">Phone</span>
+                                    <span className="user-mgmt-value">{detailsUser.phone_number || '—'}</span>
+                                </div>
+                                <div className="user-mgmt-detail-row">
+                                    <span className="user-mgmt-label">Batch & Program</span>
+                                    <span className="user-mgmt-value">{detailsUser.batch} - {detailsUser.program || '—'}</span>
+                                </div>
+                                <div className="user-mgmt-detail-row">
+                                    <span className="user-mgmt-label">Roles</span>
+                                    <span className="user-mgmt-value">
+                                        {detailsUser.is_superuser ? 'Admin' : 'Alumni'}
+                                        {detailsUser.is_staff ? ' (Staff)' : ''}
+                                    </span>
+                                </div>
+                                <div className="user-mgmt-detail-row">
+                                    <span className="user-mgmt-label">Joined On</span>
+                                    <span className="user-mgmt-value">{formatDate(detailsUser.date_joined)}</span>
+                                </div>
+                                <div className="user-mgmt-detail-row">
+                                    <span className="user-mgmt-label">Status</span>
+                                    <span className={`user-mgmt-status ${detailsUser.is_approved ? 'approved' : 'pending'}`}>
+                                        {detailsUser.is_approved ? 'Approved' : 'Pending Approval'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="user-mgmt-modal-actions" style={{ justifyContent: 'flex-end' }}>
+                                <button type="button" className="user-mgmt-modal-cancel" onClick={() => setDetailsUser(null)}>Close</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* EDIT MODAL */}
                 {editingUser != null && (
@@ -272,8 +267,7 @@ function UserManagement() {
                                 </div>
                             </div>
 
-                            {/* MODAL ACTIONS FOOTER */}
-                            <div className="user-mgmt-modal-actions">
+                            <div className="user-mgmt-modal-actions"> {/* Removed the inline style here */}
                                 {/* LEFT: Delete Button */}
                                 <button 
                                     type="button" 
