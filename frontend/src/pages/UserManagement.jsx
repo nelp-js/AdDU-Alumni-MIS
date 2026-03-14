@@ -12,13 +12,16 @@ function UserManagement() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
+    // Action Loading States
     const [approvingId, setApprovingId] = useState(null);
     const [rejectingId, setRejectingId] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
 
+    // Modal States
     const [editingUser, setEditingUser] = useState(null);
-    const [detailsUser, setDetailsUser] = useState(null); // NEW: State for details modal
+    const [detailsUser, setDetailsUser] = useState(null);
 
+    // Edit Form State
     const [editForm, setEditForm] = useState({
         username: '', first_name: '', middle_name: '', last_name: '',
         email: '', phone_number: '', batch: '', program: '', is_superuser: false, is_staff: false,
@@ -33,6 +36,8 @@ function UserManagement() {
             .finally(() => setLoading(false));
     }, []);
 
+    // --- ACTIONS ---
+
     const handleApprove = (userId) => {
         setApprovingId(userId);
         api.post(`/api/users/${userId}/approve/`)
@@ -41,7 +46,6 @@ function UserManagement() {
                     prev.map((u) => (u.id === userId ? { ...u, is_approved: true, is_active: true } : u))
                 );
             })
-            .catch(() => {})
             .finally(() => setApprovingId(null));
     };
 
@@ -53,21 +57,22 @@ function UserManagement() {
                     prev.map((u) => (u.id === userId ? { ...u, is_approved: false, is_active: false } : u))
                 );
             })
-            .catch(() => {})
             .finally(() => setRejectingId(null));
     };
 
     const handleDelete = (userId) => {
-        if (!window.confirm("Are you sure?")) return;
+        if (!window.confirm("Are you sure you want to delete this user? This cannot be undone.")) return;
         setDeletingId(userId);
+        // Soft delete: sets is_active to False in backend
         api.patch(`/api/users/${userId}/`, { is_active: false })
             .then(() => {
                 setUsers((prev) => prev.filter((u) => u.id !== userId));
-                setEditingUser(null); 
             })
             .catch(() => alert("Failed to delete user."))
             .finally(() => setDeletingId(null));
     };
+
+    // --- HELPERS ---
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '—';
@@ -91,6 +96,12 @@ function UserManagement() {
             last_name: u.last_name || '', email: u.email || '', phone_number: u.phone_number || '',
             batch: u.batch || '', program: u.program || '', is_superuser: !!u.is_superuser, is_staff: !!u.is_staff,
         });
+        setEditError(null);
+    };
+
+    const handleEditChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setEditForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     };
 
     const handleEditSave = () => {
@@ -100,6 +111,7 @@ function UserManagement() {
                 setUsers((prev) => prev.map((u) => (u.id === editingUser ? { ...u, ...res.data } : u)));
                 setEditingUser(null);
             })
+            .catch(() => setEditError('Failed to save changes.'))
             .finally(() => setSavingEdit(false));
     };
 
@@ -108,8 +120,10 @@ function UserManagement() {
             <Header />
             <main className="user-mgmt-main">
                 <h1 className="user-mgmt-title">User Management</h1>
-                
+                <p className="user-mgmt-subtitle">Manage registered alumni and administrative roles.</p>
+
                 <div className="user-mgmt-card">
+                    {loading && <div className="user-mgmt-loading">Loading users...</div>}
                     {!loading && !error && (
                         <div className="user-mgmt-table-wrap">
                             <table className="user-mgmt-table">
@@ -127,7 +141,6 @@ function UserManagement() {
                                             <td>{u.batch || '—'}</td>
                                             <td>{u.program || '—'}</td>
                                             <td>
-                                                {/* NEW: Details link to match other management pages */}
                                                 <button type="button" className="user-mgmt-details-link" onClick={() => setDetailsUser(u)}>
                                                     View Details
                                                 </button>
@@ -138,14 +151,23 @@ function UserManagement() {
                                                 </span>
                                             </td>
                                             <td>
-                                                {!u.is_approved ? (
-                                                    <span className="user-mgmt-actions">
-                                                        <button type="button" className="user-mgmt-approve-btn" onClick={() => handleApprove(u.id)} disabled={approvingId === u.id}>Approve</button>
-                                                        <button type="button" className="user-mgmt-reject-btn" onClick={() => handleReject(u.id)} disabled={rejectingId === u.id}>Reject</button>
-                                                    </span>
-                                                ) : (
-                                                    <button type="button" className="user-mgmt-edit-btn" onClick={() => openEdit(u)}>Edit</button>
-                                                )}
+                                                <span className="user-mgmt-actions">
+                                                    {!u.is_approved ? (
+                                                        <>
+                                                            <button type="button" className="user-mgmt-approve-btn" onClick={() => handleApprove(u.id)} disabled={approvingId === u.id}>
+                                                                {approvingId === u.id ? '...' : 'Approve'}
+                                                            </button>
+                                                            <button type="button" className="user-mgmt-reject-btn" onClick={() => handleReject(u.id)} disabled={rejectingId === u.id}>
+                                                                {rejectingId === u.id ? '...' : 'Reject'}
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <button type="button" className="user-mgmt-edit-btn" onClick={() => openEdit(u)}>Edit</button>
+                                                    )}
+                                                    <button type="button" className="user-mgmt-delete-btn" onClick={() => handleDelete(u.id)} disabled={deletingId === u.id}>
+                                                        {deletingId === u.id ? '...' : 'Delete'}
+                                                    </button>
+                                                </span>
                                             </td>
                                         </tr>
                                     ))}
@@ -159,51 +181,32 @@ function UserManagement() {
                     <Link to="/dashboard" className="user-mgmt-back-link">← Back to Dashboard</Link>
                 </div>
 
-                {/* --- 1. VIEW DETAILS MODAL --- */}
+                {/* VIEW DETAILS MODAL */}
                 {detailsUser && (
                     <div className="user-mgmt-modal-overlay" onClick={() => setDetailsUser(null)}>
                         <div className="user-mgmt-modal" onClick={(e) => e.stopPropagation()}>
                             <h2 className="user-mgmt-modal-title">User Details</h2>
-                            <div className="user-mgmt-details-content" style={{ padding: '10px 0' }}>
+                            <div className="user-mgmt-details-content">
                                 <div className="user-mgmt-detail-row">
                                     <span className="user-mgmt-label">Full Name</span>
                                     <span className="user-mgmt-value">{fullName(detailsUser)}</span>
-                                </div>
-                                <div className="user-mgmt-detail-row">
-                                    <span className="user-mgmt-label">Username</span>
-                                    <span className="user-mgmt-value">{detailsUser.username}</span>
                                 </div>
                                 <div className="user-mgmt-detail-row">
                                     <span className="user-mgmt-label">Email</span>
                                     <span className="user-mgmt-value">{detailsUser.email || '—'}</span>
                                 </div>
                                 <div className="user-mgmt-detail-row">
-                                    <span className="user-mgmt-label">Phone</span>
-                                    <span className="user-mgmt-value">{detailsUser.phone_number || '—'}</span>
-                                </div>
-                                <div className="user-mgmt-detail-row">
-                                    <span className="user-mgmt-label">Batch & Program</span>
-                                    <span className="user-mgmt-value">{detailsUser.batch} - {detailsUser.program || '—'}</span>
+                                    <span className="user-mgmt-label">Program & Batch</span>
+                                    <span className="user-mgmt-value">{detailsUser.program || 'N/A'} (Class of {detailsUser.batch || '—'})</span>
                                 </div>
                                 <div className="user-mgmt-detail-row">
                                     <span className="user-mgmt-label">Roles</span>
                                     <span className="user-mgmt-value">
-                                        {detailsUser.is_superuser ? 'Admin' : 'Alumni'}
-                                        {detailsUser.is_staff ? ' (Staff)' : ''}
-                                    </span>
-                                </div>
-                                <div className="user-mgmt-detail-row">
-                                    <span className="user-mgmt-label">Joined On</span>
-                                    <span className="user-mgmt-value">{formatDate(detailsUser.date_joined)}</span>
-                                </div>
-                                <div className="user-mgmt-detail-row">
-                                    <span className="user-mgmt-label">Status</span>
-                                    <span className={`user-mgmt-status ${detailsUser.is_approved ? 'approved' : 'pending'}`}>
-                                        {detailsUser.is_approved ? 'Approved' : 'Pending Approval'}
+                                        {detailsUser.is_superuser ? 'Superuser' : 'Standard User'}
                                     </span>
                                 </div>
                             </div>
-                            <div className="user-mgmt-modal-actions" style={{ justifyContent: 'flex-end' }}>
+                            <div className="user-mgmt-modal-actions">
                                 <button type="button" className="user-mgmt-modal-cancel" onClick={() => setDetailsUser(null)}>Close</button>
                             </div>
                         </div>
@@ -211,82 +214,39 @@ function UserManagement() {
                 )}
 
                 {/* EDIT MODAL */}
-                {editingUser != null && (
-                    <div className="user-mgmt-modal-overlay" onClick={closeEdit}>
+                {editingUser && (
+                    <div className="user-mgmt-modal-overlay" onClick={() => setEditingUser(null)}>
                         <div className="user-mgmt-modal" onClick={(e) => e.stopPropagation()}>
                             <h2 className="user-mgmt-modal-title">Edit User</h2>
                             {editError && <div className="user-mgmt-modal-error">{editError}</div>}
-                            
                             <div className="user-mgmt-modal-form">
                                 <div className="user-mgmt-modal-row">
                                     <div className="user-mgmt-modal-field">
-                                        <label>First Name *</label>
+                                        <label>First Name</label>
                                         <input name="first_name" value={editForm.first_name} onChange={handleEditChange} />
                                     </div>
                                     <div className="user-mgmt-modal-field">
-                                        <label>Middle Name</label>
-                                        <input name="middle_name" value={editForm.middle_name} onChange={handleEditChange} />
-                                    </div>
-                                    <div className="user-mgmt-modal-field">
-                                        <label>Last Name *</label>
+                                        <label>Last Name</label>
                                         <input name="last_name" value={editForm.last_name} onChange={handleEditChange} />
                                     </div>
                                 </div>
                                 <div className="user-mgmt-modal-field">
-                                    <label>Username *</label>
-                                    <input name="username" value={editForm.username} onChange={handleEditChange} />
+                                    <label>Email</label>
+                                    <input name="email" value={editForm.email} onChange={handleEditChange} />
                                 </div>
                                 <div className="user-mgmt-modal-field">
-                                    <label>Email *</label>
-                                    <input type="email" name="email" value={editForm.email} onChange={handleEditChange} />
+                                    <label>Batch (Year)</label>
+                                    <input name="batch" value={editForm.batch} onChange={handleEditChange} />
                                 </div>
-                                <div className="user-mgmt-modal-field">
-                                    <label>Phone Number</label>
-                                    <input name="phone_number" value={editForm.phone_number} onChange={handleEditChange} />
-                                </div>
-                                <div className="user-mgmt-modal-row">
-                                    <div className="user-mgmt-modal-field">
-                                        <label>Batch</label>
-                                        <input name="batch" value={editForm.batch} onChange={handleEditChange} />
-                                    </div>
-                                    <div className="user-mgmt-modal-field">
-                                        <label>Program</label>
-                                        <select name="program" value={editForm.program} onChange={handleEditChange}>
-                                            <option value="">Select</option>
-                                            <option value="CS">Computer Science</option>
-                                            <option value="IT">Information Technology</option>
-                                            <option value="IS">Information Systems</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="user-mgmt-modal-field user-mgmt-modal-checkbox">
-                                    <label>
-                                        <input type="checkbox" name="is_superuser" checked={editForm.is_superuser} onChange={handleEditChange} />
-                                        <span>Admin (superuser)</span>
-                                    </label>
+                                <div className="user-mgmt-modal-field checkbox-field">
+                                    <input type="checkbox" id="is_superuser" name="is_superuser" checked={editForm.is_superuser} onChange={handleEditChange} />
+                                    <label htmlFor="is_superuser">Grant Admin Access</label>
                                 </div>
                             </div>
-
-                            <div className="user-mgmt-modal-actions"> {/* Removed the inline style here */}
-                                {/* LEFT: Delete Button */}
-                                <button 
-                                    type="button" 
-                                    className="user-mgmt-modal-delete" 
-                                    onClick={() => handleDelete(editingUser)}
-                                    disabled={deletingId === editingUser}
-                                >
-                                    {deletingId === editingUser ? 'Deleting...' : 'Delete User'}
-                                </button>
-
-                                {/* RIGHT: Cancel & Save Buttons */}
-                                <div className="user-mgmt-modal-actions-right">
-                                    <button type="button" className="user-mgmt-modal-cancel" onClick={closeEdit}>Cancel</button>
-                                    <button type="button" className="user-mgmt-modal-save" onClick={handleEditSave} disabled={savingEdit}>
-                                        {savingEdit ? 'Saving...' : 'Save'}
-                                    </button>
-                                </div>
+                            <div className="user-mgmt-modal-actions">
+                                <button type="button" className="user-mgmt-modal-cancel" onClick={() => setEditingUser(null)}>Cancel</button>
+                                <button type="button" className="user-mgmt-modal-save" onClick={handleEditSave} disabled={savingEdit}>{savingEdit ? 'Saving...' : 'Save Changes'}</button>
                             </div>
-
                         </div>
                     </div>
                 )}

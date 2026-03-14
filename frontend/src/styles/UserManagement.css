@@ -493,3 +493,60 @@
     margin-top: 4px;
 }
 
+/* =========================================
+   ACTIONS CONTAINER (FIX FOR SIDE-BY-SIDE)
+   ========================================= */
+.user-mgmt-actions {
+    display: flex;
+    flex-direction: row;    /* Forces horizontal layout */
+    gap: 8px;               /* Space between Edit and Delete */
+    align-items: center;    /* Vertical centering */
+    white-space: nowrap;    /* Prevents buttons from stacking */
+}
+
+/* =========================================
+   DELETE BUTTON STYLE (RED OUTLINE)
+   ========================================= */
+.user-mgmt-delete-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #dc2626;
+    background: transparent;
+    color: #dc2626;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-mgmt-delete-btn:hover:not(:disabled) {
+    background: #dc2626;
+    color: white;
+}
+
+.user-mgmt-delete-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: #fca5a5;
+    color: #fca5a5;
+}
+
+/* Ensure Edit Button stays consistent */
+.user-mgmt-edit-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid #040354;
+    background: #040354;
+    color: white;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.user-mgmt-edit-btn:hover {
+    opacity: 0.9;
+}
