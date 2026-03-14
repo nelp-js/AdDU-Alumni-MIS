@@ -232,20 +232,21 @@ class EventSerializer(serializers.ModelSerializer):
             "start_date", "end_date", "start_time", "end_time", 
             "venue", "category", "is_approved", "organizer", 
             "event_image", "cost", "organizer_names", 
+            "participants",
             "action_button_label", "action_button_link"
         ]
         read_only_fields = ["is_approved", "organizer"]
-
 
 class EventUpdateSerializer(serializers.ModelSerializer):
     """Admin edit: update event fields including is_approved."""
     class Meta:
         model = Event
         fields = [
-            "id", "event_name", "preview_text", "event_description", # 👈 ADDED preview_text
+            "id", "event_name", "preview_text", "event_description",
             "start_date", "end_date", "start_time", "end_time", 
             "venue", "category", "is_approved", "organizer", 
             "event_image", "cost", "organizer_names",
+            "participants",
             "action_button_label", "action_button_link"
         ]
         read_only_fields = ["organizer"]

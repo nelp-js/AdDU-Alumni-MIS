@@ -164,30 +164,48 @@ class Education(models.Model):
         return f"{self.degree} at {self.school_name}"
 
 
-class Event(models.Model):
-    # Existing fields
-    event_name = models.CharField(max_length=200)
-    preview_text = models.CharField(max_length=280, default="")
-    event_description = models.TextField()
-    start_date = models.DateField()
-    start_time = models.TimeField()
-    venue = models.CharField(max_length=200)
-    category = models.CharField(max_length=100, default="General") # Added default
-    is_approved = models.BooleanField(default=False)
-    organizer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='events')
+from django.db import models
+from django.contrib.auth import get_user_model
 
-    # --- NEW FIELDS TO MATCH FRONTEND ---
+User = get_user_model()
+
+class Event(models.Model):
+    # Core Fields
+    event_name = models.CharField(max_length=255)
+    preview_text = models.CharField(max_length=280, blank=True, null=True)
+    event_description = models.TextField()
+    
+    # Selection Fields
+    category = models.CharField(max_length=100, default="General")
+    
+    # DateTime Fields
+    start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
+    start_time = models.TimeField()
     end_time = models.TimeField(null=True, blank=True)
-    event_image = models.ImageField(upload_to='event_images/', null=True, blank=True)
-    cost = models.CharField(max_length=100, null=True, blank=True) # e.g. "3000 pesos"
     
-    # For the manual organizer names (Thor Hanson, etc.)
-    organizer_names = models.CharField(max_length=500, null=True, blank=True)
+    # Location & Capacity
+    venue = models.CharField(max_length=255)
+    participants = models.PositiveIntegerField(default=0, help_text="Event Capacity")
     
-    # Action Button Logic
-    action_button_label = models.CharField(max_length=100, null=True, blank=True)
-    action_button_link = models.URLField(null=True, blank=True)
+    # Media & Meta
+    event_image = models.ImageField(upload_to='events/', null=True, blank=True)
+    cost = models.CharField(max_length=100, blank=True, null=True)
+    organizer_names = models.CharField(max_length=500, blank=True, null=True)
+    
+    # Status & Ownership
+    is_approved = models.BooleanField(default=False)
+    organizer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_events')
+    
+    # Action Button Fields
+    action_button_label = models.CharField(max_length=100, blank=True, null=True)
+    action_button_link = models.URLField(max_length=500, blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+
+    class Meta:
+        ordering = ['-start_date']
 
     def __str__(self):
         return self.event_name

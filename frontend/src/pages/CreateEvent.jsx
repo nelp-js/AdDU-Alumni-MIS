@@ -14,9 +14,11 @@ function CreateEvent() {
     
     const [formData, setFormData] = useState({
         eventName: '',
+        category: '',
         previewText: '',
         coverPhoto: null,
         description: '',
+        capacity: '',
         actionButtonEnabled: false,
         actionButtonLabel: '',
         actionButtonLink: '',
@@ -45,42 +47,44 @@ function CreateEvent() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        
+        // Validation check for required fields
+        if (!formData.eventName || !formData.category || !formData.startDate || !formData.startTime || !formData.venue) {
+            alert('Please fill in all required fields');
+            return;
+        }
 
+        setLoading(true);
         const dataToSend = new FormData();
         
-        // 1. Basic Fields
+        // 1. Core Fields
         dataToSend.append('event_name', formData.eventName);
-        
-        // 👇 UPDATED: Send Preview Text separately (matches your new model field)
+        dataToSend.append('category', formData.category);
         dataToSend.append('preview_text', formData.previewText);
-        
-        // 👇 UPDATED: Send Description separately
         dataToSend.append('event_description', formData.description); 
-        
         dataToSend.append('start_date', formData.startDate);
         dataToSend.append('start_time', formData.startTime);
         dataToSend.append('venue', formData.venue);
-        dataToSend.append('category', 'General'); 
 
-        // 2. Optional Fields
+        // 2. Capacity & Optional Fields
+        // mapping 'capacity' to your model's 'participants' field if applicable
+        if (formData.capacity) dataToSend.append('participants', formData.capacity);
         if (formData.endDate) dataToSend.append('end_date', formData.endDate);
         if (formData.endTime) dataToSend.append('end_time', formData.endTime);
         if (formData.cost) dataToSend.append('cost', formData.cost);
         
-        // 3. File Upload (Cloudinary)
+        // 3. File Upload
         if (formData.coverPhoto) {
             dataToSend.append('event_image', formData.coverPhoto);
         }
         
-        // 4. Manual Organizers
+        // 4. Manual Organizers List
         const organizersList = [formData.organizer1, formData.organizer2, formData.organizer3]
             .filter(name => name && name.trim() !== '') 
             .join(', ');
-        
         dataToSend.append('organizer_names', organizersList);
 
-        // 5. Action Button
+        // 5. Action Button Logic
         if (formData.actionButtonEnabled) {
             dataToSend.append('action_button_label', formData.actionButtonLabel);
             dataToSend.append('action_button_link', formData.actionButtonLink);
@@ -89,25 +93,19 @@ function CreateEvent() {
         try {
             await api.post('/api/events/', dataToSend);
             setSuccess(true);
+            
+            // Reset form
             setFormData({
-                eventName: '', previewText: '', coverPhoto: null, description: '',
-                actionButtonEnabled: false, actionButtonLabel: '', actionButtonLink: '',
-                startDate: '', endDate: '', startTime: '', endTime: '',
-                cost: '', venue: '', organizer1: '', organizer2: '', organizer3: '',
+                eventName: '', category: '', previewText: '', coverPhoto: null, description: '',
+                capacity: '', actionButtonEnabled: false, actionButtonLabel: '', actionButtonLink: '',
+                startDate: '', endDate: '', startTime: '', endTime: '', cost: '', venue: '',
+                organizer1: '', organizer2: '', organizer3: '',
             });
+
             setTimeout(() => navigate('/dashboard/events'), 3000);
         } catch (error) {
             const data = error.response?.data;
-            let msg = 'Something went wrong.';
-            if (error.response?.status === 401) {
-                msg = 'Please log in to create an event.';
-            } else if (error.response?.status === 403) {
-                msg = 'You do not have permission to create events.';
-            } else if (data) {
-                if (typeof data.detail === 'string') msg = data.detail;
-                else if (typeof data === 'object') msg = Object.entries(data).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join(' ');
-            }
-            alert(`Failed to create event: ${msg}`);
+            alert(`Failed to create event: ${data?.detail || 'Please check your connection.'}`);
         } finally {
             setLoading(false);
         }
@@ -122,12 +120,11 @@ function CreateEvent() {
                 <div className="create-event-form-box">
                     {success && (
                         <div className="ce-success-message">
-                            <p>✓ Your event has been created.</p>
-                            <p>It is pending approval.Redirecting you shortly...</p>
+                            <p>✓ Your event has been created and is pending approval.</p>
+                            <p>Redirecting to dashboard...</p>
                         </div>
                     )}
                     
-                    {/* Only show form if not successful yet */}
                     {!success && (
                         <form className="create-event-form" onSubmit={handleSubmit}>
                             {/* Event Name */}
@@ -144,6 +141,28 @@ function CreateEvent() {
                                     placeholder="Enter event name"
                                     required
                                 />
+                            </div>
+
+                            {/* Category */}
+                            <div className="ce-field-group">
+                                <label className="ce-label-large">
+                                    Category <span className="ce-required">*</span>
+                                </label>
+                                <select 
+                                    name="category" 
+                                    value={formData.category} 
+                                    onChange={handleChange} 
+                                    className="ce-input" 
+                                    required
+                                >
+                                    <option value="">Select category</option>
+                                    <option value="Networking">Networking</option>
+                                    <option value="Professional Dev">Professional Development</option>
+                                    <option value="Academic">Academic</option>
+                                    <option value="Social Event">Social Event</option>
+                                    <option value="Career">Career</option>
+                                    <option value="Technology">Technology</option>
+                                </select>
                             </div>
 
                             {/* Preview Text */}
@@ -200,55 +219,7 @@ function CreateEvent() {
                                 />
                             </div>
 
-                            {/* Action Button Toggle */}
-                            <div className="ce-section">
-                                <div className="ce-toggle-row">
-                                    <div className="ce-toggle-text">
-                                        <div className="ce-toggle-title">Event Action Button</div>
-                                        <div className="ce-toggle-description">
-                                            Display a custom button (e.g., "Register Here")
-                                        </div>
-                                    </div>
-                                    <label className="ce-toggle-switch">
-                                        <input
-                                            type="checkbox"
-                                            name="actionButtonEnabled"
-                                            checked={formData.actionButtonEnabled}
-                                            onChange={handleChange}
-                                        />
-                                        <span className="ce-toggle-slider" />
-                                    </label>
-                                </div>
-
-                                {formData.actionButtonEnabled && (
-                                    <div className="ce-toggle-fields">
-                                        <div className="ce-field-group ce-field-half">
-                                            <label className="ce-label-small">Button Label</label>
-                                            <input
-                                                type="text"
-                                                name="actionButtonLabel"
-                                                value={formData.actionButtonLabel}
-                                                onChange={handleChange}
-                                                className="ce-input"
-                                                placeholder="Register Now"
-                                            />
-                                        </div>
-                                        <div className="ce-field-group ce-field-half">
-                                            <label className="ce-label-small">Button Link</label>
-                                            <input
-                                                type="url"
-                                                name="actionButtonLink"
-                                                value={formData.actionButtonLink}
-                                                onChange={handleChange}
-                                                className="ce-input"
-                                                placeholder="https://google.forms..."
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Date & Time rows */}
+                            {/* Date & Capacity Row */}
                             <div className="ce-row">
                                 <div className="ce-field-group ce-field-half">
                                     <label className="ce-label-small">
@@ -264,20 +235,24 @@ function CreateEvent() {
                                     />
                                 </div>
                                 <div className="ce-field-group ce-field-half">
-                                    <label className="ce-label-small">End Date</label>
+                                    <label className="ce-label-small">Event Capacity</label>
                                     <input
-                                        type="date"
-                                        name="endDate"
-                                        value={formData.endDate}
+                                        type="number"
+                                        name="capacity"
+                                        value={formData.capacity}
                                         onChange={handleChange}
                                         className="ce-input"
+                                        placeholder="Max number of attendees"
                                     />
                                 </div>
                             </div>
 
+                            {/* Time Row */}
                             <div className="ce-row">
                                 <div className="ce-field-group ce-field-half">
-                                    <label className="ce-label-small">Start Time</label>
+                                    <label className="ce-label-small">
+                                        Start Time <span className="ce-required">*</span>
+                                    </label>
                                     <input
                                         type="time"
                                         name="startTime"
@@ -299,38 +274,38 @@ function CreateEvent() {
                                 </div>
                             </div>
 
-                            {/* Cost */}
-                            <div className="ce-field-group ce-field-half">
-                                <label className="ce-label-small">Cost</label>
-                                <input
-                                    type="text"
-                                    name="cost"
-                                    value={formData.cost}
-                                    onChange={handleChange}
-                                    className="ce-input"
-                                    placeholder="Free or 3000 PHP"
-                                />
-                            </div>
-
-                            {/* Venue */}
-                            <div className="ce-field-group">
-                                <label className="ce-label-small">
-                                    Venue <span className="ce-required">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="venue"
-                                    value={formData.venue}
-                                    onChange={handleChange}
-                                    className="ce-input"
-                                    placeholder="Enter event location"
-                                    required
-                                />
+                            {/* Cost & Venue Row */}
+                            <div className="ce-row">
+                                <div className="ce-field-group ce-field-half">
+                                    <label className="ce-label-small">Cost</label>
+                                    <input
+                                        type="text"
+                                        name="cost"
+                                        value={formData.cost}
+                                        onChange={handleChange}
+                                        className="ce-input"
+                                        placeholder="Free or 3000 PHP"
+                                    />
+                                </div>
+                                <div className="ce-field-group ce-field-half">
+                                    <label className="ce-label-small">
+                                        Venue <span className="ce-required">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="venue"
+                                        value={formData.venue}
+                                        onChange={handleChange}
+                                        className="ce-input ce-venue-input"
+                                        placeholder="Enter event location"
+                                        required
+                                    />
+                                </div>
                             </div>
 
                             {/* Organizers */}
                             <div className="ce-field-group">
-                                <label className="ce-label-small">Manual Organizers (Optional)</label>
+                                <label className="ce-label-small">Organizers (Optional)</label>
                                 <div className="ce-row ce-organizers-row">
                                     <div className="ce-field-half">
                                         <input
@@ -352,10 +327,19 @@ function CreateEvent() {
                                             placeholder="Organizer Name 2"
                                         />
                                     </div>
+                                    <div className="ce-field-half">
+                                        <input
+                                            type="text"
+                                            name="organizer3"
+                                            value={formData.organizer3}
+                                            onChange={handleChange}
+                                            className="ce-input"
+                                            placeholder="Organizer Name 3"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Submit button */}
                             <div className="ce-actions">
                                 <button 
                                     type="button" 
