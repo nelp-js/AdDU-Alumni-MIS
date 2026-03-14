@@ -129,7 +129,7 @@ function ProfileHeader({ profile, userData, onCoverChange, onProfilePicChange, i
                                     target="_blank"
                                     rel="noreferrer"
                                 >
-                                    Contact info
+                                    Website
                                 </a>
                             )}
                         </div>
