@@ -4,6 +4,8 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useTitle } from '../Hooks/useTitle';
 import { useNavigate } from 'react-router-dom';
+import LocationFields from '../components/LocationFields';
+import { useCountries } from '../Hooks/useCountries';
 
 function Register() {
     useTitle('Register');
@@ -17,7 +19,8 @@ function Register() {
         email: '', username: '', password: '', role: 'alumni', 
         birth_date: '', sex: '',
         phone_number: '', telephone_number: '', current_address: '', 
-        country: 'Philippines', geocode: '', region: '', province: '', city: '',
+        country: 'Philippines', geocode: '',
+        regionCode: '', region: '', provinceCode: '', province: '', city: '',
         religion: '', religion_other: '', marital_status: '', 
         marriage_date: '', intend_to_marry: '', intended_marriage_age: '', no_marriage_reason: '',
         course: '', batch_year: '', has_diploma: '',
@@ -32,11 +35,18 @@ function Register() {
 
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: currentYear - 1948 + 1 }, (_, i) => currentYear - i);
+    const { countries, loading: loadingCountries } = useCountries();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
         if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    };
+
+    // Handler for LocationFields component
+    const handleLocationChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+        if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
     };
 
     const handleFileChange = (e, fileType) => {
@@ -190,36 +200,10 @@ function Register() {
                                 <div className="form-group">
                                     <label>Country <span className="required-star">*</span></label>
                                     <select name="country" value={formData.country} onChange={handleChange} required>
-                                        <option value="">Select your country</option>
-                                        <option value="Philippines">Philippines</option>
-                                        <option value="United States">United States</option>
-                                        <option value="Canada">Canada</option>
-                                        <option value="United Kingdom">United Kingdom</option>
-                                        <option value="Australia">Australia</option>
-                                        <option value="Japan">Japan</option>
-                                        <option value="South Korea">South Korea</option>
-                                        <option value="Singapore">Singapore</option>
-                                        <option value="Malaysia">Malaysia</option>
-                                        <option value="Thailand">Thailand</option>
-                                        <option value="Vietnam">Vietnam</option>
-                                        <option value="Indonesia">Indonesia</option>
-                                        <option value="China">China</option>
-                                        <option value="Hong Kong">Hong Kong</option>
-                                        <option value="Taiwan">Taiwan</option>
-                                        <option value="United Arab Emirates">United Arab Emirates</option>
-                                        <option value="Saudi Arabia">Saudi Arabia</option>
-                                        <option value="Qatar">Qatar</option>
-                                        <option value="Kuwait">Kuwait</option>
-                                        <option value="New Zealand">New Zealand</option>
-                                        <option value="Germany">Germany</option>
-                                        <option value="France">France</option>
-                                        <option value="Italy">Italy</option>
-                                        <option value="Spain">Spain</option>
-                                        <option value="Netherlands">Netherlands</option>
-                                        <option value="Switzerland">Switzerland</option>
-                                        <option value="Norway">Norway</option>
-                                        <option value="Sweden">Sweden</option>
-                                        <option value="Other">Other</option>
+                                        <option value="">{loadingCountries ? 'Loading countries...' : 'Select your country'}</option>
+                                        {countries.map((c) => (
+                                            <option key={c.value} value={c.value}>{c.label}</option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="form-group">
@@ -228,65 +212,19 @@ function Register() {
                                 </div>
                             </div>
 
-                            {/* Conditional Location Fields */}
+                            {/* Cascading Location Fields */}
                             {formData.country === 'Philippines' && (
                                 <div className="location-fields">
-                                    <div className="form-group">
-                                        <label htmlFor="region">Region of Origin <span className="required-star">*</span></label>
-                                        <select
-                                            id="region"
-                                            name="region"
-                                            value={formData.region}
-                                            onChange={handleChange}
-                                            required
-                                        >
-                                            <option value="">Select your region</option>
-                                            <option value="region-11">Region XI - Davao Region</option>
-                                            <option value="ncr">NCR</option>
-                                            <option value="region-1">Region I - Ilocos Region</option>
-                                            <option value="region-2">Region II - Cagayan Valley</option>
-                                            <option value="region-3">Region III - Central Luzon</option>
-                                            <option value="region-4a">Region IV-A - CALABARZON</option>
-                                            <option value="region-5">Region V - Bicol Region</option>
-                                            <option value="region-6">Region VI - Western Visayas</option>
-                                            <option value="region-7">Region VII - Central Visayas</option>
-                                            <option value="region-8">Region VIII - Eastern Visayas</option>
-                                            <option value="region-9">Region IX - Zamboanga Peninsula</option>
-                                            <option value="region-10">Region X - Northern Mindanao</option>
-                                            <option value="region-12">Region XII - SOCCSKSARGEN</option>
-                                            <option value="region-13">Region XIII - Caraga</option>
-                                            <option value="barmm">BARMM</option>
-                                            <option value="car">CAR - Cordillera Administrative Region</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label htmlFor="province">Province <span className="required-star">*</span></label>
-                                        <input
-                                            id="province"
-                                            type="text"
-                                            name="province"
-                                            value={formData.province}
-                                            onChange={handleChange}
-                                            placeholder="e.g., Davao del Sur"
-                                            className="map-pin-input"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label htmlFor="city">Location of Town/City <span className="required-star">*</span></label>
-                                        <input
-                                            id="city"
-                                            type="text"
-                                            name="city"
-                                            value={formData.city}
-                                            onChange={handleChange}
-                                            placeholder="e.g., Davao City"
-                                            className="map-pin-input"
-                                            required
-                                        />
-                                    </div>
+                                    <LocationFields
+                                        regionCode={formData.regionCode}
+                                        provinceCode={formData.provinceCode}
+                                        cityName={formData.city}
+                                        onChange={handleLocationChange}
+                                        fieldClass="form-group"
+                                        labelClass=""
+                                        inputClass=""
+                                        required={true}
+                                    />
                                 </div>
                             )}
                             
@@ -403,7 +341,6 @@ function Register() {
                                 </div>
                             )}
 
-                            {/* UPDATED ID TYPE DROPDOWN */}
                             <div className="form-group">
                                 <label>ID Type <span className="required-star">*</span></label>
                                 <select name="id_type" value={formData.id_type} onChange={handleChange} required>

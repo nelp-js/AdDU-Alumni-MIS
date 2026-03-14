@@ -184,15 +184,15 @@
     padding: 6px 12px;
     border-radius: 6px;
     border: 1px solid #040354;
-    background: #040354;
-    color: white;
+    background: #f0f0f5;
+    color: #040354;
     font-size: 13px;
     cursor: pointer;
     white-space: nowrap;
 }
 
 .user-mgmt-edit-btn:hover {
-    opacity: 0.9;
+    background: #e8e8f0;
 }
 
 /* Section labels inside edit modal */
