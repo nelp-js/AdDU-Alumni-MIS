@@ -212,3 +212,27 @@
         right: 24px;
     }
 }
+
+/* ── Append these to your existing ProfileHeader.css ── */
+
+/* Academic line (course · class of year) */
+.header-academic {
+    margin: 2px 0 6px;
+    font-size: 15px;
+    color: #374151;
+    font-weight: 500;
+}
+
+/* Meta row items (location, phone) */
+.header-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.header-meta-icon {
+    flex-shrink: 0;
+    color: #9ca3af;
+}

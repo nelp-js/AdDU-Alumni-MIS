@@ -70,6 +70,7 @@ function Profile() {
     const { countries, loading: loadingCountries } = useCountries();
 
     const [profile, setProfile]         = useState(null);
+    const [userData, setUserData]       = useState(null);
     const [loading, setLoading]         = useState(true);
     const [error, setError]             = useState(null);
     const [editingInfo, setEditingInfo] = useState(false);
@@ -104,6 +105,7 @@ function Profile() {
                 const p = profileRes.data;
                 const u = userRes.data;
                 setProfile(p);
+                setUserData(u);
                 setInfoForm({
                     first_name:            p.first_name  || u.first_name  || '',
                     last_name:             p.last_name   || u.last_name   || '',
@@ -250,6 +252,7 @@ function Profile() {
                 <div className="profile-wrapper">
                     <ProfileHeader
                         profile={profile}
+                        userData={userData}
                         onCoverChange={setCoverFile}
                         onProfilePicChange={setProfilePicFile}
                         onEditProfile={() => setEditingInfo(true)}

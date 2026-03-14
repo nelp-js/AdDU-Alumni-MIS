@@ -1,95 +1,239 @@
+/* ============================================
+   EDIT MODAL
+   ============================================ */
+
 .edit-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.45);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
     padding: 24px;
-    animation: editModalFadeIn 0.2s ease;
-}
-
-@keyframes editModalFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
 }
 
 .edit-modal {
     background: #fff;
-    border-radius: 12px;
+    border-radius: 16px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-    max-width: 520px;
+    max-width: 680px;
     width: 100%;
     max-height: 90vh;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
-    animation: editModalSlideIn 0.25s ease;
+    overflow: hidden;
 }
 
-@keyframes editModalSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-16px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
+/* ── Header ── */
 .edit-modal-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 16px;
-    padding: 24px 24px 20px;
+    padding: 24px 24px 16px;
     border-bottom: 1px solid #e5e7eb;
+    flex-shrink: 0;
 }
 
 .edit-modal-header-text {
-    flex: 1;
-    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 .edit-modal-title {
     margin: 0;
     font-size: 20px;
-    font-weight: 600;
-    color: #111827;
+    font-weight: 700;
+    color: #1a1a1a;
     font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
 }
 
 .edit-modal-subtitle {
-    margin: 4px 0 0 0;
-    font-size: 14px;
+    margin: 0;
+    font-size: 13px;
     color: #6b7280;
 }
 
 .edit-modal-close {
     background: none;
     border: none;
-    font-size: 28px;
+    font-size: 24px;
     line-height: 1;
     color: #6b7280;
     cursor: pointer;
-    padding: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    transition: background 0.2s, color 0.2s;
+    padding: 0 4px;
+    flex-shrink: 0;
+    margin-left: 16px;
+    transition: color 0.15s;
 }
 
 .edit-modal-close:hover {
-    background: #f3f4f6;
     color: #111827;
 }
 
+/* ── Body (scrollable) ── */
 .edit-modal-body {
-    padding: 24px;
+    flex: 1;
     overflow-y: auto;
+    padding: 20px 24px 24px;
+}
+
+/* ============================================
+   PROFILE FORM (inside EditModal)
+   ============================================ */
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.profile-form-error {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+/* Each label + input pair */
+.profile-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+}
+
+.profile-form-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6d7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.profile-form-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile-form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #374151;
+    background: #fff;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+    font-family: inherit;
+}
+
+.profile-form-input:focus {
+    outline: none;
+    border-color: #040354;
+    box-shadow: 0 0 0 3px rgba(4, 3, 84, 0.08);
+}
+
+.profile-form-input:disabled {
+    background: #f9fafb;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+select.profile-form-input {
+    appearance: auto;
+}
+
+.profile-form-textarea {
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.5;
+}
+
+/* Bio counter */
+.profile-form-counter {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-bottom: 2px;
+}
+
+.profile-form-counter-over {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+/* ── Actions (Cancel / Save) ── */
+.profile-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 16px;
+    margin-top: 8px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.profile-form-cancel {
+    padding: 10px 20px;
+    background: transparent;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #4b5563;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.profile-form-cancel:hover {
+    background: #f3f4f6;
+}
+
+.profile-form-submit {
+    padding: 10px 24px;
+    background: #040354;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.profile-form-submit:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.profile-form-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 600px) {
+    .edit-modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .edit-modal {
+        max-width: 100%;
+        border-radius: 16px 16px 0 0;
+        max-height: 95vh;
+    }
+
+    .edit-modal-header {
+        padding: 20px 16px 14px;
+    }
+
+    .edit-modal-body {
+        padding: 16px 16px 24px;
+    }
 }
