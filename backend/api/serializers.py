@@ -259,8 +259,6 @@ def _strip_html(text):
     cleaned = re.sub(r"<[^>]+>", "", text)
     return " ".join(cleaned.split()).strip()
 
-
-# Font-related CSS props to strip from pasted content (so our Baskerville/Avenir styles apply)
 _FONT_STYLE_PROPS = frozenset(
     ("font-family", "font-size", "font-weight", "font-style", "font", "color")
 )
@@ -303,8 +301,8 @@ class ArticleSerializer(serializers.ModelSerializer):
         model = Article
         fields = [
             "id", "title", "author_name", "subtitle", "cover_image", "content",
-            "status", "created_by", "created_at", "updated_at",
-            "content_created_time", "approved_at", "date_published"
+            "status", "category", "is_featured", "created_by", "created_at", 
+            "updated_at", "content_created_time", "approved_at", "date_published"
         ]
         read_only_fields = ["created_by", "created_at", "updated_at", "content_created_time", "approved_at"]
         extra_kwargs = {
@@ -312,6 +310,7 @@ class ArticleSerializer(serializers.ModelSerializer):
             "author_name": {"required": True},
             "subtitle": {"required": True},
             "cover_image": {"required": True},
+            "category": {"required": True},
         }
 
     def validate_title(self, value):
@@ -333,8 +332,8 @@ class ArticleUpdateSerializer(serializers.ModelSerializer):
         model = Article
         fields = [
             "id", "title", "author_name", "subtitle", "cover_image", "content",
-            "status", "created_by", "created_at", "updated_at",
-            "content_created_time", "approved_at", "date_published"
+            "status", "category", "is_featured", "created_by", "created_at", 
+            "updated_at", "content_created_time", "approved_at", "date_published"
         ]
         read_only_fields = ["created_by", "created_at", "updated_at", "content_created_time", "approved_at"]
         extra_kwargs = {
