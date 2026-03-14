@@ -6,15 +6,62 @@ from .models import ActivityLog
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
-    """Admin edit: update user details and optionally set is_superuser / is_staff."""
     class Meta:
         model = User
         fields = [
-            "id", "username", "first_name", "middle_name", "last_name",
-            "email", "phone_number", "batch", "program", "date_joined",
-            "is_active", "is_approved", "is_superuser", "is_staff"
+            # Identity
+            "id", "username", "first_name", "middle_name", "last_name", "email",
+
+            # Contact & Address
+            "phone_number", "telephone_number",
+            "current_address", "country", "geocode",
+            "region", "province", "city",
+
+            # Background
+            "religion", "religion_other",
+            "marital_status", "marriage_date",
+            "intend_to_marry", "intended_marriage_age", "no_marriage_reason",
+
+            # Academic (new fields + legacy fields kept in sync)
+            "course", "batch_year",
+            "program", "batch",
+
+            # Role & Status
+            "is_active", "is_approved", "is_superuser", "is_staff",
+
+            # Meta (read-only)
+            "date_joined",
         ]
         read_only_fields = ["id", "date_joined"]
+        extra_kwargs = {
+            "middle_name":          {"required": False, "allow_blank": True, "allow_null": True},
+            "telephone_number":     {"required": False, "allow_blank": True, "allow_null": True},
+            "region":               {"required": False, "allow_blank": True, "allow_null": True},
+            "province":             {"required": False, "allow_blank": True, "allow_null": True},
+            "city":                 {"required": False, "allow_blank": True, "allow_null": True},
+            "religion_other":       {"required": False, "allow_blank": True, "allow_null": True},
+            "marriage_date":        {"required": False, "allow_blank": True, "allow_null": True},
+            "intend_to_marry":      {"required": False, "allow_blank": True, "allow_null": True},
+            "intended_marriage_age":{"required": False, "allow_null": True},
+            "no_marriage_reason":   {"required": False, "allow_blank": True, "allow_null": True},
+            "course":               {"required": False, "allow_blank": True, "allow_null": True},
+            "batch_year":           {"required": False, "allow_null": True},
+        }
+
+    def update(self, instance, validated_data):
+        # Keep legacy fields (batch, program) in sync with new fields (batch_year, course)
+        if "course" in validated_data:
+            validated_data["program"] = validated_data["course"]
+        if "batch_year" in validated_data:
+            validated_data["batch"] = validated_data["batch_year"]
+
+        # Wipe location sub-fields if country is not Philippines
+        if validated_data.get("country", instance.country) != "Philippines":
+            validated_data["region"]   = None
+            validated_data["province"] = None
+            validated_data["city"]     = None
+
+        return super().update(instance, validated_data)
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -213,13 +260,38 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class UserListSerializer(serializers.ModelSerializer):
-    """Admin list of registered users with date_joined (ISO for local TZ), is_approved, is_superuser, is_staff."""
+    """Admin list of registered users — returns all fields needed by the frontend."""
     class Meta:
         model = User
         fields = [
-            "id", "username", "first_name", "middle_name", "last_name",
-            "email", "phone_number", "batch", "program", "date_joined",
-            "is_active", "is_approved", "is_superuser", "is_staff"
+            # Identity
+            "id", "username", "first_name", "middle_name", "last_name", "email",
+
+            # Contact & Address
+            "phone_number", "telephone_number",
+            "current_address", "country", "geocode",
+            "region", "province", "city",
+
+            # Background
+            "religion", "religion_other",
+            "marital_status", "marriage_date",
+            "intend_to_marry", "intended_marriage_age", "no_marriage_reason",
+
+            # Personal
+            "birth_date", "sex",
+
+            # Academic
+            "course", "batch_year",
+            "program", "batch",
+
+            # Documents
+            "id_type", "valid_id_file", "diploma_file", "has_diploma",
+
+            # Role & Status
+            "is_active", "is_approved", "is_superuser", "is_staff",
+
+            # Meta
+            "date_joined",
         ]
         read_only_fields = fields
 
@@ -229,13 +301,15 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = [
             "id", "event_name", "preview_text", "event_description",
-            "start_date", "end_date", "start_time", "end_time", 
-            "venue", "category", "is_approved", "organizer", 
-            "event_image", "cost", "organizer_names", 
+            "start_date", "end_date", "start_time", "end_time",
+            "venue", "category", "is_approved", "organizer",
+            "event_image", "cost", "organizer_names",
             "participants",
-            "action_button_label", "action_button_link"
+            "action_button_label", "action_button_link",
+            "created_at", "updated_at",
         ]
-        read_only_fields = ["is_approved", "organizer"]
+        read_only_fields = ["is_approved", "organizer", "created_at", "updated_at"]
+
 
 class EventUpdateSerializer(serializers.ModelSerializer):
     """Admin edit: update event fields including is_approved."""
@@ -243,13 +317,14 @@ class EventUpdateSerializer(serializers.ModelSerializer):
         model = Event
         fields = [
             "id", "event_name", "preview_text", "event_description",
-            "start_date", "end_date", "start_time", "end_time", 
-            "venue", "category", "is_approved", "organizer", 
+            "start_date", "end_date", "start_time", "end_time",
+            "venue", "category", "is_approved", "organizer",
             "event_image", "cost", "organizer_names",
             "participants",
-            "action_button_label", "action_button_link"
+            "action_button_label", "action_button_link",
+            "created_at", "updated_at",
         ]
-        read_only_fields = ["organizer"]
+        read_only_fields = ["organizer", "created_at", "updated_at"]
 
 
 def _strip_html(text):

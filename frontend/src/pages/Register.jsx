@@ -122,7 +122,6 @@ function Register() {
                                 </div>
                             </div>
                             
-                            {/* Updated Email, Username, and Password Row */}
                             <div className="name-fields">
                                 <div className="form-group">
                                     <label>Email <span className="required-star">*</span></label>

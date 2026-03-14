@@ -1,4 +1,7 @@
-/* User Management - same uniformity as Register / Dashboard */
+/* ============================================
+   USER MANAGEMENT — uniform with ContentManagement.css
+   ============================================ */
+
 .user-mgmt-page {
     min-height: 100vh;
     display: flex;
@@ -8,7 +11,7 @@
 
 .user-mgmt-main {
     flex: 1;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 60px 24px 40px;
     width: 100%;
@@ -31,6 +34,7 @@
     margin: 0 0 32px 0;
 }
 
+/* ── Card ── */
 .user-mgmt-card {
     background: white;
     border-radius: 12px;
@@ -39,8 +43,8 @@
     margin-bottom: 24px;
 }
 
+/* ── States ── */
 .user-mgmt-loading,
-.user-mgmt-error,
 .user-mgmt-empty {
     text-align: center;
     padding: 32px;
@@ -49,9 +53,13 @@
 }
 
 .user-mgmt-error {
+    text-align: center;
+    padding: 32px;
     color: #dc3545;
+    font-size: 15px;
 }
 
+/* ── Table ── */
 .user-mgmt-table-wrap {
     overflow-x: auto;
     max-height: 360px;
@@ -69,12 +77,11 @@
     position: sticky;
     top: 0;
     z-index: 1;
-    box-shadow: 0 1px 0 0 #e5e7eb;
 }
 
 .user-mgmt-table th {
     text-align: left;
-    padding: 14px 16px;
+    padding: 14px 12px;
     font-weight: 600;
     color: #040354;
     font-size: 12px;
@@ -90,20 +97,19 @@
     border-bottom: none;
 }
 
-.user-mgmt-table tbody tr:nth-child(even) {
-    background: #fafafa;
-}
-
 .user-mgmt-table td {
-    padding: 14px 16px;
+    padding: 14px 12px;
     color: #4b5563;
+    white-space: nowrap;
 }
 
+/* ── Status Badges ── */
 .user-mgmt-status {
-    font-weight: 500;
+    display: inline-block;
     padding: 4px 10px;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 12px;
+    font-weight: 500;
 }
 
 .user-mgmt-status.pending {
@@ -121,68 +127,128 @@
     color: #991b1b;
 }
 
+/* ── Actions Column ── */
 .user-mgmt-actions {
     display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+    gap: 8px;
+    flex-wrap: nowrap;
     align-items: center;
 }
 
-.user-mgmt-approve-btn,
-.user-mgmt-reject-btn {
-    padding: 10px 20px;
-    min-width: 100px;
-    background: transparent;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-}
-
+/* Approve */
 .user-mgmt-approve-btn {
-    border: 1px solid #86efac;
-    color: #047857;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #059669;
+    background: #ecfdf5;
+    color: #059669;
+    font-size: 13px;
+    cursor: pointer;
 }
 
 .user-mgmt-approve-btn:hover:not(:disabled) {
-    border-color: #4ade80;
+    background: #d1fae5;
     color: #065f46;
+    border-color: #047857;
 }
 
+.user-mgmt-approve-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Reject */
 .user-mgmt-reject-btn {
-    border: 1px solid #fca5a5;
-    color: #b91c1c;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #dc2626;
+    background: #fef2f2;
+    color: #dc2626;
+    font-size: 13px;
+    cursor: pointer;
 }
 
 .user-mgmt-reject-btn:hover:not(:disabled) {
-    border-color: #f87171;
-    color: #991b1b;
+    background: #fee2e2;
+    color: #b91c1c;
+    border-color: #b91c1c;
 }
 
-.user-mgmt-approve-btn:disabled,
 .user-mgmt-reject-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
+/* Edit */
 .user-mgmt-edit-btn {
-    padding: 8px 16px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #040354;
     background: #040354;
     color: white;
-    border: none;
-    border-radius: 8px;
     font-size: 13px;
-    font-weight: 500;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .user-mgmt-edit-btn:hover {
     opacity: 0.9;
 }
 
-/* Edit modal */
+/* Section labels inside edit modal */
+.user-mgmt-modal-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #040354;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 8px 0 4px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 4px;
+}
+
+/* ── Back Link ── */
+.user-mgmt-back {
+    text-align: left;
+}
+
+.user-mgmt-back-link {
+    color: #040354;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.user-mgmt-back-link:hover {
+    opacity: 0.8;
+}
+
+/* Keep "View Details" on one line */
+.content-mgmt-details-link {
+    white-space: nowrap;
+}
+
+/* View Details modal — wider than the content one */
+.user-details-modal {
+    max-width: 860px !important;
+}
+
+.user-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0 24px;
+    margin-bottom: 8px;
+}
+
+.user-details-file-link {
+    font-size: 14px;
+    color: #040354;
+    text-decoration: underline;
+}
+
+/* ============================================
+   EDIT MODAL
+   ============================================ */
+
 .user-mgmt-modal-overlay {
     position: fixed;
     inset: 0;
@@ -191,19 +257,18 @@
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    padding: 20px;
+    padding: 32px;
 }
 
 .user-mgmt-modal {
-    background: white;
+    background: #fff;
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-    max-width: 720px;
-    min-width: 320px;
+    max-width: 900px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
-    padding: 24px;
+    padding: 32px;
 }
 
 .user-mgmt-modal-title {
@@ -222,6 +287,7 @@
     margin-bottom: 16px;
 }
 
+/* Form */
 .user-mgmt-modal-form {
     display: flex;
     flex-direction: column;
@@ -240,9 +306,11 @@
 
 .user-mgmt-modal-field label {
     display: block;
-    font-size: 13px;
-    font-weight: 500;
-    color: #374151;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6d7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     margin-bottom: 4px;
 }
 
@@ -254,6 +322,7 @@
     border-radius: 8px;
     font-size: 14px;
     box-sizing: border-box;
+    color: #374151;
 }
 
 .user-mgmt-modal-field input:focus,
@@ -267,21 +336,56 @@
     align-items: center;
     gap: 8px;
     cursor: pointer;
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
 }
 
 .user-mgmt-modal-checkbox input[type="checkbox"] {
     width: auto;
 }
 
+/* Modal Footer Actions */
 .user-mgmt-modal-actions {
     display: flex;
-    justify-content: flex-end;
-    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
     margin-top: 24px;
     padding-top: 16px;
     border-top: 1px solid #e5e7eb;
 }
 
+.user-mgmt-modal-actions-right {
+    display: flex;
+    gap: 12px;
+}
+
+/* Delete (danger) */
+.user-mgmt-modal-delete {
+    padding: 10px 20px;
+    background: transparent;
+    color: #dc2626;
+    border: 1px solid #dc2626;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.user-mgmt-modal-delete:hover:not(:disabled) {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #b91c1c;
+}
+
+.user-mgmt-modal-delete:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Cancel */
 .user-mgmt-modal-cancel {
     padding: 10px 20px;
     background: transparent;
@@ -296,6 +400,7 @@
     background: #f3f4f6;
 }
 
+/* Save */
 .user-mgmt-modal-save {
     padding: 10px 20px;
     background: #040354;
@@ -316,20 +421,9 @@
     cursor: not-allowed;
 }
 
-.user-mgmt-back {
-    text-align: left;
-}
-
-.user-mgmt-back-link {
-    color: #040354;
-    text-decoration: underline;
-    font-size: 14px;
-    font-weight: 400;
-}
-
-.user-mgmt-back-link:hover {
-    opacity: 0.8;
-}
+/* ============================================
+   RESPONSIVE
+   ============================================ */
 
 @media (max-width: 768px) {
     .user-mgmt-main {
@@ -341,212 +435,8 @@
         padding: 10px 12px;
         font-size: 13px;
     }
-}
 
-/* 1. The Container: Pushes content to the edges */
-.user-mgmt-modal-actions {
-    display: flex;
-    justify-content: space-between; /* This pushes Left item to Left, Right item to Right */
-    align-items: center;
-    margin-top: 24px;
-    padding-top: 16px;
-    border-top: 1px solid #e5e7eb;
-}
-
-/* 2. The Right Group: Keeps Cancel & Save close together */
-.user-mgmt-modal-actions-right {
-    display: flex;
-    gap: 12px;
-}
-
-/* 3. The Delete Button: Styling to look dangerous (Red) */
-.user-mgmt-modal-delete {
-    padding: 10px 20px;
-    background: transparent;
-    color: #dc3545;
-    border: 1px solid #dc3545;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.user-mgmt-modal-delete:hover:not(:disabled) {
-    background: #fee2e2;
-    color: #b91c1c;
-    border-color: #b91c1c;
-}
-
-.user-mgmt-modal-delete:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* --- VIEW DETAILS LINK STYLE --- */
-.user-mgmt-details-link {
-    background: none;
-    border: none;
-    color: #040354;
-    text-decoration: underline;
-    cursor: pointer;
-    font-size: 14px;
-    padding: 0;
-}
-
-.user-mgmt-details-link:hover {
-    color: #06048a;
-}
-
-/* --- DETAILS MODAL STYLES --- */
-/* (Matches Content Management for Uniformity) */
-
-.user-mgmt-modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 24px;
-}
-
-.user-mgmt-modal {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-    max-width: 500px; /* Users need slightly less width than articles */
-    width: 100%;
-    max-height: 90vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.user-mgmt-modal-title {
-    margin: 0;
-    padding: 24px 24px 16px;
-    font-size: 20px;
-    color: #333;
-    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
-    border-bottom: 1px solid #f3f4f6;
-}
-
-.user-mgmt-details-content {
-    padding: 24px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.user-mgmt-detail-row {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.user-mgmt-label {
-    display: block;
-    font-size: 11px;
-    font-weight: 700;
-    color: #6d7280;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.user-mgmt-value {
-    font-size: 15px;
-    color: #1f2937;
-    word-break: break-word;
-}
-
-/* Modal Action Footer */
-.user-mgmt-modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    padding: 16px 24px;
-    border-top: 1px solid #e5e7eb;
-    background: #f9fafb;
-}
-
-.user-mgmt-modal-cancel {
-    padding: 10px 24px;
-    background: #040354;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.user-mgmt-modal-cancel:hover {
-    background: #06048a;
-}
-
-/* Ensure the status colors look right in the modal too */
-.user-mgmt-details-content .user-mgmt-status {
-    width: fit-content;
-    margin-top: 4px;
-}
-
-/* =========================================
-   ACTIONS CONTAINER (FIX FOR SIDE-BY-SIDE)
-   ========================================= */
-.user-mgmt-actions {
-    display: flex;
-    flex-direction: row;    /* Forces horizontal layout */
-    gap: 8px;               /* Space between Edit and Delete */
-    align-items: center;    /* Vertical centering */
-    white-space: nowrap;    /* Prevents buttons from stacking */
-}
-
-/* =========================================
-   DELETE BUTTON STYLE (RED OUTLINE)
-   ========================================= */
-.user-mgmt-delete-btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px solid #dc2626;
-    background: transparent;
-    color: #dc2626;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.user-mgmt-delete-btn:hover:not(:disabled) {
-    background: #dc2626;
-    color: white;
-}
-
-.user-mgmt-delete-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    border-color: #fca5a5;
-    color: #fca5a5;
-}
-
-/* Ensure Edit Button stays consistent */
-.user-mgmt-edit-btn {
-    padding: 6px 14px;
-    border-radius: 6px;
-    border: 1px solid #040354;
-    background: #040354;
-    color: white;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.2s;
-}
-
-.user-mgmt-edit-btn:hover {
-    opacity: 0.9;
+    .user-mgmt-modal-row {
+        flex-direction: column;
+    }
 }

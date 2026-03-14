@@ -6,6 +6,7 @@ import Home from "./pages/Home"
 import Events from "./pages/Events"
 import EventView from "./pages/EventView"
 import CreateEvent from "./pages/CreateEvent"
+import EditEvent from "./pages/EditEvent"
 import Dashboard from "./pages/Dashboard"
 import UserManagement from "./pages/UserManagement"
 import EventManagement from "./pages/EventManagement"
@@ -20,6 +21,7 @@ import ProtectedRoute from "./components/ProtectedRoute"
 import ScrollToTop from "./components/ScrollToTop"
 import AutoLogout from "./components/AutoLogout"
 import { NotificationProvider } from './Hooks/NotificationContext';
+
 function Logout() {
   localStorage.clear()
   return <Navigate to="/login" />
@@ -52,6 +54,7 @@ function App() {
         <Route path="/dashboard" element={<AdminProtectedRoute><Dashboard /></AdminProtectedRoute>} />
         <Route path="/dashboard/users" element={<AdminProtectedRoute><UserManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/events" element={<AdminProtectedRoute><EventManagement /></AdminProtectedRoute>} />
+        <Route path="/dashboard/events/edit/:id" element={<AdminProtectedRoute><EditEvent /></AdminProtectedRoute>} />
         <Route path="/dashboard/content" element={<AdminProtectedRoute><ContentManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/content/create" element={<AdminProtectedRoute><CreateContent /></AdminProtectedRoute>} />
         <Route path="/dashboard/content/edit/:id" element={<AdminProtectedRoute><CreateContent /></AdminProtectedRoute>} />
