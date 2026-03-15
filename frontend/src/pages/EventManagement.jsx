@@ -141,6 +141,7 @@ function EventManagement() {
 
                 <div className="event-mgmt-back">
                     <Link to="/dashboard" className="event-mgmt-back-link">← Back to Dashboard</Link>
+                    <Link to="/dashboard/events/registrations" className="event-mgmt-back-link event-mgmt-create-link">View Registrations</Link>
                     <Link to="/create-event" className="event-mgmt-back-link event-mgmt-create-link">Create Event</Link>
                 </div>
 
@@ -151,7 +152,6 @@ function EventManagement() {
                             <h2 className="event-mgmt-modal-title">Event Details</h2>
                             <div className="event-mgmt-details-content">
 
-                                {/* Cover Image */}
                                 {detailsEvent.event_image && (
                                     <div className="event-mgmt-details-row">
                                         <span className="event-mgmt-details-label">Cover Photo</span>
@@ -159,7 +159,6 @@ function EventManagement() {
                                             style={{ maxHeight: '140px', borderRadius: '8px', objectFit: 'cover' }} />
                                     </div>
                                 )}
-
                                 <div className="event-mgmt-details-row">
                                     <span className="event-mgmt-details-label">Event Name</span>
                                     <span className="event-mgmt-details-value">{detailsEvent.event_name || '—'}</span>
@@ -204,18 +203,6 @@ function EventManagement() {
                                     <span className="event-mgmt-details-label">Organizers</span>
                                     <span className="event-mgmt-details-value">{detailsEvent.organizer_names || '—'}</span>
                                 </div>
-                                {(detailsEvent.action_button_label || detailsEvent.action_button_link) && (
-                                    <>
-                                        <div className="event-mgmt-details-row">
-                                            <span className="event-mgmt-details-label">Button Label</span>
-                                            <span className="event-mgmt-details-value">{detailsEvent.action_button_label || '—'}</span>
-                                        </div>
-                                        <div className="event-mgmt-details-row">
-                                            <span className="event-mgmt-details-label">Button Link</span>
-                                            <span className="event-mgmt-details-value">{detailsEvent.action_button_link || '—'}</span>
-                                        </div>
-                                    </>
-                                )}
                                 <div className="event-mgmt-details-row">
                                     <span className="event-mgmt-details-label">Status</span>
                                     <span className={`event-mgmt-status ${detailsEvent.is_approved ? 'approved' : 'pending'}`}>
@@ -234,7 +221,6 @@ function EventManagement() {
                                         <span className="event-mgmt-details-value">{formatDate(detailsEvent.updated_at)}</span>
                                     </div>
                                 )}
-
                             </div>
                             <div className="event-mgmt-modal-actions event-mgmt-details-actions">
                                 <div />

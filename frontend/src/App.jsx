@@ -7,6 +7,7 @@ import Events from "./pages/Events"
 import EventView from "./pages/EventView"
 import CreateEvent from "./pages/CreateEvent"
 import EditEvent from "./pages/EditEvent"
+import EventRegistrations from "./pages/EventRegistrations"
 import Dashboard from "./pages/Dashboard"
 import UserManagement from "./pages/UserManagement"
 import EventManagement from "./pages/EventManagement"
@@ -37,9 +38,7 @@ function App() {
     <NotificationProvider>
     <BrowserRouter>
       <ScrollToTop />
-      
-      <AutoLogout /> 
-
+      <AutoLogout />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/stories" element={<Stories />} />
@@ -55,11 +54,12 @@ function App() {
         <Route path="/dashboard/users" element={<AdminProtectedRoute><UserManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/events" element={<AdminProtectedRoute><EventManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/events/edit/:id" element={<AdminProtectedRoute><EditEvent /></AdminProtectedRoute>} />
+        <Route path="/dashboard/events/registrations" element={<AdminProtectedRoute><EventRegistrations /></AdminProtectedRoute>} />
         <Route path="/dashboard/content" element={<AdminProtectedRoute><ContentManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/content/create" element={<AdminProtectedRoute><CreateContent /></AdminProtectedRoute>} />
         <Route path="/dashboard/content/edit/:id" element={<AdminProtectedRoute><CreateContent /></AdminProtectedRoute>} />
         <Route path="/dashboard-preview" element={<Dashboard />} />
-        <Route path="*" element={<Error />}></Route>
+        <Route path="*" element={<Error />} />
       </Routes>
     </BrowserRouter>
     </NotificationProvider>

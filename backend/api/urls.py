@@ -5,12 +5,13 @@ from .views import ActivityLogListView
 urlpatterns = [
     # --- USER VIEWS ---
     path("user/me/", views.current_user, name="current-user"),
+    path("user/register/", views.CreateUserView.as_view(), name="register"),
     path("profile/", views.profile_detail, name="profile-detail"),
     path("profile/experiences/", views.ExperienceListCreate.as_view(), name="experience-list"),
     path("profile/experiences/<int:pk>/", views.ExperienceDetail.as_view(), name="experience-detail"),
     path("profile/educations/", views.EducationListCreate.as_view(), name="education-list"),
     path("profile/educations/<int:pk>/", views.EducationDetail.as_view(), name="education-detail"),
-    path("users/pending-count/", views.pending_user_count, name="pending-user-count"), 
+    path("users/pending-count/", views.pending_user_count, name="pending-user-count"),
     path("users/", views.UserListView.as_view(), name="user-list"),
     path("users/<int:pk>/", views.UserDetailView.as_view(), name="user-detail"),
     path("users/<int:user_id>/approve/", views.approve_user, name="approve-user"),
@@ -30,19 +31,16 @@ urlpatterns = [
 
     # --- ARTICLE / CMS VIEWS ---
     path("articles/", views.ArticleListCreate.as_view(), name="article-list"),
-    path("articles/published/", views.PublishedArticleList.as_view(), name="published-article-list"),         
+    path("articles/published/", views.PublishedArticleList.as_view(), name="published-article-list"),
     path("articles/published/<int:pk>/", views.PublishedArticleDetail.as_view(), name="published-article-detail"),
-    path("articles/delete/<int:pk>/", views.ArticleDelete.as_view(), name="delete-article"),               
+    path("articles/delete/<int:pk>/", views.ArticleDelete.as_view(), name="delete-article"),
     path("articles/<int:article_id>/publish/", views.publish_article, name="publish-article"),
     path("articles/<int:pk>/", views.ArticleDetailView.as_view(), name="article-detail"),
 
-    # --- DASHBOARD STATS ---
+    # --- DASHBOARD & SYSTEM ---
     path("dashboard/stats/", views.dashboard_stats, name="dashboard-stats"),
-
-    # --- SYSTEM VIEWS ---
-    path("user/register/", views.CreateUserView.as_view(), name="register"),
-    path("token/", views.CustomTokenObtainPairView.as_view(), name="token-obtain-pair"),
     path('activities/', ActivityLogListView.as_view(), name='activity-list'),
     path("password-reset-request/", views.request_password_reset, name="password-reset-request"),
     path("password-reset-confirm/", views.reset_password, name="password-reset-confirm"),
+    path("token/", views.CustomTokenObtainPairView.as_view(), name="token-obtain-pair"),
 ]
