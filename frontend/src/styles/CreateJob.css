@@ -1,0 +1,66 @@
+/* ── Type picker ── */
+.cj-picker-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: #374151;
+    text-align: center;
+    margin: 0 0 24px;
+}
+
+.cj-type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.cj-type-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 32px 20px;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    text-align: center;
+}
+
+.cj-type-card:hover {
+    border-color: #040354;
+    background: #f0f0f8;
+}
+
+.cj-type-icon  { font-size: 36px; }
+
+.cj-type-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #040354;
+}
+
+.cj-type-desc {
+    font-size: 13px;
+    color: #6d7280;
+    line-height: 1.4;
+}
+
+/* ── Back link ── */
+.cj-back-type {
+    background: none;
+    border: none;
+    color: #040354;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0 0 16px;
+    display: block;
+    text-align: left;
+}
+
+.cj-back-type:hover { text-decoration: underline; }
+
+@media (max-width: 540px) {
+    .cj-type-grid { grid-template-columns: 1fr; }
+}

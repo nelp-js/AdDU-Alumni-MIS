@@ -1,35 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth import get_user_model
 import datetime
 
 
 class User(AbstractUser):
     BATCH_CHOICES = [(str(year), str(year)) for year in range(1948, datetime.date.today().year + 2)]
-    
-    PROGRAM_CHOICES = [
-        ('CS', 'Computer Science'),
-        ('IT', 'Information Technology'),
-        ('IS', 'Information Systems'),
-    ]
-
-    SEX_CHOICES = [
-        ('male', 'Male'),
-        ('female', 'Female'),
-        ('prefer_not_to_say', 'Prefer not to say'),
-    ]
-
+    PROGRAM_CHOICES = [('CS', 'Computer Science'), ('IT', 'Information Technology'), ('IS', 'Information Systems')]
+    SEX_CHOICES = [('male', 'Male'), ('female', 'Female'), ('prefer_not_to_say', 'Prefer not to say')]
     MARITAL_STATUS_CHOICES = [
-        ('single', 'Single'),
-        ('married', 'Married'),
-        ('living_in', 'Living In'),
-        ('separated', 'Separated'),
-        ('annulled', 'Annulled'),
-        ('divorced', 'Divorced'),
-        ('widowed', 'Widowed'),
+        ('single', 'Single'), ('married', 'Married'), ('living_in', 'Living In'),
+        ('separated', 'Separated'), ('annulled', 'Annulled'), ('divorced', 'Divorced'), ('widowed', 'Widowed'),
     ]
 
-    # --- 1. PERSONAL INFO ---
     first_name  = models.CharField(max_length=150)
     middle_name = models.CharField(max_length=150, blank=True, null=True)
     last_name   = models.CharField(max_length=150)
@@ -39,7 +21,6 @@ class User(AbstractUser):
     sex         = models.CharField(max_length=20, choices=SEX_CHOICES, blank=True, null=True)
     role        = models.CharField(max_length=50, default='alumni')
 
-    # --- 2. CONTACT & LOCATION ---
     phone_number     = models.CharField(max_length=20)
     telephone_number = models.CharField(max_length=20, blank=True, null=True)
     current_address  = models.TextField(blank=True, null=True)
@@ -49,7 +30,6 @@ class User(AbstractUser):
     province         = models.CharField(max_length=100, blank=True, null=True)
     city             = models.CharField(max_length=100, blank=True, null=True)
 
-    # --- 3. CIVIL / MARITAL STATUS ---
     religion              = models.CharField(max_length=100, blank=True, null=True)
     religion_other        = models.CharField(max_length=100, blank=True, null=True)
     marital_status        = models.CharField(max_length=20, choices=MARITAL_STATUS_CHOICES, blank=True, null=True)
@@ -57,25 +37,20 @@ class User(AbstractUser):
     intend_to_marry       = models.CharField(max_length=10, blank=True, null=True)
     intended_marriage_age = models.PositiveIntegerField(null=True, blank=True)
     no_marriage_reason    = models.CharField(max_length=255, blank=True, null=True)
+    is_married            = models.BooleanField(default=False)
+    maiden_name           = models.CharField(max_length=150, blank=True, null=True)
 
-    # Legacy fields
-    is_married  = models.BooleanField(default=False)
-    maiden_name = models.CharField(max_length=150, blank=True, null=True)
-
-    # --- 4. ACADEMIC INFO ---
-    course     = models.CharField(max_length=2, choices=PROGRAM_CHOICES, blank=True, null=True)
-    program    = models.CharField(max_length=2, choices=PROGRAM_CHOICES, blank=True, null=True)
-    batch      = models.CharField(max_length=4, choices=BATCH_CHOICES, blank=True, null=True)
-    batch_year = models.CharField(max_length=4, choices=BATCH_CHOICES, blank=True, null=True)
+    course      = models.CharField(max_length=2, choices=PROGRAM_CHOICES, blank=True, null=True)
+    program     = models.CharField(max_length=2, choices=PROGRAM_CHOICES, blank=True, null=True)
+    batch       = models.CharField(max_length=4, choices=BATCH_CHOICES, blank=True, null=True)
+    batch_year  = models.CharField(max_length=4, choices=BATCH_CHOICES, blank=True, null=True)
     has_diploma = models.CharField(max_length=10, blank=True, null=True)
 
-    # --- 5. VERIFICATION DOCUMENTS ---
     id_type       = models.CharField(max_length=50, blank=True, null=True)
     valid_id      = models.ImageField(upload_to='valid_ids/', blank=True, null=True)
     valid_id_file = models.ImageField(upload_to='valid_ids/', blank=True, null=True)
     diploma_file  = models.ImageField(upload_to='diplomas/', blank=True, null=True)
-
-    is_approved = models.BooleanField(default=False)
+    is_approved   = models.BooleanField(default=False)
 
     def __str__(self):
         return self.username
@@ -95,23 +70,12 @@ class UserProfile(models.Model):
 
 class Experience(models.Model):
     EMPLOYMENT_TYPES = [
-        ('', 'Please select'),
-        ('full_time', 'Full-time'),
-        ('part_time', 'Part-time'),
-        ('self_employed', 'Self-employed'),
-        ('freelance', 'Freelance'),
-        ('contract', 'Contract'),
-        ('internship', 'Internship'),
-        ('apprenticeship', 'Apprenticeship'),
-        ('seasonal', 'Seasonal'),
-        ('volunteer', 'Volunteer'),
+        ('', 'Please select'), ('full_time', 'Full-time'), ('part_time', 'Part-time'),
+        ('self_employed', 'Self-employed'), ('freelance', 'Freelance'), ('contract', 'Contract'),
+        ('internship', 'Internship'), ('apprenticeship', 'Apprenticeship'),
+        ('seasonal', 'Seasonal'), ('volunteer', 'Volunteer'),
     ]
-    SITE_TYPES = [
-        ('', ''),
-        ('on_site', 'On-site'),
-        ('remote', 'Remote'),
-        ('hybrid', 'Hybrid'),
-    ]
+    SITE_TYPES = [('', ''), ('on_site', 'On-site'), ('remote', 'Remote'), ('hybrid', 'Hybrid')]
 
     user            = models.ForeignKey(User, on_delete=models.CASCADE, related_name='experiences')
     job_title       = models.CharField(max_length=200)
@@ -156,25 +120,25 @@ class Education(models.Model):
 
 
 class Event(models.Model):
-    event_name        = models.CharField(max_length=255)
-    preview_text      = models.CharField(max_length=280, blank=True, null=True)
-    event_description = models.TextField()
-    category          = models.CharField(max_length=100, default="General")
-    start_date        = models.DateField()
-    end_date          = models.DateField(null=True, blank=True)
-    start_time        = models.TimeField()
-    end_time          = models.TimeField(null=True, blank=True)
-    venue             = models.CharField(max_length=255)
-    participants      = models.PositiveIntegerField(default=0, help_text="Event Capacity")
-    event_image       = models.ImageField(upload_to='events/', null=True, blank=True)
-    cost              = models.CharField(max_length=100, blank=True, null=True)
-    organizer_names   = models.CharField(max_length=500, blank=True, null=True)
-    is_approved       = models.BooleanField(default=False)
-    organizer         = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_events')
+    event_name          = models.CharField(max_length=255)
+    preview_text        = models.CharField(max_length=280, blank=True, null=True)
+    event_description   = models.TextField()
+    category            = models.CharField(max_length=100, default="General")
+    start_date          = models.DateField()
+    end_date            = models.DateField(null=True, blank=True)
+    start_time          = models.TimeField()
+    end_time            = models.TimeField(null=True, blank=True)
+    venue               = models.CharField(max_length=255)
+    participants        = models.PositiveIntegerField(default=0)
+    event_image         = models.ImageField(upload_to='events/', null=True, blank=True)
+    cost                = models.CharField(max_length=100, blank=True, null=True)
+    organizer_names     = models.CharField(max_length=500, blank=True, null=True)
+    is_approved         = models.BooleanField(default=False)
+    organizer           = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_events')
     action_button_label = models.CharField(max_length=100, blank=True, null=True)
     action_button_link  = models.URLField(max_length=500, blank=True, null=True)
-    created_at        = models.DateTimeField(auto_now_add=True, null=True)
-    updated_at        = models.DateTimeField(auto_now=True, null=True)
+    created_at          = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at          = models.DateTimeField(auto_now=True, null=True)
 
     class Meta:
         ordering = ['-start_date']
@@ -184,16 +148,8 @@ class Event(models.Model):
 
 
 class EventRegistration(models.Model):
-    PAYMENT_METHOD_CHOICES = [
-        ('gcash', 'GCash'),
-        ('maya',  'Maya'),
-        ('card',  'Credit/Debit Card'),
-    ]
-    STATUS_CHOICES = [
-        ('pending',   'Pending'),
-        ('paid',      'Paid'),
-        ('cancelled', 'Cancelled'),
-    ]
+    PAYMENT_METHOD_CHOICES = [('gcash', 'GCash'), ('maya', 'Maya'), ('card', 'Credit/Debit Card')]
+    STATUS_CHOICES         = [('pending', 'Pending'), ('paid', 'Paid'), ('cancelled', 'Cancelled')]
 
     event          = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='registrations')
     user           = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_registrations')
@@ -214,11 +170,67 @@ class EventRegistration(models.Model):
         return f"{self.first_name} {self.last_name} — {self.event.event_name}"
 
 
+class Job(models.Model):
+    MODALITY_CHOICES   = [('On-site', 'On-site'), ('Remote', 'Remote'), ('Hybrid', 'Hybrid')]
+    EMPLOYMENT_CHOICES = [('Full-time', 'Full-time'), ('Part-time', 'Part-time'), ('Contract', 'Contract'), ('Freelance', 'Freelance')]
+    STATUS_CHOICES     = [('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied')]
+
+    company         = models.CharField(max_length=255)
+    position        = models.CharField(max_length=255)
+    location        = models.CharField(max_length=255)
+    modality        = models.CharField(max_length=20, choices=MODALITY_CHOICES)
+    employment_type = models.CharField(max_length=20, choices=EMPLOYMENT_CHOICES)
+    salary          = models.CharField(max_length=100, blank=True, null=True)
+    email           = models.EmailField()
+    start_date      = models.DateField()
+    end_date        = models.DateField()
+    description     = models.TextField()
+    status          = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    remarks         = models.TextField(blank=True, null=True)
+    is_hidden       = models.BooleanField(default=False)
+    posted_by       = models.ForeignKey(User, on_delete=models.CASCADE, related_name='job_postings')
+    created_at      = models.DateTimeField(auto_now_add=True)
+    updated_at      = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.position} at {self.company}"
+
+
+class Internship(models.Model):
+    MODALITY_CHOICES = [('On-site', 'On-site'), ('Remote', 'Remote'), ('Hybrid', 'Hybrid')]
+    STATUS_CHOICES   = [('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied')]
+
+    company     = models.CharField(max_length=255)
+    position    = models.CharField(max_length=255)
+    location    = models.CharField(max_length=255)
+    modality    = models.CharField(max_length=20, choices=MODALITY_CHOICES)
+    allowance   = models.CharField(max_length=100, blank=True, null=True)
+    email       = models.EmailField()
+    start_date  = models.DateField()
+    end_date    = models.DateField()
+    description = models.TextField()
+    status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    remarks     = models.TextField(blank=True, null=True)
+    is_hidden   = models.BooleanField(default=False)
+    posted_by   = models.ForeignKey(User, on_delete=models.CASCADE, related_name='internship_postings')
+    created_at  = models.DateTimeField(auto_now_add=True)
+    updated_at  = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.position} at {self.company} (Internship)"
+
+
 class Article(models.Model):
-    STATUS_DRAFT      = 'draft'
-    STATUS_PUBLISHED  = 'published'
-    STATUS_CHOICES    = [(STATUS_DRAFT, 'Draft'), (STATUS_PUBLISHED, 'Published')]
-    CATEGORY_CHOICES  = [
+    STATUS_DRAFT     = 'draft'
+    STATUS_PUBLISHED = 'published'
+    STATUS_CHOICES   = [(STATUS_DRAFT, 'Draft'), (STATUS_PUBLISHED, 'Published')]
+    CATEGORY_CHOICES = [
         ('Giving', 'Giving'), ('Programs', 'Programs'), ('Community', 'Community'),
         ('Events', 'Events'), ('Achievements', 'Achievements'), ('Scholarship', 'Scholarship'),
     ]
@@ -245,12 +257,9 @@ class Article(models.Model):
 
 class ActivityLog(models.Model):
     MODULE_CHOICES = [
-        ('User Management', 'User Management'),
-        ('Event Management', 'Event Management'),
-        ('Job & Internship', 'Job & Internship'),
-        ('CMS & News Feed', 'CMS & News Feed'),
-        ('Fundraising', 'Fundraising'),
-        ('Feedback & Surveys', 'Feedback & Surveys'),
+        ('User Management', 'User Management'), ('Event Management', 'Event Management'),
+        ('Job & Internship', 'Job & Internship'), ('CMS & News Feed', 'CMS & News Feed'),
+        ('Fundraising', 'Fundraising'), ('Feedback & Surveys', 'Feedback & Surveys'),
     ]
 
     action    = models.CharField(max_length=255)

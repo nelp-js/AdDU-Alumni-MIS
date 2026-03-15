@@ -1,7 +1,10 @@
 import re
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import User, Event, EventRegistration, Article, UserProfile, Experience, Education, ActivityLog
+from .models import (
+    User, Event, EventRegistration, Job, Internship,
+    Article, UserProfile, Experience, Education, ActivityLog
+)
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
@@ -9,15 +12,11 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             "id", "username", "first_name", "middle_name", "last_name", "email",
-            "phone_number", "telephone_number",
-            "current_address", "country", "geocode",
-            "region", "province", "city",
-            "religion", "religion_other",
-            "marital_status", "marriage_date",
-            "intend_to_marry", "intended_marriage_age", "no_marriage_reason",
+            "phone_number", "telephone_number", "current_address", "country", "geocode",
+            "region", "province", "city", "religion", "religion_other",
+            "marital_status", "marriage_date", "intend_to_marry", "intended_marriage_age", "no_marriage_reason",
             "course", "batch_year", "program", "batch",
-            "is_active", "is_approved", "is_superuser", "is_staff",
-            "date_joined",
+            "is_active", "is_approved", "is_superuser", "is_staff", "date_joined",
         ]
         read_only_fields = ["id", "date_joined"]
         extra_kwargs = {
@@ -41,9 +40,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         if "batch_year" in validated_data:
             validated_data["batch"] = validated_data["batch_year"]
         if validated_data.get("country", instance.country) != "Philippines":
-            validated_data["region"]   = None
-            validated_data["province"] = None
-            validated_data["city"]     = None
+            validated_data["region"] = validated_data["province"] = validated_data["city"] = None
         return super().update(instance, validated_data)
 
 
@@ -68,79 +65,64 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             "id", "username", "password", "email",
-            "first_name", "middle_name", "last_name", "name",
-            "birth_date", "sex", "role",
-            "phone_number", "telephone_number", "current_address",
-            "country", "geocode", "region", "province", "city",
-            "religion", "religion_other", "marital_status",
-            "marriage_date", "intend_to_marry", "intended_marriage_age",
-            "no_marriage_reason",
-            "is_married", "maiden_name",
-            "course", "batch_year", "has_diploma", "program", "batch",
+            "first_name", "middle_name", "last_name", "name", "birth_date", "sex", "role",
+            "phone_number", "telephone_number", "current_address", "country", "geocode",
+            "region", "province", "city", "religion", "religion_other", "marital_status",
+            "marriage_date", "intend_to_marry", "intended_marriage_age", "no_marriage_reason",
+            "is_married", "maiden_name", "course", "batch_year", "has_diploma", "program", "batch",
             "id_type", "valid_id_file", "diploma_file", "valid_id",
         ]
         extra_kwargs = {
-            "password":          {"write_only": True},
-            "first_name":        {"required": True},
-            "last_name":         {"required": True},
-            "email":             {"required": True},
-            "phone_number":      {"required": True},
-            "country":           {"required": True},
-            "geocode":           {"required": True},
-            "id_type":           {"required": True},
-            "middle_name":       {"required": False, "allow_blank": True},
-            "telephone_number":  {"required": False, "allow_blank": True},
-            "region":            {"required": False, "allow_blank": True},
-            "province":          {"required": False, "allow_blank": True},
-            "city":              {"required": False, "allow_blank": True},
-            "religion_other":    {"required": False, "allow_blank": True},
-            "marriage_date":     {"required": False, "allow_blank": True},
-            "intend_to_marry":   {"required": False, "allow_blank": True},
-            "no_marriage_reason":{"required": False, "allow_blank": True},
+            "password":           {"write_only": True},
+            "first_name":         {"required": True},
+            "last_name":          {"required": True},
+            "email":              {"required": True},
+            "phone_number":       {"required": True},
+            "country":            {"required": True},
+            "geocode":            {"required": True},
+            "id_type":            {"required": True},
+            "middle_name":        {"required": False, "allow_blank": True},
+            "telephone_number":   {"required": False, "allow_blank": True},
+            "region":             {"required": False, "allow_blank": True},
+            "province":           {"required": False, "allow_blank": True},
+            "city":               {"required": False, "allow_blank": True},
+            "religion_other":     {"required": False, "allow_blank": True},
+            "marriage_date":      {"required": False, "allow_blank": True},
+            "intend_to_marry":    {"required": False, "allow_blank": True},
+            "no_marriage_reason": {"required": False, "allow_blank": True},
         }
 
     def validate(self, data):
         if len(data.get('password', '')) < 8:
             raise serializers.ValidationError({"password": "Password must be at least 8 characters long."})
-
         country = data.get('country', '').lower()
         if country == 'philippines':
             if not data.get('region') or not data.get('province') or not data.get('city'):
                 raise serializers.ValidationError("Region, Province, and City are required for the Philippines.")
         else:
-            data['region'] = None
-            data['province'] = None
-            data['city'] = None
-
+            data['region'] = data['province'] = data['city'] = None
         marital_status = data.get('marital_status', '')
         if marital_status in ['married', 'separated', 'annulled', 'divorced', 'widowed']:
             if not data.get('marriage_date'):
                 raise serializers.ValidationError({"marriage_date": "Marriage date is required for this status."})
-            data['intend_to_marry'] = None
-            data['intended_marriage_age'] = None
-            data['no_marriage_reason'] = None
+            data['intend_to_marry'] = data['intended_marriage_age'] = data['no_marriage_reason'] = None
             data['is_married'] = marital_status == 'married'
         elif marital_status == 'single':
             data['marriage_date'] = None
             data['is_married'] = False
             data['maiden_name'] = None
-
         if data.get('religion') == 'other' and not data.get('religion_other'):
             raise serializers.ValidationError({"religion_other": "Please specify your religion."})
-
         if data.get('has_diploma') == 'yes' and not data.get('diploma_file'):
             raise serializers.ValidationError({"diploma_file": "Please upload your diploma."})
         elif data.get('has_diploma') == 'no':
             data['diploma_file'] = None
-
         if data.get('course'):
-            data['program'] = data.get('course')
+            data['program'] = data['course']
         if data.get('batch_year'):
-            data['batch'] = data.get('batch_year')
-
+            data['batch'] = data['batch_year']
         if not data.get('valid_id_file') and not data.get('valid_id'):
             raise serializers.ValidationError({"valid_id_file": "A valid ID document is required."})
-
         return data
 
     def create(self, validated_data):
@@ -159,12 +141,9 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         fields = [
             "id", "username", "is_superuser",
             "first_name", "middle_name", "last_name", "email",
-            "phone_number", "telephone_number",
-            "current_address", "country", "geocode",
-            "region", "province", "city",
-            "birth_date", "sex",
-            "religion", "religion_other",
-            "marital_status", "marriage_date",
+            "phone_number", "telephone_number", "current_address", "country", "geocode",
+            "region", "province", "city", "birth_date", "sex",
+            "religion", "religion_other", "marital_status", "marriage_date",
             "intend_to_marry", "intended_marriage_age", "no_marriage_reason",
             "course", "batch_year",
         ]
@@ -179,8 +158,7 @@ class ExperienceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Experience
         fields = ["id", "job_title", "company_name", "website", "location",
-                  "employment_type", "site_type", "start_date", "end_date",
-                  "description", "is_current"]
+                  "employment_type", "site_type", "start_date", "end_date", "description", "is_current"]
         read_only_fields = ["id"]
 
     def validate(self, data):
@@ -192,9 +170,9 @@ class ExperienceSerializer(serializers.ModelSerializer):
 class EducationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Education
-        fields = ["id", "school_name", "school_website", "school_logo_url",
-                  "degree", "field_of_study", "start_month", "start_year",
-                  "end_month", "end_year", "activities", "description"]
+        fields = ["id", "school_name", "school_website", "school_logo_url", "degree",
+                  "field_of_study", "start_month", "start_year", "end_month", "end_year",
+                  "activities", "description"]
         read_only_fields = ["id"]
 
 
@@ -214,11 +192,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
                   "experiences", "educations"]
         read_only_fields = ["id"]
         extra_kwargs = {
-            "profile_picture": {"required": False},
-            "cover_photo":     {"required": False},
-            "bio":             {"required": False},
-            "location":        {"required": False},
-            "website":         {"required": False},
+            "profile_picture": {"required": False}, "cover_photo": {"required": False},
+            "bio": {"required": False}, "location": {"required": False}, "website": {"required": False},
         }
 
 
@@ -227,17 +202,12 @@ class UserListSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             "id", "username", "first_name", "middle_name", "last_name", "email",
-            "phone_number", "telephone_number",
-            "current_address", "country", "geocode",
-            "region", "province", "city",
-            "religion", "religion_other",
-            "marital_status", "marriage_date",
-            "intend_to_marry", "intended_marriage_age", "no_marriage_reason",
-            "birth_date", "sex",
-            "course", "batch_year", "program", "batch",
+            "phone_number", "telephone_number", "current_address", "country", "geocode",
+            "region", "province", "city", "religion", "religion_other",
+            "marital_status", "marriage_date", "intend_to_marry", "intended_marriage_age", "no_marriage_reason",
+            "birth_date", "sex", "course", "batch_year", "program", "batch",
             "id_type", "valid_id_file", "diploma_file", "has_diploma",
-            "is_active", "is_approved", "is_superuser", "is_staff",
-            "date_joined",
+            "is_active", "is_approved", "is_superuser", "is_staff", "date_joined",
         ]
         read_only_fields = fields
 
@@ -250,8 +220,7 @@ class EventSerializer(serializers.ModelSerializer):
             "start_date", "end_date", "start_time", "end_time",
             "venue", "category", "is_approved", "organizer",
             "event_image", "cost", "organizer_names", "participants",
-            "action_button_label", "action_button_link",
-            "created_at", "updated_at",
+            "action_button_label", "action_button_link", "created_at", "updated_at",
         ]
         read_only_fields = ["is_approved", "organizer", "created_at", "updated_at"]
 
@@ -264,8 +233,7 @@ class EventUpdateSerializer(serializers.ModelSerializer):
             "start_date", "end_date", "start_time", "end_time",
             "venue", "category", "is_approved", "organizer",
             "event_image", "cost", "organizer_names", "participants",
-            "action_button_label", "action_button_link",
-            "created_at", "updated_at",
+            "action_button_label", "action_button_link", "created_at", "updated_at",
         ]
         read_only_fields = ["organizer", "created_at", "updated_at"]
 
@@ -278,12 +246,9 @@ class EventRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventRegistration
         fields = [
-            'id', 'event', 'event_name',
-            'user', 'user_name', 'user_email',
-            'first_name', 'last_name',
-            'guest_count', 'guests',
-            'payment_method', 'payment_status',
-            'total_amount', 'registered_at',
+            'id', 'event', 'event_name', 'user', 'user_name', 'user_email',
+            'first_name', 'last_name', 'guest_count', 'guests',
+            'payment_method', 'payment_status', 'total_amount', 'registered_at',
         ]
         read_only_fields = ['id', 'user', 'user_name', 'user_email', 'event_name', 'registered_at']
 
@@ -294,26 +259,50 @@ class EventRegistrationSerializer(serializers.ModelSerializer):
         return obj.user.email
 
 
+class JobSerializer(serializers.ModelSerializer):
+    posted_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Job
+        fields = [
+            'id', 'company', 'position', 'location', 'modality',
+            'employment_type', 'salary', 'email', 'start_date', 'end_date', 'description',
+            'status', 'remarks', 'is_hidden', 'posted_by', 'posted_by_name', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'posted_by', 'posted_by_name', 'created_at', 'updated_at']
+
+    def get_posted_by_name(self, obj):
+        return f"{obj.posted_by.first_name} {obj.posted_by.last_name}".strip() or obj.posted_by.username
+
+
+class InternshipSerializer(serializers.ModelSerializer):
+    posted_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Internship
+        fields = [
+            'id', 'company', 'position', 'location', 'modality',
+            'allowance', 'email', 'start_date', 'end_date', 'description',
+            'status', 'remarks', 'is_hidden', 'posted_by', 'posted_by_name', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'posted_by', 'posted_by_name', 'created_at', 'updated_at']
+
+    def get_posted_by_name(self, obj):
+        return f"{obj.posted_by.first_name} {obj.posted_by.last_name}".strip() or obj.posted_by.username
+
+
 def _strip_html(text):
-    if not text or not isinstance(text, str):
-        return text or ""
-    cleaned = re.sub(r"<[^>]+>", "", text)
-    return " ".join(cleaned.split()).strip()
+    if not text or not isinstance(text, str): return text or ""
+    return " ".join(re.sub(r"<[^>]+>", "", text).split()).strip()
 
 _FONT_STYLE_PROPS = frozenset(("font-family", "font-size", "font-weight", "font-style", "font", "color"))
 
 def _strip_font_styles_from_html(html):
-    if not html or not isinstance(html, str):
-        return html or ""
-
+    if not html or not isinstance(html, str): return html or ""
     def clean_style(match):
-        style = match.group(1)
-        if not style.strip():
-            return ""
-        parts = [p for p in (p.strip() for p in style.split(";"))
+        parts = [p for p in (p.strip() for p in match.group(1).split(";"))
                  if p and ":" in p and p.split(":", 1)[0].strip().lower() not in _FONT_STYLE_PROPS]
         return ' style="' + "; ".join(parts) + '"' if parts else ""
-
     html = re.sub(r'\s+style="([^"]*)"', clean_style, html)
     html = re.sub(r"\s+style='([^']*)'", clean_style, html)
     return html
@@ -330,16 +319,13 @@ class ArticleSerializer(serializers.ModelSerializer):
                   "updated_at", "content_created_time", "approved_at", "date_published"]
         read_only_fields = ["created_by", "created_at", "updated_at", "content_created_time", "approved_at"]
         extra_kwargs = {
-            "title":       {"required": True},
-            "author_name": {"required": True},
-            "subtitle":    {"required": True},
-            "cover_image": {"required": True},
-            "category":    {"required": True},
+            "title": {"required": True}, "author_name": {"required": True},
+            "subtitle": {"required": True}, "cover_image": {"required": True}, "category": {"required": True},
         }
 
-    def validate_title(self, value):    return _strip_html(value)
-    def validate_subtitle(self, value): return _strip_html(value)
-    def validate_content(self, value):  return _strip_font_styles_from_html(value) if value else value
+    def validate_title(self, v):    return _strip_html(v)
+    def validate_subtitle(self, v): return _strip_html(v)
+    def validate_content(self, v):  return _strip_font_styles_from_html(v) if v else v
 
 
 class ArticleUpdateSerializer(serializers.ModelSerializer):
@@ -352,15 +338,11 @@ class ArticleUpdateSerializer(serializers.ModelSerializer):
                   "status", "category", "is_featured", "created_by", "created_at",
                   "updated_at", "content_created_time", "approved_at", "date_published"]
         read_only_fields = ["created_by", "created_at", "updated_at", "content_created_time", "approved_at"]
-        extra_kwargs = {
-            "title":       {"required": True},
-            "author_name": {"required": True},
-            "subtitle":    {"required": True},
-        }
+        extra_kwargs = {"title": {"required": True}, "author_name": {"required": True}, "subtitle": {"required": True}}
 
-    def validate_title(self, value):    return _strip_html(value)
-    def validate_subtitle(self, value): return _strip_html(value)
-    def validate_content(self, value):  return _strip_font_styles_from_html(value) if value else value
+    def validate_title(self, v):    return _strip_html(v)
+    def validate_subtitle(self, v): return _strip_html(v)
+    def validate_content(self, v):  return _strip_font_styles_from_html(v) if v else v
 
 
 class ActivityLogSerializer(serializers.ModelSerializer):

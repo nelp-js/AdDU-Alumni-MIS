@@ -17,7 +17,7 @@ const MODULE_CARDS = [
     { icon: 'users', title: 'User Management', description: 'Manage registration and accounts of users.', button: 'Manage Users', to: '/dashboard/users' },
     { icon: 'document', title: 'CMS & News Feed', description: 'Manage website content, news articles, and information dissemination', button: 'Manage Content', to: '/dashboard/content', secondaryButton: 'Create Content', secondaryTo: '/dashboard/content/create' },
     { icon: 'calendar', title: 'Event Management', description: 'Create, manage, and track alumni events and attendance', button: 'Manage Events', to: '/dashboard/events', secondaryButton: 'Create Event', secondaryTo: '/create-event' },
-    { icon: 'briefcase', title: 'Job & Internship', description: 'Job postings, applications, and career tracking', button: 'Manage Jobs', to: '#' },
+    { icon: 'briefcase', title: 'Job & Internship', description: 'Job postings, applications, and career tracking', button: 'Manage Job & Intership', to: '#', secondaryButton: 'Create Job & Intership', secondaryTo: '/dashboard/jobs/create' },    
     { icon: 'survey', title: 'Feedback & Surveys', description: 'Create surveys, collect feedback, and analyze tracer studies', button: 'Manage Surveys', to: '#' },
     { icon: 'fundraising', title: 'Fundraising & Donations', description: 'Campaign management, donations, and financial support', button: 'Manage Campaigns', to: '#' },
 ];
