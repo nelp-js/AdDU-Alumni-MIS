@@ -9,6 +9,7 @@ import CreateEvent from "./pages/CreateEvent"
 import EditEvent from "./pages/EditEvent"
 import EventRegistrations from "./pages/EventRegistrations"
 import CreateJob from "./pages/CreateJob"
+import CreateCampaign from "./pages/CreateCampaign"
 import Dashboard from "./pages/Dashboard"
 import UserManagement from "./pages/UserManagement"
 import EventManagement from "./pages/EventManagement"
@@ -57,6 +58,7 @@ function App() {
         <Route path="/dashboard/events/edit/:id" element={<AdminProtectedRoute><EditEvent /></AdminProtectedRoute>} />
         <Route path="/dashboard/events/registrations" element={<AdminProtectedRoute><EventRegistrations /></AdminProtectedRoute>} />
         <Route path="/dashboard/jobs/create" element={<AdminProtectedRoute><CreateJob /></AdminProtectedRoute>} />
+        <Route path="/dashboard/donations/create" element={<AdminProtectedRoute><CreateCampaign /></AdminProtectedRoute>} />
         <Route path="/dashboard/content" element={<AdminProtectedRoute><ContentManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/content/create" element={<AdminProtectedRoute><CreateContent /></AdminProtectedRoute>} />
         <Route path="/dashboard/content/edit/:id" element={<AdminProtectedRoute><CreateContent /></AdminProtectedRoute>} />

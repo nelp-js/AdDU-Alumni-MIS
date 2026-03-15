@@ -226,6 +226,57 @@ class Internship(models.Model):
         return f"{self.position} at {self.company} (Internship)"
 
 
+class Campaign(models.Model):
+    CATEGORY_CHOICES = [
+        ('Student Aid',    'Student Aid'),
+        ('Infrastructure', 'Infrastructure'),
+        ('Research',       'Research'),
+        ('Faculty',        'Faculty'),
+    ]
+
+    title         = models.CharField(max_length=255)
+    description   = models.TextField(blank=True, default='')
+    category      = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='Student Aid')
+    cover_image   = models.ImageField(upload_to='campaigns/', null=True, blank=True)
+    image_url     = models.URLField(max_length=500, blank=True, null=True)
+    goal_amount   = models.DecimalField(max_digits=12, decimal_places=2)
+    raised_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    donors_count  = models.PositiveIntegerField(default=0)
+    end_date      = models.DateField()
+    is_active     = models.BooleanField(default=True)
+    created_by    = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='campaigns')
+    created_at    = models.DateTimeField(auto_now_add=True)
+    updated_at    = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+
+class CampaignDonation(models.Model):
+    PAYMENT_CHOICES = [
+        ('Credit Card',    'Credit Card'),
+        ('GCash',          'GCash'),
+        ('Bank Transfer',  'Bank Transfer'),
+    ]
+
+    campaign       = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='donations')
+    first_name     = models.CharField(max_length=150)
+    last_name      = models.CharField(max_length=150)
+    email          = models.EmailField()
+    amount         = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='Credit Card')
+    donated_at     = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-donated_at']
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} — ₱{self.amount} to {self.campaign.title}"
+
+
 class Article(models.Model):
     STATUS_DRAFT     = 'draft'
     STATUS_PUBLISHED = 'published'

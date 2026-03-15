@@ -3,6 +3,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import (
     User, Event, EventRegistration, Job, Internship,
+    Campaign, CampaignDonation,
     Article, UserProfile, Experience, Education, ActivityLog
 )
 
@@ -117,10 +118,8 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"diploma_file": "Please upload your diploma."})
         elif data.get('has_diploma') == 'no':
             data['diploma_file'] = None
-        if data.get('course'):
-            data['program'] = data['course']
-        if data.get('batch_year'):
-            data['batch'] = data['batch_year']
+        if data.get('course'): data['program'] = data['course']
+        if data.get('batch_year'): data['batch'] = data['batch_year']
         if not data.get('valid_id_file') and not data.get('valid_id'):
             raise serializers.ValidationError({"valid_id_file": "A valid ID document is required."})
         return data
@@ -289,6 +288,40 @@ class InternshipSerializer(serializers.ModelSerializer):
 
     def get_posted_by_name(self, obj):
         return f"{obj.posted_by.first_name} {obj.posted_by.last_name}".strip() or obj.posted_by.username
+
+
+class CampaignDonationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CampaignDonation
+        fields = ['id', 'campaign', 'first_name', 'last_name', 'email',
+                  'amount', 'payment_method', 'donated_at']
+        read_only_fields = ['id', 'donated_at']
+
+
+class CampaignSerializer(serializers.ModelSerializer):
+    created_by_name = serializers.SerializerMethodField()
+    donations_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Campaign
+        fields = [
+            'id', 'title', 'description', 'category',
+            'cover_image', 'image_url',
+            'goal_amount', 'raised_amount', 'donors_count',
+            'end_date', 'is_active',
+            'created_by', 'created_by_name',
+            'created_at', 'updated_at',
+            'donations_count',
+        ]
+        read_only_fields = ['id', 'raised_amount', 'donors_count', 'created_by',
+                            'created_by_name', 'created_at', 'updated_at', 'donations_count']
+
+    def get_created_by_name(self, obj):
+        if not obj.created_by: return '—'
+        return f"{obj.created_by.first_name} {obj.created_by.last_name}".strip() or obj.created_by.username
+
+    def get_donations_count(self, obj):
+        return obj.donations.count()
 
 
 def _strip_html(text):

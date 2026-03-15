@@ -30,12 +30,12 @@ urlpatterns = [
     path("events/<int:event_id>/registrations/",                views.event_registrations,              name="event-registrations"),
 
     # --- JOB VIEWS ---
-    path("jobs/",                               views.job_list_create,   name="job-list"),
-    path("jobs/admin/",                         views.job_admin_list,    name="job-admin-list"),
-    path("jobs/<int:job_id>/",                  views.job_detail,        name="job-detail"),
-    path("jobs/<int:job_id>/approve/",          views.job_approve,       name="job-approve"),
-    path("jobs/<int:job_id>/deny/",             views.job_deny,          name="job-deny"),
-    path("jobs/<int:job_id>/toggle-hide/",      views.job_toggle_hide,   name="job-toggle-hide"),
+    path("jobs/",                           views.job_list_create,   name="job-list"),
+    path("jobs/admin/",                     views.job_admin_list,    name="job-admin-list"),
+    path("jobs/<int:job_id>/",              views.job_detail,        name="job-detail"),
+    path("jobs/<int:job_id>/approve/",      views.job_approve,       name="job-approve"),
+    path("jobs/<int:job_id>/deny/",         views.job_deny,          name="job-deny"),
+    path("jobs/<int:job_id>/toggle-hide/",  views.job_toggle_hide,   name="job-toggle-hide"),
 
     # --- INTERNSHIP VIEWS ---
     path("internships/",                                    views.internship_list_create,    name="internship-list"),
@@ -45,18 +45,24 @@ urlpatterns = [
     path("internships/<int:internship_id>/deny/",           views.internship_deny,           name="internship-deny"),
     path("internships/<int:internship_id>/toggle-hide/",    views.internship_toggle_hide,    name="internship-toggle-hide"),
 
+    # --- CAMPAIGN VIEWS ---
+    path("campaigns/",                                  views.campaign_list_create,    name="campaign-list"),
+    path("campaigns/<int:campaign_id>/",                views.campaign_detail,         name="campaign-detail"),
+    path("campaigns/<int:campaign_id>/toggle-active/",  views.campaign_toggle_active,  name="campaign-toggle-active"),
+    path("campaigns/<int:campaign_id>/donate/",         views.campaign_donate,         name="campaign-donate"),
+
     # --- ARTICLE / CMS VIEWS ---
-    path("articles/",                       views.ArticleListCreate.as_view(),      name="article-list"),
-    path("articles/published/",             views.PublishedArticleList.as_view(),   name="published-article-list"),
-    path("articles/published/<int:pk>/",    views.PublishedArticleDetail.as_view(), name="published-article-detail"),
-    path("articles/delete/<int:pk>/",       views.ArticleDelete.as_view(),          name="delete-article"),
-    path("articles/<int:article_id>/publish/", views.publish_article,              name="publish-article"),
-    path("articles/<int:pk>/",              views.ArticleDetailView.as_view(),      name="article-detail"),
+    path("articles/",                           views.ArticleListCreate.as_view(),      name="article-list"),
+    path("articles/published/",                 views.PublishedArticleList.as_view(),   name="published-article-list"),
+    path("articles/published/<int:pk>/",        views.PublishedArticleDetail.as_view(), name="published-article-detail"),
+    path("articles/delete/<int:pk>/",           views.ArticleDelete.as_view(),          name="delete-article"),
+    path("articles/<int:article_id>/publish/",  views.publish_article,                 name="publish-article"),
+    path("articles/<int:pk>/",                  views.ArticleDetailView.as_view(),      name="article-detail"),
 
     # --- DASHBOARD & SYSTEM ---
-    path("dashboard/stats/",           views.dashboard_stats,                  name="dashboard-stats"),
-    path("activities/",                ActivityLogListView.as_view(),           name="activity-list"),
-    path("password-reset-request/",    views.request_password_reset,           name="password-reset-request"),
-    path("password-reset-confirm/",    views.reset_password,                   name="password-reset-confirm"),
-    path("token/",                     views.CustomTokenObtainPairView.as_view(), name="token-obtain-pair"),
+    path("dashboard/stats/",           views.dashboard_stats,                      name="dashboard-stats"),
+    path("activities/",                ActivityLogListView.as_view(),               name="activity-list"),
+    path("password-reset-request/",    views.request_password_reset,               name="password-reset-request"),
+    path("password-reset-confirm/",    views.reset_password,                       name="password-reset-confirm"),
+    path("token/",                     views.CustomTokenObtainPairView.as_view(),   name="token-obtain-pair"),
 ]

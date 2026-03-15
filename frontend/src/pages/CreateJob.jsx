@@ -64,7 +64,8 @@ function CreateJob() {
         }
         setLoading(true);
         try {
-            await api.post('/api/jobs/', { ...formData, type, status: 'pending' });
+            const endpoint = type === 'job' ? '/api/jobs/' : '/api/internships/';
+            await api.post(endpoint, { ...formData, status: 'pending' });
             setSuccess(true);
             setTimeout(() => navigate('/dashboard/jobs'), 3000);
         } catch (err) {
@@ -75,7 +76,6 @@ function CreateJob() {
         }
     };
 
-    // ── Type picker ──────────────────────────────────────────────────────────
     if (!type) {
         return (
             <div className="create-event-page">
@@ -86,12 +86,20 @@ function CreateJob() {
                         <p className="cj-picker-label">What would you like to post?</p>
                         <div className="cj-type-grid">
                             <button type="button" className="cj-type-card" onClick={() => handleSelectType('job')}>
-                                <span className="cj-type-icon">💼</span>
+                                <svg className="cj-type-icon" viewBox="0 0 24 24" fill="none" stroke="#040354" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                                    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                                    <line x1="12" y1="12" x2="12" y2="12"/>
+                                    <path d="M2 12h20"/>
+                                </svg>
                                 <span className="cj-type-title">Job</span>
                                 <span className="cj-type-desc">Full-time, part-time, or contract position</span>
                             </button>
                             <button type="button" className="cj-type-card" onClick={() => handleSelectType('internship')}>
-                                <span className="cj-type-icon">🎓</span>
+                                <svg className="cj-type-icon" viewBox="0 0 24 24" fill="none" stroke="#040354" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                                    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                                </svg>
                                 <span className="cj-type-title">Internship</span>
                                 <span className="cj-type-desc">Short-term opportunity for students or fresh grads</span>
                             </button>
@@ -103,7 +111,6 @@ function CreateJob() {
         );
     }
 
-    // ── Success ──────────────────────────────────────────────────────────────
     if (success) {
         return (
             <div className="create-event-page">
@@ -121,7 +128,6 @@ function CreateJob() {
         );
     }
 
-    // ── Form ─────────────────────────────────────────────────────────────────
     return (
         <div className="create-event-page">
             <Header />

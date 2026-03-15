@@ -9,26 +9,40 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 import random
 from django.core.mail import send_mail
-from .models import User, Event, EventRegistration, Job, Internship, Article, ActivityLog, PasswordReset, UserProfile, Experience, Education
+from .models import (
+    User, Event, EventRegistration, Job, Internship,
+    Campaign, CampaignDonation,
+    Article, ActivityLog, PasswordReset, UserProfile, Experience, Education
+)
 from .serializers import (
     UserSerializer, CurrentUserSerializer, UserListSerializer, UserUpdateSerializer,
     EventSerializer, EventUpdateSerializer, EventRegistrationSerializer,
     JobSerializer, InternshipSerializer,
+    CampaignSerializer, CampaignDonationSerializer,
     CustomTokenObtainPairSerializer, ActivityLogSerializer,
     ArticleSerializer, ArticleUpdateSerializer,
     UserProfileSerializer, ExperienceSerializer, EducationSerializer,
 )
 
 
+# --- DASHBOARD STATS ---
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def dashboard_stats(request):
-    pending_users    = User.objects.filter(is_approved=False, is_superuser=False).count()
-    pending_events   = Event.objects.filter(is_approved=False).count()
-    pending_articles = Article.objects.filter(status='draft').count()
+    pending_users       = User.objects.filter(is_approved=False, is_superuser=False).count()
+    pending_events      = Event.objects.filter(is_approved=False).count()
+    pending_articles    = Article.objects.filter(status='draft').count()
+    pending_jobs        = Job.objects.filter(status='pending').count()
+    pending_internships = Internship.objects.filter(status='pending').count()
+    total = pending_users + pending_events + pending_articles + pending_jobs + pending_internships
     return Response({
-        'total': pending_users + pending_events + pending_articles,
-        'users': pending_users, 'events': pending_events, 'articles': pending_articles
+        'total':        total,
+        'users':        pending_users,
+        'events':       pending_events,
+        'articles':     pending_articles,
+        'jobs':         pending_jobs,
+        'internships':  pending_internships,
     })
 
 
@@ -64,7 +78,7 @@ def profile_detail(request):
     user.save()
     for field in ['bio', 'location', 'website']:
         if field in data:
-            setattr(profile, field, data[field] if data[field] is not None and data[field] != '' else '')
+            setattr(profile, field, data[field] if data[field] not in (None, '') else '')
     if 'profile_picture' in request.FILES: profile.profile_picture = request.FILES['profile_picture']
     if 'cover_photo'     in request.FILES: profile.cover_photo     = request.FILES['cover_photo']
     profile.save()
@@ -237,6 +251,7 @@ def job_list_create(request):
     serializer = JobSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save(posted_by=request.user, status='pending')
+        ActivityLog.objects.create(action=f"Job submitted: {request.data.get('position', '')} at {request.data.get('company', '')}", module="Job & Internship", user=request.user, status="Pending")
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
 
@@ -249,8 +264,7 @@ def job_admin_list(request):
 @permission_classes([IsAuthenticated, IsAdminUser])
 def job_detail(request, job_id):
     job = get_object_or_404(Job, pk=job_id)
-    if request.method == 'GET':
-        return Response(JobSerializer(job).data)
+    if request.method == 'GET': return Response(JobSerializer(job).data)
     if request.method == 'PATCH':
         serializer = JobSerializer(job, data=request.data, partial=True)
         if serializer.is_valid():
@@ -294,6 +308,7 @@ def internship_list_create(request):
     serializer = InternshipSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save(posted_by=request.user, status='pending')
+        ActivityLog.objects.create(action=f"Internship submitted: {request.data.get('position', '')} at {request.data.get('company', '')}", module="Job & Internship", user=request.user, status="Pending")
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
 
@@ -306,8 +321,7 @@ def internship_admin_list(request):
 @permission_classes([IsAuthenticated, IsAdminUser])
 def internship_detail(request, internship_id):
     internship = get_object_or_404(Internship, pk=internship_id)
-    if request.method == 'GET':
-        return Response(InternshipSerializer(internship).data)
+    if request.method == 'GET': return Response(InternshipSerializer(internship).data)
     if request.method == 'PATCH':
         serializer = InternshipSerializer(internship, data=request.data, partial=True)
         if serializer.is_valid():
@@ -339,6 +353,78 @@ def internship_toggle_hide(request, internship_id):
     internship = get_object_or_404(Internship, pk=internship_id)
     internship.is_hidden = not internship.is_hidden; internship.save()
     return Response({'detail': 'Updated.', 'is_hidden': internship.is_hidden})
+
+
+# --- CAMPAIGN VIEWS ---
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def campaign_list_create(request):
+    if request.method == 'GET':
+        # Admins see all, public sees only active
+        if request.user.is_authenticated and request.user.is_staff:
+            campaigns = Campaign.objects.all()
+        else:
+            campaigns = Campaign.objects.filter(is_active=True)
+        return Response(CampaignSerializer(campaigns, many=True).data)
+
+    # POST — admin only
+    if not request.user.is_staff:
+        return Response({'detail': 'Admin access required.'}, status=403)
+    serializer = CampaignSerializer(data=request.data)
+    if serializer.is_valid():
+        campaign = serializer.save(created_by=request.user)
+        ActivityLog.objects.create(action=f"Campaign created: {campaign.title}", module="Fundraising", user=request.user, status="Completed")
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
+
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def campaign_detail(request, campaign_id):
+    campaign = get_object_or_404(Campaign, pk=campaign_id)
+    if request.method == 'GET':
+        return Response(CampaignSerializer(campaign).data)
+    if request.method in ('PUT', 'PATCH'):
+        serializer = CampaignSerializer(campaign, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            ActivityLog.objects.create(action=f"Campaign updated: {campaign.title}", module="Fundraising", user=request.user, status="Completed")
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+    # DELETE
+    title = campaign.title
+    campaign.delete()
+    ActivityLog.objects.create(action=f"Campaign deleted: {title}", module="Fundraising", user=request.user, status="Completed")
+    return Response(status=204)
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def campaign_toggle_active(request, campaign_id):
+    campaign = get_object_or_404(Campaign, pk=campaign_id)
+    campaign.is_active = not campaign.is_active
+    campaign.save()
+    action = "shown" if campaign.is_active else "hidden"
+    ActivityLog.objects.create(action=f"Campaign {action}: {campaign.title}", module="Fundraising", user=request.user, status="Completed")
+    return Response({'detail': f'Campaign {action}.', 'is_active': campaign.is_active})
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def campaign_donate(request, campaign_id):
+    campaign = get_object_or_404(Campaign, pk=campaign_id, is_active=True)
+    serializer = CampaignDonationSerializer(data={**request.data, 'campaign': campaign.id})
+    if serializer.is_valid():
+        donation = serializer.save()
+        campaign.raised_amount += donation.amount
+        campaign.donors_count  += 1
+        campaign.save()
+        ActivityLog.objects.create(
+            action=f"Donation received: ₱{donation.amount} for {campaign.title}",
+            module="Fundraising",
+            user=request.user if request.user.is_authenticated else None,
+            status="Completed"
+        )
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
 
 
 # --- ARTICLE / CMS VIEWS ---

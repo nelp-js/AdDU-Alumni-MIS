@@ -14,15 +14,15 @@ import StatCarousel from '../components/StatCarousel';
 const ICON_COLOR = '#040354';
 
 const MODULE_CARDS = [
-    { icon: 'users', title: 'User Management', description: 'Manage registration and accounts of users.', button: 'Manage Users', to: '/dashboard/users' },
-    { icon: 'document', title: 'CMS & News Feed', description: 'Manage website content, news articles, and information dissemination', button: 'Manage Content', to: '/dashboard/content', secondaryButton: 'Create Content', secondaryTo: '/dashboard/content/create' },
-    { icon: 'calendar', title: 'Event Management', description: 'Create, manage, and track alumni events and attendance', button: 'Manage Events', to: '/dashboard/events', secondaryButton: 'Create Event', secondaryTo: '/create-event' },
-    { icon: 'briefcase', title: 'Job & Internship', description: 'Job postings, applications, and career tracking', button: 'Manage Job & Intership', to: '#', secondaryButton: 'Create Job & Intership', secondaryTo: '/dashboard/jobs/create' },    
-    { icon: 'survey', title: 'Feedback & Surveys', description: 'Create surveys, collect feedback, and analyze tracer studies', button: 'Manage Surveys', to: '#' },
-    { icon: 'fundraising', title: 'Fundraising & Donations', description: 'Campaign management, donations, and financial support', button: 'Manage Campaigns', to: '#' },
+    { icon: 'users',       title: 'User Management',         description: 'Manage registration and accounts of users.',                                       button: 'Manage Users',     to: '/dashboard/users' },
+    { icon: 'document',    title: 'CMS & News Feed',         description: 'Manage website content, news articles, and information dissemination',             button: 'Manage Content',   to: '/dashboard/content',  secondaryButton: 'Create Content',    secondaryTo: '/dashboard/content/create' },
+    { icon: 'calendar',    title: 'Event Management',        description: 'Create, manage, and track alumni events and attendance',                           button: 'Manage Events',    to: '/dashboard/events',   secondaryButton: 'Create Event',      secondaryTo: '/create-event' },
+    { icon: 'briefcase',   title: 'Job & Internship',        description: 'Job postings, applications, and career tracking',                                  button: 'Manage Jobs',      to: '#',                   secondaryButton: 'Create Job',        secondaryTo: '/dashboard/jobs/create' },
+    { icon: 'survey',      title: 'Feedback & Surveys',      description: 'Create surveys, collect feedback, and analyze tracer studies',                     button: 'Manage Surveys',   to: '#' },
+    { icon: 'fundraising', title: 'Fundraising & Donations', description: 'Campaign management, donations, and financial support',                            button: 'Manage Campaigns', to: '#',                   secondaryButton: 'Create Campaign',   secondaryTo: '/dashboard/donations/create' },
 ];
 
-const STAT_ICON_MAP = { people: FiUsers, calendar: FiCalendar, briefcase: FiBriefcase, donation: FiDollarSign, document: FiFileText };
+const STAT_ICON_MAP   = { people: FiUsers, calendar: FiCalendar, briefcase: FiBriefcase, donation: FiDollarSign, document: FiFileText };
 const MODULE_ICON_MAP = { users: FiUsers, document: FiFileText, calendar: FiCalendar, briefcase: FiBriefcase, survey: FiBarChart2, fundraising: FiDollarSign };
 
 function StatIcon({ type, color }) {
@@ -38,57 +38,81 @@ function ModuleIcon({ type }) {
 
 function Dashboard() {
     useTitle('Admin Dashboard');
-    
+
     const { notifications } = useNotifications();
 
-    const [alumniCount, setAlumniCount] = useState(0);
-    const [eventsCount, setEventsCount] = useState(0);
-    const [articlesCount, setArticlesCount] = useState(0);
-    const [statsLoading, setStatsLoading] = useState(true);
-    const [activities, setActivities] = useState([]);
+    const [alumniCount,      setAlumniCount]      = useState(0);
+    const [eventsCount,      setEventsCount]       = useState(0);
+    const [articlesCount,    setArticlesCount]     = useState(0);
+    const [jobsCount,        setJobsCount]         = useState(0);
+    const [internshipsCount, setInternshipsCount]  = useState(0);
+    const [campaignsCount,   setCampaignsCount]    = useState(0);
+    const [statsLoading,     setStatsLoading]      = useState(true);
+    const [activities,       setActivities]        = useState([]);
     const [activitiesLoading, setActivitiesLoading] = useState(true);
-    
+
     const formatDate = (dateStr) => {
         if (!dateStr) return '—';
         try {
             return new Date(dateStr).toLocaleString(undefined, {
-                month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
+                month: 'short', day: 'numeric', year: 'numeric',
+                hour: 'numeric', minute: '2-digit',
             });
         } catch { return dateStr; }
     };
 
     useEffect(() => {
-
         Promise.all([
             api.get('/api/users/').then((res) => {
                 const active = (res.data || []).filter(u => !u.is_superuser && u.is_active !== false);
                 setAlumniCount(active.length);
             }),
             api.get('/api/events/').then((res) => {
-                const approved = (res.data || []).filter(e => e.is_approved === true);
-                setEventsCount(approved.length);
+                setEventsCount((res.data || []).filter(e => e.is_approved === true).length);
             }),
             api.get('/api/articles/published/').then((res) => {
-                const list = Array.isArray(res.data) ? res.data : [];
-                setArticlesCount(list.length);
+                setArticlesCount(Array.isArray(res.data) ? res.data.length : 0);
             }),
-        ]).catch(err => console.error(err)).finally(() => setStatsLoading(false));
+            api.get('/api/jobs/admin/').then((res) => {
+                setJobsCount((res.data || []).filter(j => j.status === 'approved').length);
+            }).catch(() => {}),
+            api.get('/api/internships/admin/').then((res) => {
+                setInternshipsCount((res.data || []).filter(i => i.status === 'approved').length);
+            }).catch(() => {}),
+            api.get('/api/campaigns/').then((res) => {
+                setCampaignsCount((res.data || []).filter(c => c.is_active).length);
+            }).catch(() => {}),
+        ])
+        .catch(err => console.error(err))
+        .finally(() => setStatsLoading(false));
 
-        api.get('/api/activities/').then((res) => setActivities(res.data)).catch(() => {}).finally(() => setActivitiesLoading(false));
-
+        api.get('/api/activities/')
+            .then((res) => setActivities(res.data))
+            .catch(() => {})
+            .finally(() => setActivitiesLoading(false));
     }, []);
 
     const statCards = [
-        { icon: 'people', value: statsLoading ? '...' : alumniCount.toLocaleString(), label: 'Total Alumni' },
-        { icon: 'calendar', value: statsLoading ? '...' : eventsCount.toLocaleString(), label: 'Total Events' },
-        { icon: 'document', value: statsLoading ? '...' : articlesCount.toLocaleString(), label: 'News and Stories Posted' },
+        { icon: 'people',    value: statsLoading ? '...' : alumniCount.toLocaleString(),      label: 'Total Alumni' },
+        { icon: 'calendar',  value: statsLoading ? '...' : eventsCount.toLocaleString(),      label: 'Total Events' },
+        { icon: 'document',  value: statsLoading ? '...' : articlesCount.toLocaleString(),    label: 'News and Stories Posted' },
+        { icon: 'briefcase', value: statsLoading ? '...' : jobsCount.toLocaleString(),        label: 'Total Jobs' },
+        { icon: 'briefcase', value: statsLoading ? '...' : internshipsCount.toLocaleString(), label: 'Total Internships' },
+        { icon: 'donation',  value: statsLoading ? '...' : campaignsCount.toLocaleString(),   label: 'Active Campaigns' },
     ];
 
     return (
         <div className="dashboard-page">
             <Header />
             <main className="dashboard-main">
-                <h1 className="dashboard-title">Admin Dashboard</h1>
+                <div className="dashboard-title-row">
+                    <h1 className="dashboard-title">Admin Dashboard</h1>
+                    {notifications.total > 0 && (
+                        <span className="dashboard-total-badge">
+                            {notifications.total} pending
+                        </span>
+                    )}
+                </div>
 
                 <section className="dashboard-stats">
                     <StatCarousel
@@ -108,9 +132,10 @@ function Dashboard() {
                 <section className="dashboard-modules">
                     {MODULE_CARDS.map((card) => {
                         let badgeValue = 0;
-                        if (card.title === 'User Management') badgeValue = notifications.users;
-                        if (card.title === 'Event Management') badgeValue = notifications.events;
-                        if (card.title === 'CMS & News Feed') badgeValue = notifications.articles;
+                        if (card.title === 'User Management')         badgeValue = notifications.users;
+                        if (card.title === 'Event Management')        badgeValue = notifications.events;
+                        if (card.title === 'CMS & News Feed')         badgeValue = notifications.articles;
+                        if (card.title === 'Job & Internship')        badgeValue = (notifications.jobs || 0) + (notifications.internships || 0);
 
                         return (
                             <div key={card.title} className="dashboard-module-card" style={{ position: 'relative' }}>
@@ -140,7 +165,9 @@ function Dashboard() {
                             </thead>
                             <tbody>
                                 {activitiesLoading ? (
-                                    <tr><td colSpan="5" style={{textAlign:'center', padding:'20px'}}>Loading...</td></tr>
+                                    <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>Loading...</td></tr>
+                                ) : activities.length === 0 ? (
+                                    <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px', color: '#6d7280' }}>No recent activities.</td></tr>
                                 ) : (
                                     activities.map((row) => (
                                         <tr key={row.id}>
@@ -148,7 +175,13 @@ function Dashboard() {
                                             <td>{row.action}</td>
                                             <td>{row.module}</td>
                                             <td>{row.user}</td>
-                                            <td><span className="dashboard-status">✓ {row.status}</span></td>
+                                            <td>
+                                                {row.status === 'Rejected' || row.status === 'Denied' ? (
+                                                    <span className="dashboard-status dashboard-status-rejected">✕ {row.status}</span>
+                                                ) : (
+                                                    <span className="dashboard-status">✓ {row.status}</span>
+                                                )}
+                                            </td>
                                         </tr>
                                     ))
                                 )}

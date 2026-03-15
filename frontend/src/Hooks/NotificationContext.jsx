@@ -15,7 +15,6 @@ export const NotificationProvider = ({ children }) => {
         }
     };
 
-    // Initial fetch + Polling
     useEffect(() => {
         fetchStats();
         const interval = setInterval(fetchStats, 30000);
