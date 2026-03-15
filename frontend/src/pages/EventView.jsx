@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -7,6 +7,7 @@ import '../styles/EventView.css';
 import { useTitle } from '../Hooks/useTitle';
 import { getOptimizedUrl } from '../utils/imageUtils';
 import EventRegistrationModal from '../components/EventRegistrationModal';
+import { ACCESS_TOKEN } from '../constants';
 
 function formatDisplayDate(dateStr) {
     if (!dateStr) return '—';
@@ -49,10 +50,12 @@ function buildGoogleCalendarUrl(event) {
 
 function EventView() {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [event, setEvent]         = useState(null);
     const [loading, setLoading]     = useState(true);
     const [error, setError]         = useState(null);
     const [showRegister, setShowRegister] = useState(false);
+    const isLoggedIn = !!localStorage.getItem(ACCESS_TOKEN);
 
     useEffect(() => {
         if (!id) { setLoading(false); setError(true); return; }
@@ -124,13 +127,19 @@ function EventView() {
                 <p className="event-view-date-repeat">{detailsDate}</p>
 
                 <div className="event-view-actions">
-                    {/* Register — always shown, opens modal */}
+                    {/* Register — always visible, redirects to login if not logged in */}
                     <button
                         type="button"
                         className="event-view-btn event-view-btn-register"
-                        onClick={() => setShowRegister(true)}
+                        onClick={() => {
+                            if (!isLoggedIn) {
+                                navigate('/login');
+                            } else {
+                                setShowRegister(true);
+                            }
+                        }}
                     >
-                        {event.action_button_label || 'Register'}
+                        {isLoggedIn ? (event.action_button_label || 'Register') : 'Login to Register'}
                     </button>
 
                     {/* Add to Calendar — always links to Google Calendar */}

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { X, Users, CreditCard, Smartphone, Wallet } from 'lucide-react';
 import '../styles/EventRegistrationModal.css';
+import api from '../api';
 
-function EventRegistrationModal({ event, onClose, pricePerGuest = 1000 }) {
+function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
     const [step, setStep]               = useState('form');
     const [firstName, setFirstName]     = useState('');
     const [lastName, setLastName]       = useState('');
@@ -10,6 +11,8 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 1000 }) {
     const [guests, setGuests]           = useState([]);
     const [paymentMethod, setPaymentMethod] = useState('gcash');
     const [isProcessing, setIsProcessing]   = useState(false);
+    const [error, setError]                 = useState('');
+    const [success, setSuccess]             = useState(false);
 
     const totalPrice = (1 + guestCount) * pricePerGuest;
 
@@ -35,26 +38,58 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 1000 }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!firstName.trim() || !lastName.trim()) {
-            alert('Please enter your first and last name');
+            setError('Please enter your first and last name.');
             return;
         }
+        setError('');
         setStep('payment');
     };
 
-    const handlePayment = () => {
+    const handlePayment = async () => {
         setIsProcessing(true);
-        setTimeout(() => {
+        setError('');
+        try {
+            await api.post(`/api/events/${event.id}/register/`, {
+                first_name:     firstName,
+                last_name:      lastName,
+                guest_count:    guestCount,
+                guests:         guests,
+                payment_method: paymentMethod,
+                total_amount:   totalPrice,
+            });
+            setSuccess(true);
+        } catch (err) {
+            const msg = err.response?.data?.detail || 'Registration failed. Please try again.';
+            setError(msg);
+        } finally {
             setIsProcessing(false);
-            alert('Registration successful!');
-            onClose();
-        }, 2000);
+        }
     };
 
     const paymentOptions = [
-        { value: 'gcash', label: 'GCash',              Icon: Smartphone, description: 'Pay via GCash mobile wallet' },
-        { value: 'maya',  label: 'Maya',               Icon: Wallet,     description: 'Pay via Maya (formerly PayMaya)' },
-        { value: 'card',  label: 'Credit/Debit Card',  Icon: CreditCard, description: 'Pay via Visa, Mastercard, or AMEX' },
+        { value: 'gcash', label: 'GCash',             Icon: Smartphone, description: 'Pay via GCash mobile wallet' },
+        { value: 'maya',  label: 'Maya',              Icon: Wallet,     description: 'Pay via Maya (formerly PayMaya)' },
+        { value: 'card',  label: 'Credit/Debit Card', Icon: CreditCard, description: 'Pay via Visa, Mastercard, or AMEX' },
     ];
+
+    // ── Success screen ────────────────────────────────────────────────────────
+    if (success) {
+        return (
+            <div className="erm-overlay" onClick={onClose}>
+                <div className="erm-modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="erm-success">
+                        <div className="erm-success-icon">✓</div>
+                        <h2 className="erm-success-title">Registration Submitted!</h2>
+                        <p className="erm-success-msg">
+                            Your registration for <strong>{event.event_name}</strong> has been received.
+                            Payment is pending — please settle your payment on the day of the event.
+                        </p>
+                        <button type="button" className="erm-btn-pay" onClick={onClose}>Done</button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     // ── Payment Step ─────────────────────────────────────────────────────────
     if (step === 'payment') {
@@ -85,8 +120,8 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 1000 }) {
 
                     <div className="erm-summary">
                         <div className="erm-summary-row">
-                            <span>Number of Guests</span>
-                            <span>{guestCount}</span>
+                            <span>Attendees</span>
+                            <span>{1 + guestCount} ({guestCount} guest{guestCount !== 1 ? 's' : ''})</span>
                         </div>
                         <div className="erm-summary-row">
                             <span>Price per Person</span>
@@ -98,10 +133,12 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 1000 }) {
                         </div>
                     </div>
 
+                    {error && <div className="erm-error">{error}</div>}
+
                     <div className="erm-footer">
                         <button type="button" className="erm-btn-back" onClick={() => setStep('form')}>Back</button>
                         <button type="button" className="erm-btn-pay" onClick={handlePayment} disabled={isProcessing}>
-                            {isProcessing ? 'Processing...' : `Pay ₱${totalPrice.toLocaleString()}`}
+                            {isProcessing ? 'Submitting...' : `Submit Registration`}
                         </button>
                     </div>
                 </div>
@@ -120,18 +157,18 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 1000 }) {
                     </button>
                 </div>
 
-                {/* Event Info */}
                 <div className="erm-event-info">
                     <h3 className="erm-event-name">{event.event_name}</h3>
                     <div className="erm-event-meta">
                         {event.start_date && <span>📅 {event.start_date}</span>}
                         {event.start_time && <span>🕐 {event.start_time}</span>}
-                        {event.venue     && <span>📍 {event.venue}</span>}
+                        {event.venue      && <span>📍 {event.venue}</span>}
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="erm-form">
-                    {/* Name */}
+                    {error && <div className="erm-error">{error}</div>}
+
                     <div className="erm-field">
                         <label className="erm-label">First Name *</label>
                         <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)}
@@ -143,7 +180,6 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 1000 }) {
                             placeholder="Enter your last name" className="erm-input" />
                     </div>
 
-                    {/* Guest Count */}
                     <div className="erm-field">
                         <label className="erm-label">Number of Additional Guests</label>
                         <div className="erm-guest-counter">
@@ -160,7 +196,6 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 1000 }) {
                         </div>
                     </div>
 
-                    {/* Guest Details */}
                     {guestCount >= 1 && (
                         <div className="erm-guests-box">
                             <h4 className="erm-guests-title">Guest Details</h4>
@@ -195,7 +230,6 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 1000 }) {
                         </div>
                     )}
 
-                    {/* Price Summary */}
                     <div className="erm-price-summary">
                         <span>Total Amount</span>
                         <span className="erm-total-amount">₱{totalPrice.toLocaleString()}</span>

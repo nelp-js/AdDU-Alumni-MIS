@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth import get_user_model
 import datetime
+
 
 class User(AbstractUser):
     BATCH_CHOICES = [(str(year), str(year)) for year in range(1948, datetime.date.today().year + 2)]
@@ -28,62 +30,51 @@ class User(AbstractUser):
     ]
 
     # --- 1. PERSONAL INFO ---
-    first_name = models.CharField(max_length=150)
+    first_name  = models.CharField(max_length=150)
     middle_name = models.CharField(max_length=150, blank=True, null=True)
-    last_name = models.CharField(max_length=150)
-    # name field is concatenated on the frontend
-    name = models.CharField(max_length=255, blank=True, null=True) 
-    
-    email = models.EmailField(unique=True)
-    birth_date = models.DateField(null=True, blank=True)
-    sex = models.CharField(max_length=20, choices=SEX_CHOICES, blank=True, null=True)
-    
-    # role is sent as 'alumni' by default
-    role = models.CharField(max_length=50, default='alumni') 
+    last_name   = models.CharField(max_length=150)
+    name        = models.CharField(max_length=255, blank=True, null=True)
+    email       = models.EmailField(unique=True)
+    birth_date  = models.DateField(null=True, blank=True)
+    sex         = models.CharField(max_length=20, choices=SEX_CHOICES, blank=True, null=True)
+    role        = models.CharField(max_length=50, default='alumni')
 
     # --- 2. CONTACT & LOCATION ---
-    phone_number = models.CharField(max_length=20)
+    phone_number     = models.CharField(max_length=20)
     telephone_number = models.CharField(max_length=20, blank=True, null=True)
-    current_address = models.TextField(blank=True, null=True)
-    country = models.CharField(max_length=100, default='Philippines')
-    geocode = models.CharField(max_length=20, blank=True, null=True)
-    
-    # These are conditional on the frontend (Only for Philippines)
-    region = models.CharField(max_length=100, blank=True, null=True)
-    province = models.CharField(max_length=100, blank=True, null=True)
-    city = models.CharField(max_length=100, blank=True, null=True)
+    current_address  = models.TextField(blank=True, null=True)
+    country          = models.CharField(max_length=100, default='Philippines')
+    geocode          = models.CharField(max_length=20, blank=True, null=True)
+    region           = models.CharField(max_length=100, blank=True, null=True)
+    province         = models.CharField(max_length=100, blank=True, null=True)
+    city             = models.CharField(max_length=100, blank=True, null=True)
 
     # --- 3. CIVIL / MARITAL STATUS ---
-    religion = models.CharField(max_length=100, blank=True, null=True)
-    religion_other = models.CharField(max_length=100, blank=True, null=True)
-    marital_status = models.CharField(max_length=20, choices=MARITAL_STATUS_CHOICES, blank=True, null=True)
-    
-    # Stored as YYYY-MM string based on frontend input
-    marriage_date = models.CharField(max_length=7, blank=True, null=True) 
-    
-    intend_to_marry = models.CharField(max_length=10, blank=True, null=True)
+    religion              = models.CharField(max_length=100, blank=True, null=True)
+    religion_other        = models.CharField(max_length=100, blank=True, null=True)
+    marital_status        = models.CharField(max_length=20, choices=MARITAL_STATUS_CHOICES, blank=True, null=True)
+    marriage_date         = models.CharField(max_length=7, blank=True, null=True)
+    intend_to_marry       = models.CharField(max_length=10, blank=True, null=True)
     intended_marriage_age = models.PositiveIntegerField(null=True, blank=True)
-    no_marriage_reason = models.CharField(max_length=255, blank=True, null=True)
+    no_marriage_reason    = models.CharField(max_length=255, blank=True, null=True)
 
-    # Legacy field (Keep this if you don't want to break existing database rows)
-    is_married = models.BooleanField(default=False)
+    # Legacy fields
+    is_married  = models.BooleanField(default=False)
     maiden_name = models.CharField(max_length=150, blank=True, null=True)
 
     # --- 4. ACADEMIC INFO ---
-    course = models.CharField(max_length=2, choices=PROGRAM_CHOICES, blank=True, null=True)
-    program = models.CharField(max_length=2, choices=PROGRAM_CHOICES, blank=True, null=True) 
-    batch = models.CharField(max_length=4, choices=BATCH_CHOICES, blank=True, null=True)
+    course     = models.CharField(max_length=2, choices=PROGRAM_CHOICES, blank=True, null=True)
+    program    = models.CharField(max_length=2, choices=PROGRAM_CHOICES, blank=True, null=True)
+    batch      = models.CharField(max_length=4, choices=BATCH_CHOICES, blank=True, null=True)
     batch_year = models.CharField(max_length=4, choices=BATCH_CHOICES, blank=True, null=True)
-    
     has_diploma = models.CharField(max_length=10, blank=True, null=True)
 
     # --- 5. VERIFICATION DOCUMENTS ---
-    id_type = models.CharField(max_length=50, blank=True, null=True)
-    valid_id = models.ImageField(upload_to='valid_ids/', blank=True, null=True)
+    id_type       = models.CharField(max_length=50, blank=True, null=True)
+    valid_id      = models.ImageField(upload_to='valid_ids/', blank=True, null=True)
     valid_id_file = models.ImageField(upload_to='valid_ids/', blank=True, null=True)
-    diploma_file = models.ImageField(upload_to='diplomas/', blank=True, null=True)
+    diploma_file  = models.ImageField(upload_to='diplomas/', blank=True, null=True)
 
-    # Admin approval
     is_approved = models.BooleanField(default=False)
 
     def __str__(self):
@@ -91,13 +82,12 @@ class User(AbstractUser):
 
 
 class UserProfile(models.Model):
-    """Extended profile: picture, cover, bio, location, website."""
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user            = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
-    cover_photo = models.ImageField(upload_to='cover_photos/', null=True, blank=True)
-    bio = models.TextField(blank=True, default='')
-    location = models.CharField(max_length=255, blank=True, default='')
-    website = models.URLField(blank=True, default='')
+    cover_photo     = models.ImageField(upload_to='cover_photos/', null=True, blank=True)
+    bio             = models.TextField(blank=True, default='')
+    location        = models.CharField(max_length=255, blank=True, default='')
+    website         = models.URLField(blank=True, default='')
 
     def __str__(self):
         return f"Profile of {self.user.username}"
@@ -116,24 +106,25 @@ class Experience(models.Model):
         ('seasonal', 'Seasonal'),
         ('volunteer', 'Volunteer'),
     ]
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='experiences')
-    job_title = models.CharField(max_length=200)
-    company_name = models.CharField(max_length=200)
-    website = models.URLField(blank=True, default='')
-    location = models.CharField(max_length=255, blank=True, default='')
-    employment_type = models.CharField(max_length=50, choices=EMPLOYMENT_TYPES, blank=True, default='')
     SITE_TYPES = [
         ('', ''),
         ('on_site', 'On-site'),
         ('remote', 'Remote'),
         ('hybrid', 'Hybrid'),
     ]
-    site_type = models.CharField(max_length=20, choices=SITE_TYPES, blank=True, default='')
-    start_date = models.DateField(null=True, blank=True)
-    end_date = models.DateField(null=True, blank=True)
-    description = models.TextField(blank=True, default='')
-    is_current = models.BooleanField(default=False)
-    order = models.PositiveIntegerField(default=0)
+
+    user            = models.ForeignKey(User, on_delete=models.CASCADE, related_name='experiences')
+    job_title       = models.CharField(max_length=200)
+    company_name    = models.CharField(max_length=200)
+    website         = models.URLField(blank=True, default='')
+    location        = models.CharField(max_length=255, blank=True, default='')
+    employment_type = models.CharField(max_length=50, choices=EMPLOYMENT_TYPES, blank=True, default='')
+    site_type       = models.CharField(max_length=20, choices=SITE_TYPES, blank=True, default='')
+    start_date      = models.DateField(null=True, blank=True)
+    end_date        = models.DateField(null=True, blank=True)
+    description     = models.TextField(blank=True, default='')
+    is_current      = models.BooleanField(default=False)
+    order           = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ['-order', '-start_date']
@@ -143,19 +134,19 @@ class Experience(models.Model):
 
 
 class Education(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='educations')
-    school_name = models.CharField(max_length=255)
-    school_website = models.URLField(blank=True, default='')  # for logo favicon fallback
-    school_logo_url = models.URLField(blank=True, default='')   # cached logo from Wikidata
-    degree = models.CharField(max_length=200, blank=True, default='')
-    field_of_study = models.CharField(max_length=200, blank=True, default='')
-    start_month = models.PositiveSmallIntegerField(null=True, blank=True)  # 1-12
-    start_year = models.PositiveIntegerField(null=True, blank=True)
-    end_month = models.PositiveSmallIntegerField(null=True, blank=True)  # 1-12
-    end_year = models.PositiveIntegerField(null=True, blank=True)
-    activities = models.TextField(blank=True, default='')  # activities and societies
-    description = models.TextField(blank=True, default='')
-    order = models.PositiveIntegerField(default=0)
+    user            = models.ForeignKey(User, on_delete=models.CASCADE, related_name='educations')
+    school_name     = models.CharField(max_length=255)
+    school_website  = models.URLField(blank=True, default='')
+    school_logo_url = models.URLField(blank=True, default='')
+    degree          = models.CharField(max_length=200, blank=True, default='')
+    field_of_study  = models.CharField(max_length=200, blank=True, default='')
+    start_month     = models.PositiveSmallIntegerField(null=True, blank=True)
+    start_year      = models.PositiveIntegerField(null=True, blank=True)
+    end_month       = models.PositiveSmallIntegerField(null=True, blank=True)
+    end_year        = models.PositiveIntegerField(null=True, blank=True)
+    activities      = models.TextField(blank=True, default='')
+    description     = models.TextField(blank=True, default='')
+    order           = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ['-order', '-start_year']
@@ -164,45 +155,26 @@ class Education(models.Model):
         return f"{self.degree} at {self.school_name}"
 
 
-from django.db import models
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
-
 class Event(models.Model):
-    # Core Fields
-    event_name = models.CharField(max_length=255)
-    preview_text = models.CharField(max_length=280, blank=True, null=True)
+    event_name        = models.CharField(max_length=255)
+    preview_text      = models.CharField(max_length=280, blank=True, null=True)
     event_description = models.TextField()
-    
-    # Selection Fields
-    category = models.CharField(max_length=100, default="General")
-    
-    # DateTime Fields
-    start_date = models.DateField()
-    end_date = models.DateField(null=True, blank=True)
-    start_time = models.TimeField()
-    end_time = models.TimeField(null=True, blank=True)
-    
-    # Location & Capacity
-    venue = models.CharField(max_length=255)
-    participants = models.PositiveIntegerField(default=0, help_text="Event Capacity")
-    
-    # Media & Meta
-    event_image = models.ImageField(upload_to='events/', null=True, blank=True)
-    cost = models.CharField(max_length=100, blank=True, null=True)
-    organizer_names = models.CharField(max_length=500, blank=True, null=True)
-    
-    # Status & Ownership
-    is_approved = models.BooleanField(default=False)
-    organizer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_events')
-    
-    # Action Button Fields
+    category          = models.CharField(max_length=100, default="General")
+    start_date        = models.DateField()
+    end_date          = models.DateField(null=True, blank=True)
+    start_time        = models.TimeField()
+    end_time          = models.TimeField(null=True, blank=True)
+    venue             = models.CharField(max_length=255)
+    participants      = models.PositiveIntegerField(default=0, help_text="Event Capacity")
+    event_image       = models.ImageField(upload_to='events/', null=True, blank=True)
+    cost              = models.CharField(max_length=100, blank=True, null=True)
+    organizer_names   = models.CharField(max_length=500, blank=True, null=True)
+    is_approved       = models.BooleanField(default=False)
+    organizer         = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_events')
     action_button_label = models.CharField(max_length=100, blank=True, null=True)
-    action_button_link = models.URLField(max_length=500, blank=True, null=True)
-
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True, null=True)
+    action_button_link  = models.URLField(max_length=500, blank=True, null=True)
+    created_at        = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at        = models.DateTimeField(auto_now=True, null=True)
 
     class Meta:
         ordering = ['-start_date']
@@ -211,42 +183,57 @@ class Event(models.Model):
         return self.event_name
 
 
-class Article(models.Model):
-    """News / story content for CMS. Draft or published."""
-    STATUS_DRAFT = 'draft'
-    STATUS_PUBLISHED = 'published'
+class EventRegistration(models.Model):
+    PAYMENT_METHOD_CHOICES = [
+        ('gcash', 'GCash'),
+        ('maya',  'Maya'),
+        ('card',  'Credit/Debit Card'),
+    ]
     STATUS_CHOICES = [
-        (STATUS_DRAFT, 'Draft'),
-        (STATUS_PUBLISHED, 'Published'),
+        ('pending',   'Pending'),
+        ('paid',      'Paid'),
+        ('cancelled', 'Cancelled'),
     ]
 
-    CATEGORY_CHOICES = [
-        ('Giving', 'Giving'),
-        ('Programs', 'Programs'),
-        ('Community', 'Community'),
-        ('Events', 'Events'),
-        ('Achievements', 'Achievements'),
-        ('Scholarship', 'Scholarship'),
+    event          = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='registrations')
+    user           = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_registrations')
+    first_name     = models.CharField(max_length=150)
+    last_name      = models.CharField(max_length=150)
+    guest_count    = models.PositiveIntegerField(default=0)
+    guests         = models.JSONField(default=list, blank=True)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='gcash')
+    payment_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    total_amount   = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    registered_at  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-registered_at']
+        unique_together = ['event', 'user']
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} — {self.event.event_name}"
+
+
+class Article(models.Model):
+    STATUS_DRAFT      = 'draft'
+    STATUS_PUBLISHED  = 'published'
+    STATUS_CHOICES    = [(STATUS_DRAFT, 'Draft'), (STATUS_PUBLISHED, 'Published')]
+    CATEGORY_CHOICES  = [
+        ('Giving', 'Giving'), ('Programs', 'Programs'), ('Community', 'Community'),
+        ('Events', 'Events'), ('Achievements', 'Achievements'), ('Scholarship', 'Scholarship'),
     ]
 
-    title = models.CharField(max_length=255)
+    title       = models.CharField(max_length=255)
     author_name = models.CharField(max_length=255)
-    subtitle = models.CharField(max_length=280)
-    
-    category = models.CharField(
-        max_length=100, 
-        choices=CATEGORY_CHOICES, 
-        default='Community'
-    )
+    subtitle    = models.CharField(max_length=280)
+    category    = models.CharField(max_length=100, choices=CATEGORY_CHOICES, default='Community')
     is_featured = models.BooleanField(default=False)
-
     cover_image = models.ImageField(upload_to='article_covers/', null=True, blank=True)
-    content = models.TextField(blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
-    
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='articles')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    content     = models.TextField(blank=True)
+    status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
+    created_by  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='articles')
+    created_at  = models.DateTimeField(auto_now_add=True)
+    updated_at  = models.DateTimeField(auto_now=True)
     approved_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -266,22 +253,22 @@ class ActivityLog(models.Model):
         ('Feedback & Surveys', 'Feedback & Surveys'),
     ]
 
-    action = models.CharField(max_length=255)  # e.g., "New user approved"
-    module = models.CharField(max_length=50, choices=MODULE_CHOICES)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True) # Who did it?
+    action    = models.CharField(max_length=255)
+    module    = models.CharField(max_length=50, choices=MODULE_CHOICES)
+    user      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=50, default='Completed') # e.g., "Success", "Pending"
+    status    = models.CharField(max_length=50, default='Completed')
 
     class Meta:
-        ordering = ['-timestamp']  # Show newest first automatically
+        ordering = ['-timestamp']
 
     def __str__(self):
         return f"{self.action} - {self.timestamp}"
 
-# --- NEW MODEL FOR FORGOT PASSWORD ---
+
 class PasswordReset(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    otp = models.CharField(max_length=6)
+    user       = models.OneToOneField(User, on_delete=models.CASCADE)
+    otp        = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
