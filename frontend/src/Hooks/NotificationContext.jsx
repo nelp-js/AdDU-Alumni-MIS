@@ -17,7 +17,7 @@ export const NotificationProvider = ({ children }) => {
 
     useEffect(() => {
         fetchStats();
-        const interval = setInterval(fetchStats, 30000);
+        const interval = setInterval(fetchStats, 1 * 60 * 1000);
         return () => clearInterval(interval);
     }, []);
 
