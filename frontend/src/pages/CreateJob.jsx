@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/CreateEvent.css';
 import '../styles/CreateJob.css';
+import '../styles/ContentManagement.css';
 import { useTitle } from '../Hooks/useTitle';
-import { useNavigate } from 'react-router-dom';
 
 const currentDate = new Date();
 const threeYearsLater = new Date();
@@ -105,12 +106,16 @@ function CreateJob() {
                             </button>
                         </div>
                     </div>
+                    <div className="cj-back-row">
+                        <Link to="/dashboard" className="content-mgmt-back-link">← Back to Dashboard</Link>
+                    </div>
                 </main>
                 <Footer />
             </div>
         );
     }
 
+    // ── Success ──────────────────────────────────────────────────────────────
     if (success) {
         return (
             <div className="create-event-page">
@@ -128,6 +133,7 @@ function CreateJob() {
         );
     }
 
+    // ── Form ─────────────────────────────────────────────────────────────────
     return (
         <div className="create-event-page">
             <Header />
