@@ -294,28 +294,6 @@ function EditEvent() {
                                 </div>
                             </div>
 
-                            <div className="ce-field-group">
-                                <label className="ce-label-small" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                    <input type="checkbox" name="actionButtonEnabled"
-                                        checked={formData.actionButtonEnabled} onChange={handleChange} />
-                                    Enable Action Button
-                                </label>
-                            </div>
-                            {formData.actionButtonEnabled && (
-                                <div className="ce-row">
-                                    <div className="ce-field-group ce-field-half">
-                                        <label className="ce-label-small">Button Label</label>
-                                        <input type="text" name="actionButtonLabel" value={formData.actionButtonLabel}
-                                            onChange={handleChange} className="ce-input" placeholder="e.g. Register Now" />
-                                    </div>
-                                    <div className="ce-field-group ce-field-half">
-                                        <label className="ce-label-small">Button Link</label>
-                                        <input type="text" name="actionButtonLink" value={formData.actionButtonLink}
-                                            onChange={handleChange} className="ce-input" placeholder="https://..." />
-                                    </div>
-                                </div>
-                            )}
-
                             <div className="ce-actions">
                                 <button type="button" className="ce-cancel-btn" onClick={() => navigate('/dashboard/events')}>
                                     Cancel

@@ -6,14 +6,14 @@ import api from '../api';
 import '../styles/EventView.css';
 import { useTitle } from '../Hooks/useTitle';
 import { getOptimizedUrl } from '../utils/imageUtils';
+import EventRegistrationModal from '../components/EventRegistrationModal';
 
 function formatDisplayDate(dateStr) {
     if (!dateStr) return '—';
     try {
         const d = new Date(dateStr);
         if (isNaN(d.getTime())) return '—';
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        return d.toLocaleDateString(undefined, options);
+        return d.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     } catch {
         return dateStr;
     }
@@ -32,63 +32,67 @@ function formatTime(timeStr) {
     return `${h}:${m} ${ampm}`;
 }
 
+function buildGoogleCalendarUrl(event) {
+    if (!event.start_date) return '#';
+    const start = event.start_date.replace(/-/g, '');
+    const startTime = event.start_time
+        ? event.start_time.replace(/:/g, '').slice(0, 4) + '00'
+        : '000000';
+    const endTime = event.end_time
+        ? event.end_time.replace(/:/g, '').slice(0, 4) + '00'
+        : startTime;
+    const title    = encodeURIComponent(event.event_name || '');
+    const location = encodeURIComponent(event.venue || '');
+    const details  = encodeURIComponent(event.preview_text || event.event_description || '');
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}T${startTime}/${start}T${endTime}&details=${details}&location=${location}`;
+}
+
 function EventView() {
     const { id } = useParams();
-    const [event, setEvent] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [event, setEvent]         = useState(null);
+    const [loading, setLoading]     = useState(true);
+    const [error, setError]         = useState(null);
+    const [showRegister, setShowRegister] = useState(false);
 
     useEffect(() => {
-        if (!id) {
-            setLoading(false);
-            setError(true);
-            return;
-        }
+        if (!id) { setLoading(false); setError(true); return; }
         api.get(`/api/events/${id}/`)
-            .then((res) => {
-                setEvent(res.data);
-                setError(null);
-            })
-            .catch((err) => {
-                setEvent(null);
-                setError(err.response?.status === 404 ? 'notfound' : 'error');
-            })
+            .then((res) => { setEvent(res.data); setError(null); })
+            .catch((err) => { setEvent(null); setError(err.response?.status === 404 ? 'notfound' : 'error'); })
             .finally(() => setLoading(false));
     }, [id]);
 
     useTitle(event ? event.event_name : 'Event');
 
-    if (loading) {
-        return (
-            <div className="event-view-page">
-                <Header />
-                <main className="event-view-main">
-                    <p className="event-view-not-found">Loading event…</p>
-                    <Link to="/events" className="event-view-back-link">« All Events</Link>
-                </main>
-                <Footer />
-            </div>
-        );
-    }
+    if (loading) return (
+        <div className="event-view-page">
+            <Header />
+            <main className="event-view-main">
+                <p className="event-view-not-found">Loading event…</p>
+                <Link to="/events" className="event-view-back-link">« All Events</Link>
+            </main>
+            <Footer />
+        </div>
+    );
 
-    if (error || !event) {
-        return (
-            <div className="event-view-page">
-                <Header />
-                <main className="event-view-main">
-                    <p className="event-view-not-found">Event not found.</p>
-                    <Link to="/events" className="event-view-back-link">« All Events</Link>
-                </main>
-                <Footer />
-            </div>
-        );
-    }
+    if (error || !event) return (
+        <div className="event-view-page">
+            <Header />
+            <main className="event-view-main">
+                <p className="event-view-not-found">Event not found.</p>
+                <Link to="/events" className="event-view-back-link">« All Events</Link>
+            </main>
+            <Footer />
+        </div>
+    );
 
-    const detailsDate = formatDisplayDate(event.start_date);
-    const hasActionButton = event.action_button_label && event.action_button_link;
-
-    // 👇 USE THE UTILITY (Type: 'hero' for big banner images)
-    const imageUrl = getOptimizedUrl(event.event_image, 'hero');
+    const detailsDate     = formatDisplayDate(event.start_date);
+    const hasActionButton = !!(event.action_button_label && event.action_button_link);
+    const imageUrl        = getOptimizedUrl(event.event_image, 'hero');
+    const calendarUrl     = buildGoogleCalendarUrl(event);
+    const pricePerPerson  = event.cost && !isNaN(parseFloat(event.cost))
+        ? parseFloat(event.cost)
+        : 0;
 
     return (
         <div className="event-view-page">
@@ -120,20 +124,22 @@ function EventView() {
                 <p className="event-view-date-repeat">{detailsDate}</p>
 
                 <div className="event-view-actions">
-                    {hasActionButton && (
-                        <a
-                            href={event.action_button_link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="event-view-btn event-view-btn-register"
-                        >
-                            {event.action_button_label}
-                        </a>
-                    )}
+                    {/* Register — always shown, opens modal */}
+                    <button
+                        type="button"
+                        className="event-view-btn event-view-btn-register"
+                        onClick={() => setShowRegister(true)}
+                    >
+                        {event.action_button_label || 'Register'}
+                    </button>
+
+                    {/* Add to Calendar — always links to Google Calendar */}
                     <a
-                        href={hasActionButton ? event.action_button_link : '#'}
+                        href={calendarUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="event-view-btn event-view-btn-calendar"
-                        aria-label="Add to calendar"
+                        aria-label="Add to Google Calendar"
                     >
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -143,12 +149,16 @@ function EventView() {
                         </svg>
                         <span>Add to Calendar</span>
                     </a>
-                    {!hasActionButton && (
-                        <span className="event-view-btn event-view-btn-register" style={{ opacity: 0.7 }}>
-                            Register
-                        </span>
-                    )}
                 </div>
+
+                {/* Registration Modal */}
+                {showRegister && (
+                    <EventRegistrationModal
+                        event={event}
+                        onClose={() => setShowRegister(false)}
+                        pricePerGuest={pricePerPerson}
+                    />
+                )}
 
                 <section className="event-view-info">
                     <div className="event-view-info-col event-view-details">
