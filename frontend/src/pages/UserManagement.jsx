@@ -1,393 +1,513 @@
-import { useState, useRef } from 'react';
-import '../styles/Register.css';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import api from '../api';
+import '../styles/UserManagement.css';
 import { useTitle } from '../Hooks/useTitle';
-import { useNavigate } from 'react-router-dom';
-import LocationFields from '../components/LocationFields';
-import { useCountries } from '../Hooks/useCountries';
-function Register() {
-    useTitle('Register');
-    const navigate = useNavigate();
-    
-    const idInputRef = useRef(null); 
-    const diplomaInputRef = useRef(null); 
 
-    const [formData, setFormData] = useState({
-        first_name: '', middle_name: '', last_name: '',
-        email: '', username: '', password: '', role: 'alumni', 
-        birth_date: '', sex: '',
-        phone_number: '', telephone_number: '', current_address: '', 
-        country: 'Philippines', geocode: '',
-        regionCode: '', region: '', provinceCode: '', province: '', city: '',
-        religion: '', religion_other: '', marital_status: '', 
-        marriage_date: '', intend_to_marry: '', intended_marriage_age: '', no_marriage_reason: '',
-        course: '', batch_year: '', has_diploma: '',
-        id_type: '', valid_id_file: null, diploma_file: null
-    });
+// ─── Static option lists ────────────────────────────────────────────────────
 
-    const [fileNames, setFileNames] = useState({ id: "", diploma: "" }); 
-    const [errors, setErrors] = useState({});
-    const [loading, setLoading] = useState(false);
-    const [success, setSuccess] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
+const COUNTRIES = [
+    'Philippines','United States','Canada','United Kingdom','Australia','Japan',
+    'South Korea','Singapore','Malaysia','Thailand','Vietnam','Indonesia','China',
+    'Hong Kong','Taiwan','United Arab Emirates','Saudi Arabia','Qatar','Kuwait',
+    'New Zealand','Germany','France','Italy','Spain','Netherlands','Switzerland',
+    'Norway','Sweden','Other',
+];
+
+const REGIONS = [
+    { value: 'region-11', label: 'Region XI - Davao Region' },
+    { value: 'ncr',       label: 'NCR' },
+    { value: 'region-1',  label: 'Region I - Ilocos Region' },
+    { value: 'region-2',  label: 'Region II - Cagayan Valley' },
+    { value: 'region-3',  label: 'Region III - Central Luzon' },
+    { value: 'region-4a', label: 'Region IV-A - CALABARZON' },
+    { value: 'region-5',  label: 'Region V - Bicol Region' },
+    { value: 'region-6',  label: 'Region VI - Western Visayas' },
+    { value: 'region-7',  label: 'Region VII - Central Visayas' },
+    { value: 'region-8',  label: 'Region VIII - Eastern Visayas' },
+    { value: 'region-9',  label: 'Region IX - Zamboanga Peninsula' },
+    { value: 'region-10', label: 'Region X - Northern Mindanao' },
+    { value: 'region-12', label: 'Region XII - SOCCSKSARGEN' },
+    { value: 'region-13', label: 'Region XIII - Caraga' },
+    { value: 'barmm',     label: 'BARMM' },
+    { value: 'car',       label: 'CAR - Cordillera Administrative Region' },
+];
+
+const RELIGIONS = [
+    { value: 'roman_catholic',       label: 'Roman Catholic' },
+    { value: 'protestant',           label: 'Protestant' },
+    { value: 'iglesia_ni_cristo',    label: 'Iglesia ni Cristo' },
+    { value: 'islam',                label: 'Islam' },
+    { value: 'born_again_christian', label: 'Born Again Christian' },
+    { value: 'buddhist',             label: 'Buddhist' },
+    { value: 'other',                label: 'Other (please specify)' },
+    { value: 'prefer_not_to_say',    label: 'Prefer not to say' },
+];
+
+const MARITAL_STATUSES = [
+    { value: 'single',     label: 'Single' },
+    { value: 'married',    label: 'Married' },
+    { value: 'living_in',  label: 'Living In' },
+    { value: 'separated',  label: 'Separated' },
+    { value: 'annulled',   label: 'Annulled' },
+    { value: 'divorced',   label: 'Divorced' },
+    { value: 'widowed',    label: 'Widowed' },
+];
+
+const MARRIED_STATUSES = ['married', 'separated', 'annulled', 'divorced', 'widowed'];
+
+const COURSES = [
+    { value: 'CS', label: 'Computer Science' },
+    { value: 'IT', label: 'Information Technology' },
+    { value: 'IS', label: 'Information Systems' },
+];
+
+const EMPTY_FORM = {
+    first_name: '', middle_name: '', last_name: '',
+    username: '', email: '',
+    phone_number: '', telephone_number: '',
+    current_address: '', country: 'Philippines', geocode: '',
+    region: '', province: '', city: '',
+    religion: '', religion_other: '',
+    marital_status: '', marriage_date: '',
+    intend_to_marry: '', intended_marriage_age: '', no_marriage_reason: '',
+    course: '', batch_year: '',
+    is_superuser: false,
+};
+
+// ─── Reusable UI helpers ─────────────────────────────────────────────────────
+
+const SectionLabel = ({ children }) => (
+    <div className="user-mgmt-modal-section-label">{children}</div>
+);
+
+const DetailRow = ({ label, value }) => (
+    <div className="content-mgmt-detail-row">
+        <span className="content-mgmt-detail-label">{label}</span>
+        <span className="content-mgmt-detail-value">{value || '—'}</span>
+    </div>
+);
+
+const Field = ({ label, children }) => (
+    <div className="user-mgmt-modal-field">
+        <label>{label}</label>
+        {children}
+    </div>
+);
+
+const SelectInput = ({ name, value, onChange, placeholder, options }) => (
+    <select name={name} value={value} onChange={onChange}>
+        {placeholder && <option value="">{placeholder}</option>}
+        {options.map((o) =>
+            typeof o === 'string'
+                ? <option key={o} value={o}>{o}</option>
+                : <option key={o.value} value={o.value}>{o.label}</option>
+        )}
+    </select>
+);
+
+// ─── Main component ──────────────────────────────────────────────────────────
+
+function UserManagement() {
+    useTitle('User Management');
+
+    const [users, setUsers]             = useState([]);
+    const [loading, setLoading]         = useState(true);
+    const [error, setError]             = useState(null);
+    const [approvingId, setApprovingId] = useState(null);
+    const [rejectingId, setRejectingId] = useState(null);
+    const [deletingId, setDeletingId]   = useState(null);
+    const [detailsUser, setDetailsUser] = useState(null);
+    const [editingUser, setEditingUser] = useState(null);
+    const [editForm, setEditForm]       = useState(EMPTY_FORM);
+    const [editError, setEditError]     = useState(null);
+    const [savingEdit, setSavingEdit]   = useState(false);
 
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: currentYear - 1948 + 1 }, (_, i) => currentYear - i);
-    const { countries, loading: loadingCountries } = useCountries();
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-        if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    // ── Fetch ────────────────────────────────────────────────────────────────
+
+    useEffect(() => {
+        api.get('/api/users/')
+            .then((res) => setUsers(res.data))
+            .catch((err) => setError(err.response?.status === 403 ? 'Admin access required.' : 'Failed to load users.'))
+            .finally(() => setLoading(false));
+    }, []);
+
+    // ── Actions ──────────────────────────────────────────────────────────────
+
+    const handleApprove = (userId) => {
+        setApprovingId(userId);
+        api.post(`/api/users/${userId}/approve/`)
+            .then(() => setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, is_approved: true, is_active: true } : u)))
+            .catch(() => {})
+            .finally(() => setApprovingId(null));
     };
 
-    // Handler for LocationFields component
-    const handleLocationChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-        if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
+    const handleReject = (userId) => {
+        setRejectingId(userId);
+        api.post(`/api/users/${userId}/reject/`)
+            .then(() => setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, is_approved: false, is_active: false } : u)))
+            .catch(() => {})
+            .finally(() => setRejectingId(null));
     };
 
-    const handleFileChange = (e, fileType) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 10 * 1024 * 1024) {
-                setErrors(prev => ({ ...prev, [fileType]: 'File size must be less than 10MB.' }));
-                return;
-            }
-            setFormData(prev => ({ ...prev, [fileType === 'id' ? 'valid_id_file' : 'diploma_file']: file }));
-            setFileNames(prev => ({ ...prev, [fileType]: file.name }));
-            setErrors(prev => ({ ...prev, [fileType]: '' }));
-        }
+    const handleDelete = (userId) => {
+        if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+        setDeletingId(userId);
+        api.patch(`/api/users/${userId}/`, { is_active: false })
+            .then(() => { setUsers((prev) => prev.filter((u) => u.id !== userId)); closeEdit(); setDetailsUser(null); })
+            .catch(() => alert('Failed to delete user.'))
+            .finally(() => setDeletingId(null));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setErrors({});
-        setLoading(true);
+    // ── Helpers ──────────────────────────────────────────────────────────────
 
-        const dataToSend = new FormData();
-        const computedName = `${formData.first_name} ${formData.middle_name ? formData.middle_name + ' ' : ''}${formData.last_name}`.trim();
-        dataToSend.append('name', computedName);
-
-        Object.keys(formData).forEach(key => {
-            if (formData[key] !== null && formData[key] !== '' && key !== 'valid_id_file' && key !== 'diploma_file') {
-                dataToSend.append(key, formData[key]);
-            }
-        });
-
-        if (formData.valid_id_file) dataToSend.append('valid_id_file', formData.valid_id_file);
-        if (formData.has_diploma === 'yes' && formData.diploma_file) dataToSend.append('diploma_file', formData.diploma_file);
-
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '—';
         try {
-            const response = await fetch('https://sia-2.onrender.com/api/user/register/', {
-                method: 'POST',
-                body: dataToSend 
+            return new Date(dateStr).toLocaleString(undefined, {
+                month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
             });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setSuccess(true);
-                setTimeout(() => navigate('/login'), 5000);
-            } else {
-                setErrors(data);
-            }
-        } catch (error) {
-            setErrors({ general: 'An error occurred. Please try again.' });
-        } finally {
-            setLoading(false);
-        }
+        } catch { return dateStr; }
     };
+
+    const fullName  = (u) => [u.first_name, u.middle_name, u.last_name].filter(Boolean).join(' ') || '—';
+    const getStatus = (u) => u.is_approved ? 'Approved' : 'Pending';
+    const isPending = (u) => !u.is_approved;
+
+    // ── Edit modal ───────────────────────────────────────────────────────────
+
+    const openEdit = (u) => {
+        setEditingUser(u.id);
+        setEditForm({
+            first_name: u.first_name || '', middle_name: u.middle_name || '', last_name: u.last_name || '',
+            username: u.username || '', email: u.email || '',
+            phone_number: u.phone_number || '', telephone_number: u.telephone_number || '',
+            current_address: u.current_address || '', country: u.country || 'Philippines', geocode: u.geocode || '',
+            region: u.region || '', province: u.province || '', city: u.city || '',
+            religion: u.religion || '', religion_other: u.religion_other || '',
+            marital_status: u.marital_status || '', marriage_date: u.marriage_date || '',
+            intend_to_marry: u.intend_to_marry || '', intended_marriage_age: u.intended_marriage_age || '',
+            no_marriage_reason: u.no_marriage_reason || '',
+            course: u.course || '', batch_year: u.batch_year || '',
+            is_superuser: !!u.is_superuser,
+        });
+        setEditError(null);
+    };
+
+    const closeEdit = () => { setEditingUser(null); setEditError(null); };
+
+    const handleEditChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setEditForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    };
+
+    const handleEditSave = () => {
+        if (!editingUser) return;
+        setEditError(null);
+        setSavingEdit(true);
+        const f = editForm;
+        const isSingle  = f.marital_status === 'single';
+        const isMarried = MARRIED_STATUSES.includes(f.marital_status);
+        const payload = {
+            first_name: f.first_name, middle_name: f.middle_name || null, last_name: f.last_name,
+            username: f.username, email: f.email,
+            phone_number: f.phone_number, telephone_number: f.telephone_number || null,
+            current_address: f.current_address, country: f.country, geocode: f.geocode,
+            region: f.region || null, province: f.province || null, city: f.city || null,
+            religion: f.religion, religion_other: f.religion === 'other' ? f.religion_other : null,
+            marital_status: f.marital_status,
+            marriage_date:         isMarried                            ? f.marriage_date         : null,
+            intend_to_marry:       isSingle                             ? f.intend_to_marry        : null,
+            intended_marriage_age: isSingle && f.intend_to_marry==='yes'? f.intended_marriage_age  : null,
+            no_marriage_reason:    isSingle && f.intend_to_marry==='no' ? f.no_marriage_reason     : null,
+            course: f.course, batch_year: f.batch_year,
+            is_superuser: f.is_superuser, is_staff: f.is_superuser,
+        };
+        api.patch(`/api/users/${editingUser}/`, payload)
+            .then(() => api.get(`/api/users/${editingUser}/`))
+            .then((res) => { setUsers((prev) => prev.map((u) => u.id === editingUser ? res.data : u)); closeEdit(); })
+            .catch((err) => { const d = err.response?.data; setEditError(d && typeof d === 'object' ? (d.detail || Object.values(d).flat().join(' ')) : 'Failed to save.'); })
+            .finally(() => setSavingEdit(false));
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
 
     return (
-        <div className="register-page">
+        <div className="user-mgmt-page">
             <Header />
-            <main className="register-main">
-                <h1 className="register-title">Alumni Registration</h1>
-                
-                <div className="register-form">
-                    {success ? (
-                        <div className="success-message">
-                            <p>✓ Your registration request has been sent.</p>
-                            <p>Please wait for approval. Redirecting you shortly...</p>
+            <main className="user-mgmt-main">
+                <h1 className="user-mgmt-title">User Management</h1>
+                <p className="user-mgmt-subtitle">Registered users and approval status.</p>
+
+                {/* ── Table card ── */}
+                <div className="user-mgmt-card">
+                    {loading && <div className="user-mgmt-loading">Loading users...</div>}
+                    {error   && <div className="user-mgmt-error">{error}</div>}
+                    {!loading && !error && users.length === 0 && <div className="user-mgmt-empty">No registered users yet.</div>}
+                    {!loading && !error && users.length > 0 && (
+                        <div className="user-mgmt-table-wrap">
+                            <table className="user-mgmt-table">
+                                <thead>
+                                    <tr>
+                                        <th>NAME</th><th>USERNAME</th><th>EMAIL</th><th>PHONE</th>
+                                        <th>BATCH</th><th>PROGRAM</th><th>DATE REGISTERED</th>
+                                        <th>STATUS</th><th>DETAILS</th><th>ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {users.map((u) => (
+                                        <tr key={u.id}>
+                                            <td>{fullName(u)}</td>
+                                            <td>{u.username}</td>
+                                            <td>{u.email || '—'}</td>
+                                            <td>{u.phone_number || '—'}</td>
+                                            <td>{u.batch_year || u.batch || '—'}</td>
+                                            <td>{u.course || u.program || '—'}</td>
+                                            <td>{formatDate(u.date_joined)}</td>
+                                            <td>
+                                                <span className={`user-mgmt-status ${u.is_approved ? 'approved' : 'pending'}`}>
+                                                    {getStatus(u)}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button type="button" className="content-mgmt-details-link" onClick={() => setDetailsUser(u)}>
+                                                    View Details
+                                                </button>
+                                            </td>
+                                            <td>
+                                                {isPending(u) ? (
+                                                    <span className="user-mgmt-actions">
+                                                        <button type="button" className="user-mgmt-approve-btn" onClick={() => handleApprove(u.id)} disabled={approvingId === u.id}>
+                                                            {approvingId === u.id ? '...' : 'Approve'}
+                                                        </button>
+                                                        <button type="button" className="user-mgmt-reject-btn" onClick={() => handleReject(u.id)} disabled={rejectingId === u.id}>
+                                                            {rejectingId === u.id ? '...' : 'Reject'}
+                                                        </button>
+                                                    </span>
+                                                ) : (
+                                                    <button type="button" className="user-mgmt-edit-btn" onClick={() => openEdit(u)}>
+                                                        Edit
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
-                    ) : (
-                        <form className="form-fields" onSubmit={handleSubmit}>
-                            {errors.general && <div className="error-message"><p>{errors.general}</p></div>}
-                            
-                            <div className="name-fields">
-                                <div className="form-group">
-                                    <label>First Name <span className="required-star">*</span></label>
-                                    <input type="text" name="first_name" value={formData.first_name} onChange={handleChange} required className={errors.first_name ? 'error' : ''} />
-                                </div>
-                                <div className="form-group">
-                                    <label>Middle Name</label>
-                                    <input type="text" name="middle_name" value={formData.middle_name} onChange={handleChange} />
-                                </div>
-                                <div className="form-group">
-                                    <label>Last Name <span className="required-star">*</span></label>
-                                    <input type="text" name="last_name" value={formData.last_name} onChange={handleChange} required className={errors.last_name ? 'error' : ''}/>
-                                </div>
-                            </div>
-                            
-                            <div className="name-fields">
-                                <div className="form-group">
-                                    <label>Email <span className="required-star">*</span></label>
-                                    <input type="email" name="email" value={formData.email} onChange={handleChange} required className={errors.email ? 'error' : ''}/>
-                                    {errors.email && <span className="field-error">{errors.email}</span>}
-                                </div>
-                                <div className="form-group">
-                                    <label>Username <span className="required-star">*</span></label>
-                                    <input type="text" name="username" value={formData.username} onChange={handleChange} required className={errors.username ? 'error' : ''}/>
-                                    {errors.username && <span className="field-error">{errors.username}</span>}
-                                </div>
-                                <div className="form-group">
-                                    <label>Password (Min 8 chars) <span className="required-star">*</span></label>
-                                    <div className="password-input-wrapper">
-                                        <input type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} minLength="8" required />
-                                        <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)} title={showPassword ? "Hide password" : "Show password"}>
-                                            {showPassword ? (
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                                                    <line x1="1" y1="1" x2="23" y2="23"></line>
-                                                </svg>
-                                            ) : (
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                                    <circle cx="12" cy="12" r="3"></circle>
-                                                </svg>
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="batch-program-fields">
-                                <div className="form-group">
-                                    <label>Birth Date <span className="required-star">*</span></label>
-                                    <input type="date" name="birth_date" value={formData.birth_date} onChange={handleChange} required />
-                                </div>
-                                <div className="form-group">
-                                    <label>Sex <span className="required-star">*</span></label>
-                                    <select name="sex" value={formData.sex} onChange={handleChange} required>
-                                        <option value="">Select Sex</option>
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
-                                        <option value="prefer_not_to_say">Prefer not to say</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div className="batch-program-fields">
-                                <div className="form-group">
-                                    <label>Phone Number <span className="required-star">*</span></label>
-                                    <input type="tel" name="phone_number" value={formData.phone_number} onChange={handleChange} required />
-                                </div>
-                                <div className="form-group">
-                                    <label>Telephone Number</label>
-                                    <input type="tel" name="telephone_number" value={formData.telephone_number} onChange={handleChange} />
-                                </div>
-                            </div>
-                            
-                            <div className="form-group">
-                                <label>Current Address <span className="required-star">*</span></label>
-                                <input type="text" name="current_address" value={formData.current_address} onChange={handleChange} required />
-                            </div>
-
-                            <div className="batch-program-fields">
-                                <div className="form-group">
-                                    <label>Country <span className="required-star">*</span></label>
-                                    <select name="country" value={formData.country} onChange={handleChange} required>
-                                        <option value="">{loadingCountries ? 'Loading countries...' : 'Select your country'}</option>
-                                        {countries.map((c) => (
-                                            <option key={c.value} value={c.value}>{c.label}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Zipcode <span className="required-star">*</span></label>
-                                    <input type="text" name="geocode" value={formData.geocode} onChange={handleChange} required />
-                                </div>
-                            </div>
-
-                            {/* Cascading Location Fields */}
-                            {formData.country === 'Philippines' && (
-                                <div className="location-fields">
-                                    <LocationFields
-                                        regionCode={formData.regionCode}
-                                        provinceCode={formData.provinceCode}
-                                        cityName={formData.city}
-                                        onChange={handleLocationChange}
-                                        fieldClass="form-group"
-                                        labelClass=""
-                                        inputClass=""
-                                        required={true}
-                                    />
-                                </div>
-                            )}
-                            
-                            <div className="batch-program-fields">
-                                <div className="form-group">
-                                    <label>Religion <span className="required-star">*</span></label>
-                                    <select name="religion" value={formData.religion} onChange={handleChange} required>
-                                        <option value="">Select your religion</option>
-                                        <option value="roman_catholic">Roman Catholic</option>
-                                        <option value="protestant">Protestant</option>
-                                        <option value="iglesia_ni_cristo">Iglesia ni Cristo</option>
-                                        <option value="islam">Islam</option>
-                                        <option value="born_again_christian">Born Again Christian</option>
-                                        <option value="buddhist">Buddhist</option>
-                                        <option value="other">Other (please specify)</option>
-                                        <option value="prefer_not_to_say">Prefer not to say</option>
-                                    </select>
-                                </div>
-                                {formData.religion === 'other' && (
-                                    <div className="form-group">
-                                        <label>Specify Religion <span className="required-star">*</span></label>
-                                        <input type="text" name="religion_other" value={formData.religion_other} onChange={handleChange} required />
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="form-group">
-                                <label>Marital Status <span className="required-star">*</span></label>
-                                <select name="marital_status" value={formData.marital_status} onChange={handleChange} required>
-                                    <option value="">Select Marital Status</option>
-                                    <option value="single">Single</option>
-                                    <option value="married">Married</option>
-                                    <option value="living_in">Living In</option>
-                                    <option value="separated">Separated</option>
-                                    <option value="annulled">Annulled</option>
-                                    <option value="divorced">Divorced</option>
-                                    <option value="widowed">Widowed</option>
-                                </select>
-                            </div>
-
-                            {['married', 'separated', 'annulled', 'divorced', 'widowed'].includes(formData.marital_status) && (
-                                <div className="form-group">
-                                    <label>Date of Marriage (YYYY-MM) <span className="required-star">*</span></label>
-                                    <input type="month" name="marriage_date" value={formData.marriage_date} onChange={handleChange} required />
-                                </div>
-                            )}
-
-                            {formData.marital_status === 'single' && (
-                                <div className="form-group">
-                                    <label>Do you intend to marry? <span className="required-star">*</span></label>
-                                    <select name="intend_to_marry" value={formData.intend_to_marry} onChange={handleChange} required>
-                                        <option value="">Select Option</option>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                    </select>
-                                </div>
-                            )}
-
-                            {formData.intend_to_marry === 'yes' && formData.marital_status === 'single' && (
-                                <div className="form-group">
-                                    <label>Intended Marriage Age (18+) <span className="required-star">*</span></label>
-                                    <input type="number" name="intended_marriage_age" value={formData.intended_marriage_age} onChange={handleChange} min="18" max="100" required />
-                                </div>
-                            )}
-
-                            {formData.intend_to_marry === 'no' && formData.marital_status === 'single' && (
-                                <div className="form-group">
-                                    <label>Reason (Optional)</label>
-                                    <input type="text" name="no_marriage_reason" value={formData.no_marriage_reason} onChange={handleChange} />
-                                </div>
-                            )}
-                            
-                            <div className="batch-program-fields">
-                                <div className="form-group">
-                                    <label>Course <span className="required-star">*</span></label>
-                                    <select name="course" value={formData.course} onChange={handleChange} required>
-                                        <option value="">Select Course</option>
-                                        <option value="CS">Computer Science</option>
-                                        <option value="IT">Information Technology</option>
-                                        <option value="IS">Information Systems</option>
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Batch Year <span className="required-star">*</span></label>
-                                    <select name="batch_year" value={formData.batch_year} onChange={handleChange} required>
-                                        <option value="">Select Batch</option>
-                                        {years.map(year => <option key={year} value={year}>{year}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="form-group">
-                                <label>Do you have a diploma? <span className="required-star">*</span></label>
-                                <select name="has_diploma" value={formData.has_diploma} onChange={handleChange} required>
-                                    <option value="">Select Option</option>
-                                    <option value="yes">Yes</option>
-                                    <option value="no">No</option>
-                                </select>
-                            </div>
-                            
-                            {formData.has_diploma === 'yes' && (
-                                <div className="form-group">
-                                    <label>Upload Diploma (JPG/PNG, Max 10MB) <span className="required-star">*</span></label>
-                                    <input type="file" ref={diplomaInputRef} onChange={(e) => handleFileChange(e, 'diploma')} style={{ display: "none" }} accept="image/png, image/jpeg, image/jpg" />
-                                    <button type="button" className="upload-btn" onClick={() => diplomaInputRef.current.click()}>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                            <polyline points="17 8 12 3 7 8"></polyline>
-                                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                                        </svg>
-                                        {fileNames.diploma || `Browse Diploma`} 
-                                    </button>
-                                    {errors.diploma && <span className="field-error">{errors.diploma}</span>}
-                                </div>
-                            )}
-
-                            <div className="form-group">
-                                <label>ID Type <span className="required-star">*</span></label>
-                                <select name="id_type" value={formData.id_type} onChange={handleChange} required>
-                                    <option value="">Choose your valid ID</option>
-                                    <option value="drivers-license">Driver's License</option>
-                                    <option value="passport">Passport</option>
-                                    <option value="umid">UMID</option>
-                                    <option value="sss">SSS ID</option>
-                                    <option value="philhealth">PhilHealth ID</option>
-                                    <option value="postal">Postal ID</option>
-                                    <option value="voters">Voter's ID</option>
-                                    <option value="prc">PRC ID</option>
-                                    <option value="national-id">National ID (PhilSys)</option>
-                                </select>
-                            </div>
-
-                            {formData.id_type && (
-                                <div className="form-group">
-                                    <label>Upload {formData.id_type.replace('-', ' ').toUpperCase()} (JPG/PNG, Max 10MB) <span className="required-star">*</span></label>
-                                    <input type="file" ref={idInputRef} onChange={(e) => handleFileChange(e, 'id')} style={{ display: "none" }} accept="image/png, image/jpeg, image/jpg" />
-                                    <button type="button" className="upload-btn" onClick={() => idInputRef.current.click()}>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                            <polyline points="17 8 12 3 7 8"></polyline>
-                                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                                        </svg>
-                                        {fileNames.id || `Browse Image`} 
-                                    </button>
-                                    {errors.id && <span className="field-error">{errors.id}</span>}
-                                </div>
-                            )}
-
-                            <div className="form-actions" style={{ flexDirection: 'column', gap: '15px' }}>
-                                <button type="submit" disabled={loading} className="submit-btn" style={{ width: '100%', maxWidth: '400px' }}>
-                                    {loading ? 'Creating Account...' : 'Register'}
-                                </button>
-                                <p className="login-link" style={{ textAlign: 'center' }}>
-                                    Already have an account? <br />
-                                    <a href="/login" style={{ fontWeight: '600' }}>Sign in</a> 
-                                </p>
-                            </div>
-                        </form>
                     )}
                 </div>
+
+                <div className="user-mgmt-back">
+                    <Link to="/dashboard" className="user-mgmt-back-link">← Back to Dashboard</Link>
+                </div>
+
+                {/* ── View Details modal ── */}
+                {detailsUser && (
+                    <div className="content-mgmt-modal-overlay" onClick={() => setDetailsUser(null)}>
+                        <div className="content-mgmt-modal user-details-modal" onClick={(e) => e.stopPropagation()}>
+                            <h2 className="content-mgmt-modal-title">User Details</h2>
+                            <div className="content-mgmt-details">
+
+                                <SectionLabel>Personal Information</SectionLabel>
+                                <div className="user-details-grid">
+                                    <DetailRow label="Full Name"  value={fullName(detailsUser)} />
+                                    <DetailRow label="Username"   value={detailsUser.username} />
+                                    <DetailRow label="Email"      value={detailsUser.email} />
+                                    <DetailRow label="Birth Date" value={detailsUser.birth_date} />
+                                    <DetailRow label="Sex"        value={detailsUser.sex} />
+                                </div>
+
+                                <SectionLabel>Contact & Address</SectionLabel>
+                                <div className="user-details-grid">
+                                    <DetailRow label="Phone"           value={detailsUser.phone_number} />
+                                    <DetailRow label="Telephone"       value={detailsUser.telephone_number} />
+                                    <DetailRow label="Current Address" value={detailsUser.current_address} />
+                                    <DetailRow label="Country"         value={detailsUser.country} />
+                                    <DetailRow label="Zipcode"         value={detailsUser.geocode} />
+                                    {detailsUser.region   && <DetailRow label="Region"    value={detailsUser.region} />}
+                                    {detailsUser.province && <DetailRow label="Province"  value={detailsUser.province} />}
+                                    {detailsUser.city     && <DetailRow label="City/Town" value={detailsUser.city} />}
+                                </div>
+
+                                <SectionLabel>Background</SectionLabel>
+                                <div className="user-details-grid">
+                                    <DetailRow label="Religion"
+                                        value={detailsUser.religion === 'other' ? detailsUser.religion_other || 'Other' : detailsUser.religion} />
+                                    <DetailRow label="Marital Status" value={detailsUser.marital_status} />
+                                    {detailsUser.marriage_date         && <DetailRow label="Marriage Date"         value={detailsUser.marriage_date} />}
+                                    {detailsUser.marital_status === 'single' && <DetailRow label="Intends to Marry" value={detailsUser.intend_to_marry} />}
+                                    {detailsUser.intended_marriage_age && <DetailRow label="Intended Marriage Age" value={detailsUser.intended_marriage_age} />}
+                                    {detailsUser.no_marriage_reason    && <DetailRow label="Reason (No Marriage)"  value={detailsUser.no_marriage_reason} />}
+                                </div>
+
+                                <SectionLabel>Academic</SectionLabel>
+                                <div className="user-details-grid">
+                                    <DetailRow label="Course"      value={detailsUser.course} />
+                                    <DetailRow label="Batch Year"  value={detailsUser.batch_year} />
+                                    <DetailRow label="Has Diploma" value={detailsUser.has_diploma} />
+                                </div>
+
+                                <SectionLabel>Documents</SectionLabel>
+                                <div className="user-details-grid">
+                                    <DetailRow label="ID Type" value={detailsUser.id_type} />
+                                    {detailsUser.valid_id_file && (
+                                        <div className="content-mgmt-detail-row">
+                                            <span className="content-mgmt-detail-label">Valid ID</span>
+                                            <a href={detailsUser.valid_id_file} target="_blank" rel="noreferrer" className="user-details-file-link">View ID</a>
+                                        </div>
+                                    )}
+                                    {detailsUser.diploma_file && (
+                                        <div className="content-mgmt-detail-row">
+                                            <span className="content-mgmt-detail-label">Diploma</span>
+                                            <a href={detailsUser.diploma_file} target="_blank" rel="noreferrer" className="user-details-file-link">View Diploma</a>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <SectionLabel>Role & Status</SectionLabel>
+                                <div className="user-details-grid">
+                                    <div className="content-mgmt-detail-row">
+                                        <span className="content-mgmt-detail-label">Status</span>
+                                        <span className={`user-mgmt-status ${detailsUser.is_approved ? 'approved' : 'pending'}`}>
+                                            {getStatus(detailsUser)}
+                                        </span>
+                                    </div>
+                                    <DetailRow label="Admin"           value={detailsUser.is_superuser ? 'Yes' : 'No'} />
+                                    <DetailRow label="Date Registered" value={formatDate(detailsUser.date_joined)} />
+                                </div>
+
+                            </div>
+                            <div className="content-mgmt-modal-actions">
+                                <div />
+                                <button type="button" className="content-mgmt-modal-close" onClick={() => setDetailsUser(null)}>Close</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Edit modal ── */}
+                {editingUser != null && (
+                    <div className="user-mgmt-modal-overlay" onClick={closeEdit}>
+                        <div className="user-mgmt-modal" onClick={(e) => e.stopPropagation()}>
+                            <h2 className="user-mgmt-modal-title">Edit User</h2>
+                            {editError && <div className="user-mgmt-modal-error">{editError}</div>}
+
+                            <div className="user-mgmt-modal-form">
+
+                                <SectionLabel>Personal Information</SectionLabel>
+                                <div className="user-mgmt-modal-row">
+                                    <Field label="First Name *"><input name="first_name" value={editForm.first_name} onChange={handleEditChange} /></Field>
+                                    <Field label="Middle Name"><input name="middle_name" value={editForm.middle_name} onChange={handleEditChange} /></Field>
+                                    <Field label="Last Name *"><input name="last_name" value={editForm.last_name} onChange={handleEditChange} /></Field>
+                                </div>
+                                <div className="user-mgmt-modal-row">
+                                    <Field label="Username *"><input name="username" value={editForm.username} onChange={handleEditChange} /></Field>
+                                    <Field label="Email *"><input type="email" name="email" value={editForm.email} onChange={handleEditChange} /></Field>
+                                </div>
+
+                                <SectionLabel>Contact & Address</SectionLabel>
+                                <div className="user-mgmt-modal-row">
+                                    <Field label="Phone Number *"><input name="phone_number" value={editForm.phone_number} onChange={handleEditChange} /></Field>
+                                    <Field label="Telephone Number"><input name="telephone_number" value={editForm.telephone_number} onChange={handleEditChange} /></Field>
+                                </div>
+                                <Field label="Current Address *"><input name="current_address" value={editForm.current_address} onChange={handleEditChange} /></Field>
+                                <div className="user-mgmt-modal-row">
+                                    <Field label="Country *">
+                                        <SelectInput name="country" value={editForm.country} onChange={handleEditChange} options={COUNTRIES} />
+                                    </Field>
+                                    <Field label="Zipcode *"><input name="geocode" value={editForm.geocode} onChange={handleEditChange} /></Field>
+                                </div>
+                                {editForm.country === 'Philippines' && (
+                                    <div className="user-mgmt-modal-row">
+                                        <Field label="Region *">
+                                            <SelectInput name="region" value={editForm.region} onChange={handleEditChange} placeholder="Select region" options={REGIONS} />
+                                        </Field>
+                                        <Field label="Province *"><input name="province" value={editForm.province} onChange={handleEditChange} placeholder="e.g., Davao del Sur" /></Field>
+                                        <Field label="City / Town *"><input name="city" value={editForm.city} onChange={handleEditChange} placeholder="e.g., Davao City" /></Field>
+                                    </div>
+                                )}
+
+                                <SectionLabel>Background</SectionLabel>
+                                <div className="user-mgmt-modal-row">
+                                    <Field label="Religion *">
+                                        <SelectInput name="religion" value={editForm.religion} onChange={handleEditChange} placeholder="Select religion" options={RELIGIONS} />
+                                    </Field>
+                                    {editForm.religion === 'other' && (
+                                        <Field label="Specify Religion *"><input name="religion_other" value={editForm.religion_other} onChange={handleEditChange} /></Field>
+                                    )}
+                                </div>
+                                <Field label="Marital Status *">
+                                    <SelectInput name="marital_status" value={editForm.marital_status} onChange={handleEditChange} placeholder="Select Marital Status" options={MARITAL_STATUSES} />
+                                </Field>
+                                {MARRIED_STATUSES.includes(editForm.marital_status) && (
+                                    <Field label="Date of Marriage (YYYY-MM) *">
+                                        <input type="month" name="marriage_date" value={editForm.marriage_date} onChange={handleEditChange} />
+                                    </Field>
+                                )}
+                                {editForm.marital_status === 'single' && (
+                                    <Field label="Do you intend to marry? *">
+                                        <SelectInput name="intend_to_marry" value={editForm.intend_to_marry} onChange={handleEditChange}
+                                            placeholder="Select Option" options={[{ value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }]} />
+                                    </Field>
+                                )}
+                                {editForm.marital_status === 'single' && editForm.intend_to_marry === 'yes' && (
+                                    <Field label="Intended Marriage Age (18+) *">
+                                        <input type="number" name="intended_marriage_age" value={editForm.intended_marriage_age} onChange={handleEditChange} min="18" max="100" />
+                                    </Field>
+                                )}
+                                {editForm.marital_status === 'single' && editForm.intend_to_marry === 'no' && (
+                                    <Field label="Reason (Optional)">
+                                        <input name="no_marriage_reason" value={editForm.no_marriage_reason} onChange={handleEditChange} />
+                                    </Field>
+                                )}
+
+                                <SectionLabel>Academic</SectionLabel>
+                                <div className="user-mgmt-modal-row">
+                                    <Field label="Course *">
+                                        <SelectInput name="course" value={editForm.course} onChange={handleEditChange} placeholder="Select Course" options={COURSES} />
+                                    </Field>
+                                    <Field label="Batch Year *">
+                                        <SelectInput name="batch_year" value={editForm.batch_year} onChange={handleEditChange} placeholder="Select Batch"
+                                            options={years.map((y) => ({ value: y, label: y }))} />
+                                    </Field>
+                                </div>
+
+                                <SectionLabel>Role</SectionLabel>
+                                <div className="user-mgmt-modal-field user-mgmt-modal-checkbox">
+                                    <label>
+                                        <input type="checkbox" name="is_superuser" checked={editForm.is_superuser} onChange={handleEditChange} />
+                                        <span>Admin (superuser)</span>
+                                    </label>
+                                </div>
+
+                            </div>
+
+                            <div className="user-mgmt-modal-actions">
+                                <button type="button" className="user-mgmt-modal-delete" onClick={() => handleDelete(editingUser)} disabled={deletingId === editingUser}>
+                                    {deletingId === editingUser ? 'Deleting...' : 'Delete User'}
+                                </button>
+                                <div className="user-mgmt-modal-actions-right">
+                                    <button type="button" className="user-mgmt-modal-cancel" onClick={closeEdit}>Cancel</button>
+                                    <button type="button" className="user-mgmt-modal-save" onClick={handleEditSave} disabled={savingEdit}>
+                                        {savingEdit ? 'Saving...' : 'Save'}
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                )}
+
             </main>
             <Footer />
         </div>
     );
 }
 
-export default Register;
+export default UserManagement;

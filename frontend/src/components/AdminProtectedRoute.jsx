@@ -5,7 +5,7 @@ import { REFRESH_TOKEN, ACCESS_TOKEN, USER_IS_ADMIN } from "../constants";
 import { useState, useEffect } from "react";
 
 function AdminProtectedRoute({ children }) {
-    const [status, setStatus] = useState(null); // null loading, true admin, false not admin
+    const [status, setStatus] = useState(null); // null = loading, true = admin, false = not admin
 
     useEffect(() => {
         let cancelled = false;
@@ -24,42 +24,36 @@ function AdminProtectedRoute({ children }) {
         };
 
         const check = async () => {
-            const token = localStorage.getItem(ACCESS_TOKEN);
+            let token = localStorage.getItem(ACCESS_TOKEN);
             if (!token) {
                 if (!cancelled) setStatus(false);
                 return;
             }
+
             try {
-                const decoded = jwtDecode(token);
+                let decoded = jwtDecode(token);
                 const now = Date.now() / 1000;
+
+                // Refresh if expired
                 if (decoded.exp < now) {
                     const ok = await refreshToken();
-                    if (!ok && !cancelled) {
-                        setStatus(false);
+                    if (!ok) {
+                        if (!cancelled) setStatus(false);
                         return;
                     }
+                    token = localStorage.getItem(ACCESS_TOKEN);
+                    decoded = jwtDecode(token);
                 }
-                // Prefer is_superuser from JWT (backend adds it to token); else call /api/user/me/
-                let isAdmin = false;
-                try {
-                    const decoded = jwtDecode(localStorage.getItem(ACCESS_TOKEN));
-                    if (typeof decoded.is_superuser === "boolean") {
-                        isAdmin = decoded.is_superuser;
-                    }
-                } catch (_) {}
-                if (!isAdmin) {
-                    const me = await api.get("/api/user/me/");
-                    isAdmin = Boolean(me.data?.is_superuser);
-                }
-                if (!cancelled) {
-                    localStorage.setItem(USER_IS_ADMIN, isAdmin ? "true" : "false");
-                    setStatus(isAdmin);
-                }
-            } catch (err) {
-                if (cancelled) return;
-                // Fallback: use cached value set at login (from JWT or /api/user/me/)
+
+                // Read is_superuser directly from JWT — backend always sets this
+                const isAdmin = Boolean(decoded.is_superuser);
+                localStorage.setItem(USER_IS_ADMIN, isAdmin ? "true" : "false");
+                if (!cancelled) setStatus(isAdmin);
+
+            } catch (_) {
+                // Last resort: use cached value
                 const cachedAdmin = localStorage.getItem(USER_IS_ADMIN) === "true";
-                setStatus(cachedAdmin);
+                if (!cancelled) setStatus(cachedAdmin);
             }
         };
 
@@ -74,9 +68,11 @@ function AdminProtectedRoute({ children }) {
             </div>
         );
     }
+
     if (status === false) {
-        return <Navigate to="/" replace />;
+        return <Navigate to="/login" replace />;
     }
+
     return children;
 }
 
