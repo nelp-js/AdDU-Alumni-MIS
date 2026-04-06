@@ -318,29 +318,41 @@ function JobManagement() {
                                                     {item.status !== 'pending' && (
                                                         <>
                                                             {item.status === 'approved' && (
+                                                                <>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="jm-approve-btn"
+                                                                        onClick={() => openEdit(item, itemType)}
+                                                                    >
+                                                                        Edit
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="jm-hide-btn"
+                                                                        onClick={() => handleToggleHide(item.id, itemType, item.is_hidden)}
+                                                                    >
+                                                                        {item.is_hidden ? 'Activate' : 'Deactivate'}
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="jm-delete-btn"
+                                                                        onClick={() => handleDelete(item.id, itemType)}
+                                                                        disabled={deletingId === item.id}
+                                                                    >
+                                                                        {deletingId === item.id ? '...' : 'Delete'}
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            {item.status === 'denied' && (
                                                                 <button
                                                                     type="button"
-                                                                    className="jm-approve-btn"
-                                                                    onClick={() => openEdit(item, itemType)}
+                                                                    className="jm-delete-btn"
+                                                                    onClick={() => handleDelete(item.id, itemType)}
+                                                                    disabled={deletingId === item.id}
                                                                 >
-                                                                    Edit
+                                                                    {deletingId === item.id ? '...' : 'Delete'}
                                                                 </button>
                                                             )}
-                                                            <button
-                                                                type="button"
-                                                                className="jm-hide-btn"
-                                                                onClick={() => handleToggleHide(item.id, itemType, item.is_hidden)}
-                                                            >
-                                                                {item.is_hidden ? 'Restore' : 'Hide'}
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                className="jm-delete-btn"
-                                                                onClick={() => handleDelete(item.id, itemType)}
-                                                                disabled={deletingId === item.id}
-                                                            >
-                                                                {deletingId === item.id ? '...' : 'Delete'}
-                                                            </button>
                                                         </>
                                                     )}
                                                 </span>
@@ -406,30 +418,28 @@ function JobManagement() {
                                 </div>
                             </div>
                             <div className="jm-modal-actions">
-                                {detailsItem.status === 'approved' && (
+                                <div />
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    {(detailsItem.status === 'pending') && (
+                                        <button
+                                            type="button"
+                                            className="jm-approve-btn"
+                                            onClick={() => {
+                                                setDetailsItem(null);
+                                                openEdit(detailsItem, detailsType);
+                                            }}
+                                        >
+                                            Edit
+                                        </button>
+                                    )}
                                     <button
                                         type="button"
-                                        className="jm-approve-btn"
-                                        onClick={() => openEdit(detailsItem, detailsType)}
+                                        className="jm-modal-close"
+                                        onClick={() => setDetailsItem(null)}
                                     >
-                                        Edit
+                                        Close
                                     </button>
-                                )}
-                                <button
-                                    type="button"
-                                    className="jm-delete-btn"
-                                    onClick={() => handleDelete(detailsItem.id, detailsType)}
-                                    disabled={deletingId === detailsItem.id}
-                                >
-                                    {deletingId === detailsItem.id ? '...' : 'Delete'}
-                                </button>
-                                <button
-                                    type="button"
-                                    className="jm-modal-close"
-                                    onClick={() => setDetailsItem(null)}
-                                >
-                                    Close
-                                </button>
+                                </div>
                             </div>
                         </div>
                     </div>

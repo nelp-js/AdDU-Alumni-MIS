@@ -14,9 +14,12 @@ function EventManagement() {
     const [loading, setLoading]           = useState(true);
     const [error, setError]               = useState(null);
     const [approvingId, setApprovingId]   = useState(null);
-    const [rejectingId, setRejectingId]   = useState(null);
+    const [denyingId, setDenyingId]       = useState(null);
     const [deletingId, setDeletingId]     = useState(null);
     const [detailsEvent, setDetailsEvent] = useState(null);
+    const [togglingId, setTogglingId]     = useState(null);
+    const [denyRemarks, setDenyRemarks]   = useState('');
+    const [showDenyInput, setShowDenyInput] = useState(null);
 
     useEffect(() => {
         api.get('/api/events/')
@@ -28,17 +31,32 @@ function EventManagement() {
     const handleApprove = (eventId) => {
         setApprovingId(eventId);
         api.post(`/api/events/${eventId}/approve/`)
-            .then(() => setEvents((prev) => prev.map((e) => e.id === eventId ? { ...e, is_approved: true } : e)))
+            .then(() => setEvents((prev) => prev.map((e) => e.id === eventId ? { ...e, status: 'approved', is_approved: true, remarks: null } : e)))
             .catch(() => {})
             .finally(() => setApprovingId(null));
     };
 
-    const handleReject = (eventId) => {
-        setRejectingId(eventId);
-        api.post(`/api/events/${eventId}/reject/`)
-            .then(() => setEvents((prev) => prev.map((e) => e.id === eventId ? { ...e, is_approved: false } : e)))
+    const handleDeny = (eventId) => {
+        setDenyingId(eventId);
+        api.post(`/api/events/${eventId}/deny/`, { remarks: denyRemarks })
+            .then(() => {
+                setEvents((prev) => prev.map((e) => e.id === eventId ? { ...e, status: 'denied', is_approved: false, remarks: denyRemarks } : e));
+                setShowDenyInput(null);
+                setDenyRemarks('');
+            })
             .catch(() => {})
-            .finally(() => setRejectingId(null));
+            .finally(() => setDenyingId(null));
+    };
+
+    const handleToggleHide = (eventId) => {
+        setTogglingId(eventId);
+        api.patch(`/api/events/${eventId}/toggle-hide/`)
+            .then((res) => {
+                setEvents((prev) => prev.map((e) => e.id === eventId ? { ...e, is_hidden: res.data.is_hidden } : e));
+                if (detailsEvent?.id === eventId) setDetailsEvent((d) => (d ? { ...d, is_hidden: res.data.is_hidden } : null));
+            })
+            .catch(() => {})
+            .finally(() => setTogglingId(null));
     };
 
     const handleDelete = (eventId) => {
@@ -67,8 +85,19 @@ function EventManagement() {
         return t ? `${d} at ${t}` : d;
     };
 
-    const getStatus = (e) => e.is_approved ? 'Approved' : 'Pending';
-    const isPending = (e) => !e.is_approved;
+    const getStatusClass = (e) => {
+        const s = e.status || (e.is_approved ? 'approved' : 'pending');
+        if (s === 'approved') return e.is_hidden ? 'denied' : 'approved';
+        if (s === 'denied') return 'denied';
+        return 'pending';
+    };
+    const getStatusLabel = (e) => {
+        const s = e.status || (e.is_approved ? 'approved' : 'pending');
+        if (s === 'approved') return e.is_hidden ? 'Hidden' : 'Approved';
+        if (s === 'denied') return 'Denied';
+        return 'Pending';
+    };
+    const isPending = (e) => (e.status || (!e.is_approved ? 'pending' : 'approved')) === 'pending';
 
     return (
         <div className="event-mgmt-page">
@@ -106,8 +135,8 @@ function EventManagement() {
                                                 </button>
                                             </td>
                                             <td>
-                                                <span className={`event-mgmt-status ${ev.is_approved ? 'approved' : 'pending'}`}>
-                                                    {getStatus(ev)}
+                                                <span className={`event-mgmt-status ${getStatusClass(ev)}`}>
+                                                    {getStatusLabel(ev)}
                                                 </span>
                                             </td>
                                             <td>
@@ -116,15 +145,42 @@ function EventManagement() {
                                                         <button type="button" className="event-mgmt-approve-btn" onClick={() => handleApprove(ev.id)} disabled={approvingId === ev.id}>
                                                             {approvingId === ev.id ? '...' : 'Approve'}
                                                         </button>
-                                                        <button type="button" className="event-mgmt-reject-btn" onClick={() => handleReject(ev.id)} disabled={rejectingId === ev.id}>
-                                                            {rejectingId === ev.id ? '...' : 'Reject'}
-                                                        </button>
+                                                        {showDenyInput === ev.id ? (
+                                                            <span className="event-mgmt-actions">
+                                                                <input
+                                                                    type="text"
+                                                                    value={denyRemarks}
+                                                                    onChange={(e) => setDenyRemarks(e.target.value)}
+                                                                    placeholder="Reason for denial..."
+                                                                    style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, width: 180 }}
+                                                                />
+                                                                <button type="button" className="event-mgmt-reject-btn" onClick={() => handleDeny(ev.id)} disabled={denyingId === ev.id}>
+                                                                    {denyingId === ev.id ? '...' : 'Confirm'}
+                                                                </button>
+                                                                <button type="button" className="event-mgmt-reject-btn" onClick={() => { setShowDenyInput(null); setDenyRemarks(''); }}>
+                                                                    Cancel
+                                                                </button>
+                                                            </span>
+                                                        ) : (
+                                                            <button type="button" className="event-mgmt-reject-btn" onClick={() => setShowDenyInput(ev.id)}>
+                                                                Deny
+                                                            </button>
+                                                        )}
                                                     </span>
-                                                ) : (
+                                                ) : (ev.status === 'approved' || ev.is_approved) ? (
                                                     <span className="event-mgmt-actions">
                                                         <button type="button" className="event-mgmt-edit-btn" onClick={() => navigate(`/dashboard/events/edit/${ev.id}`)}>
                                                             Edit
                                                         </button>
+                                                        <button type="button" className="event-mgmt-reject-btn" onClick={() => handleToggleHide(ev.id)} disabled={togglingId === ev.id}>
+                                                            {togglingId === ev.id ? '...' : (ev.is_hidden ? 'Activate' : 'Deactivate')}
+                                                        </button>
+                                                        <button type="button" className="event-mgmt-delete-btn" onClick={() => handleDelete(ev.id)} disabled={deletingId === ev.id}>
+                                                            {deletingId === ev.id ? '...' : 'Delete'}
+                                                        </button>
+                                                    </span>
+                                                ) : (
+                                                    <span className="event-mgmt-actions">
                                                         <button type="button" className="event-mgmt-delete-btn" onClick={() => handleDelete(ev.id)} disabled={deletingId === ev.id}>
                                                             {deletingId === ev.id ? '...' : 'Delete'}
                                                         </button>
@@ -205,10 +261,16 @@ function EventManagement() {
                                 </div>
                                 <div className="event-mgmt-details-row">
                                     <span className="event-mgmt-details-label">Status</span>
-                                    <span className={`event-mgmt-status ${detailsEvent.is_approved ? 'approved' : 'pending'}`}>
-                                        {detailsEvent.is_approved ? 'Approved' : 'Pending'}
+                                    <span className={`event-mgmt-status ${getStatusClass(detailsEvent)}`}>
+                                        {getStatusLabel(detailsEvent)}
                                     </span>
                                 </div>
+                                {detailsEvent.remarks && (
+                                    <div className="event-mgmt-details-row event-mgmt-details-row-block">
+                                        <span className="event-mgmt-details-label">Denial Remarks</span>
+                                        <span className="event-mgmt-details-value">{detailsEvent.remarks}</span>
+                                    </div>
+                                )}
                                 {detailsEvent.created_at && (
                                     <div className="event-mgmt-details-row">
                                         <span className="event-mgmt-details-label">Created</span>
@@ -224,7 +286,21 @@ function EventManagement() {
                             </div>
                             <div className="event-mgmt-modal-actions event-mgmt-details-actions">
                                 <div />
-                                <button type="button" className="event-mgmt-modal-cancel" onClick={() => setDetailsEvent(null)}>Close</button>
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    {(detailsEvent.status == null || detailsEvent.status === 'pending') && (
+                                        <button
+                                            type="button"
+                                            className="event-mgmt-edit-btn"
+                                            onClick={() => {
+                                                setDetailsEvent(null);
+                                                navigate(`/dashboard/events/edit/${detailsEvent.id}`);
+                                            }}
+                                        >
+                                            Edit
+                                        </button>
+                                    )}
+                                    <button type="button" className="event-mgmt-modal-cancel" onClick={() => setDetailsEvent(null)}>Close</button>
+                                </div>
                             </div>
                         </div>
                     </div>

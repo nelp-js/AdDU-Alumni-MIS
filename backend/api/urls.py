@@ -26,6 +26,8 @@ urlpatterns = [
     path("events/<int:pk>/",                                    views.EventDetailView.as_view(),        name="event-detail"),
     path("events/<int:event_id>/approve/",                      views.approve_event,                    name="approve-event"),
     path("events/<int:event_id>/reject/",                       views.reject_event,                     name="reject-event"),
+    path("events/<int:event_id>/deny/",                         views.deny_event,                       name="deny-event"),
+    path("events/<int:event_id>/toggle-hide/",                  views.event_toggle_hide,                name="event-toggle-hide"),
     path("events/<int:event_id>/register/",                     views.register_for_event,               name="event-register"),
     path("events/<int:event_id>/registrations/",                views.event_registrations,              name="event-registrations"),
 
@@ -59,6 +61,8 @@ urlpatterns = [
     path("articles/published/<int:pk>/",        views.PublishedArticleDetail.as_view(), name="published-article-detail"),
     path("articles/delete/<int:pk>/",           views.ArticleDelete.as_view(),          name="delete-article"),
     path("articles/<int:article_id>/publish/",  views.publish_article,                 name="publish-article"),
+    path("articles/<int:article_id>/deny/",     views.deny_article,                    name="deny-article"),
+    path("articles/<int:article_id>/toggle-hide/", views.article_toggle_hide,          name="article-toggle-hide"),
     path("articles/<int:pk>/",                  views.ArticleDetailView.as_view(),      name="article-detail"),
 
     # --- DASHBOARD & SYSTEM ---

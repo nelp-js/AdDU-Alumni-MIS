@@ -217,7 +217,7 @@ class EventSerializer(serializers.ModelSerializer):
         fields = [
             "id", "event_name", "preview_text", "event_description",
             "start_date", "end_date", "start_time", "end_time",
-            "venue", "category", "is_approved", "organizer",
+            "venue", "category", "is_approved", "status", "remarks", "is_hidden", "organizer",
             "event_image", "cost", "organizer_names", "participants",
             "action_button_label", "action_button_link", "created_at", "updated_at",
         ]
@@ -230,7 +230,7 @@ class EventUpdateSerializer(serializers.ModelSerializer):
         fields = [
             "id", "event_name", "preview_text", "event_description",
             "start_date", "end_date", "start_time", "end_time",
-            "venue", "category", "is_approved", "organizer",
+            "venue", "category", "is_approved", "status", "remarks", "is_hidden", "organizer",
             "event_image", "cost", "organizer_names", "participants",
             "action_button_label", "action_button_link", "created_at", "updated_at",
         ]
@@ -348,7 +348,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Article
         fields = ["id", "title", "author_name", "subtitle", "cover_image", "content",
-                  "status", "category", "is_featured", "created_by", "created_at",
+                  "status", "remarks", "is_hidden", "category", "is_featured", "created_by", "created_at",
                   "updated_at", "content_created_time", "approved_at", "date_published"]
         read_only_fields = ["created_by", "created_at", "updated_at", "content_created_time", "approved_at"]
         extra_kwargs = {
@@ -368,7 +368,7 @@ class ArticleUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Article
         fields = ["id", "title", "author_name", "subtitle", "cover_image", "content",
-                  "status", "category", "is_featured", "created_by", "created_at",
+                  "status", "remarks", "is_hidden", "category", "is_featured", "created_by", "created_at",
                   "updated_at", "content_created_time", "approved_at", "date_published"]
         read_only_fields = ["created_by", "created_at", "updated_at", "content_created_time", "approved_at"]
         extra_kwargs = {"title": {"required": True}, "author_name": {"required": True}, "subtitle": {"required": True}}

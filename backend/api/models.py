@@ -134,6 +134,10 @@ class Event(models.Model):
     cost                = models.CharField(max_length=100, blank=True, null=True)
     organizer_names     = models.CharField(max_length=500, blank=True, null=True)
     is_approved         = models.BooleanField(default=False)
+    STATUS_CHOICES      = [('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied')]
+    status              = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    remarks             = models.TextField(blank=True, null=True)
+    is_hidden           = models.BooleanField(default=False)
     organizer           = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_events')
     action_button_label = models.CharField(max_length=100, blank=True, null=True)
     action_button_link  = models.URLField(max_length=500, blank=True, null=True)
@@ -283,7 +287,8 @@ class CampaignDonation(models.Model):
 class Article(models.Model):
     STATUS_DRAFT     = 'draft'
     STATUS_PUBLISHED = 'published'
-    STATUS_CHOICES   = [(STATUS_DRAFT, 'Draft'), (STATUS_PUBLISHED, 'Published')]
+    STATUS_DENIED    = 'denied'
+    STATUS_CHOICES   = [(STATUS_DRAFT, 'Draft'), (STATUS_PUBLISHED, 'Published'), (STATUS_DENIED, 'Denied')]
     CATEGORY_CHOICES = [
         ('Giving', 'Giving'), ('Programs', 'Programs'), ('Community', 'Community'),
         ('Events', 'Events'), ('Achievements', 'Achievements'), ('Scholarship', 'Scholarship'),
@@ -297,6 +302,8 @@ class Article(models.Model):
     cover_image = models.ImageField(upload_to='article_covers/', null=True, blank=True)
     content     = models.TextField(blank=True)
     status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
+    remarks     = models.TextField(blank=True, null=True)
+    is_hidden   = models.BooleanField(default=False)
     created_by  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='articles')
     created_at  = models.DateTimeField(auto_now_add=True)
     updated_at  = models.DateTimeField(auto_now=True)

@@ -31,7 +31,7 @@ from .serializers import (
 @permission_classes([IsAuthenticated, IsAdminUser])
 def dashboard_stats(request):
     pending_users       = User.objects.filter(is_approved=False, is_superuser=False).count()
-    pending_events      = Event.objects.filter(is_approved=False).count()
+    pending_events      = Event.objects.filter(status='pending').count()
     pending_articles    = Article.objects.filter(status='draft').count()
     pending_jobs        = Job.objects.filter(status='pending').count()
     pending_internships = Internship.objects.filter(status='pending').count()
@@ -160,9 +160,9 @@ class EventListCreate(generics.ListCreateAPIView):
     parser_classes = (MultiPartParser, FormParser)
     def get_queryset(self):
         user = self.request.user
-        if user.is_anonymous: return Event.objects.filter(is_approved=True)
+        if user.is_anonymous: return Event.objects.filter(status='approved', is_hidden=False)
         if user.is_staff: return Event.objects.all()
-        return Event.objects.filter(is_approved=True) | Event.objects.filter(organizer=user)
+        return Event.objects.filter(status='approved', is_hidden=False) | Event.objects.filter(organizer=user)
     def perform_create(self, serializer): serializer.save(organizer=self.request.user)
 
 class EventDetailView(generics.RetrieveUpdateAPIView):
@@ -176,23 +176,43 @@ class EventDetailView(generics.RetrieveUpdateAPIView):
         return EventUpdateSerializer
     def get_queryset(self):
         if self.request.user.is_authenticated and self.request.user.is_staff: return Event.objects.all()
-        return Event.objects.filter(is_approved=True)
+        return Event.objects.filter(status='approved', is_hidden=False)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def approve_event(request, event_id):
     event = get_object_or_404(Event, pk=event_id)
-    event.is_approved = True; event.save()
+    event.status = 'approved'
+    event.is_approved = True
+    event.remarks = None
+    event.save()
     ActivityLog.objects.create(action=f"Event approved: {event.event_name}", module="Event Management", user=request.user, status="Completed")
-    return Response({"detail": "Event approved.", "is_approved": True})
+    return Response({"detail": "Event approved.", "status": "approved"})
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def deny_event(request, event_id):
+    event = get_object_or_404(Event, pk=event_id)
+    event.status = 'denied'
+    event.is_approved = False
+    event.remarks = request.data.get('remarks', '')
+    event.save()
+    ActivityLog.objects.create(action=f"Event denied: {event.event_name}", module="Event Management", user=request.user, status="Denied")
+    return Response({"detail": "Event denied.", "status": "denied"})
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def reject_event(request, event_id):
+    # Backwards-compatible alias
+    return deny_event(request, event_id)
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def event_toggle_hide(request, event_id):
     event = get_object_or_404(Event, pk=event_id)
-    event.is_approved = False; event.save()
-    ActivityLog.objects.create(action=f"Event rejected: {event.event_name}", module="Event Management", user=request.user, status="Rejected")
-    return Response({"detail": "Event rejected.", "is_approved": False})
+    event.is_hidden = not event.is_hidden
+    event.save()
+    return Response({'detail': 'Updated.', 'is_hidden': event.is_hidden})
 
 class EventDelete(generics.DestroyAPIView):
     serializer_class = EventSerializer
@@ -207,7 +227,7 @@ class EventDelete(generics.DestroyAPIView):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def register_for_event(request, event_id):
-    event = get_object_or_404(Event, pk=event_id, is_approved=True)
+    event = get_object_or_404(Event, pk=event_id, status='approved', is_hidden=False)
     if EventRegistration.objects.filter(event=event, user=request.user).exists():
         return Response({'detail': 'You are already registered for this event.'}, status=400)
     serializer = EventRegistrationSerializer(data={**request.data, 'event': event.id})
@@ -470,9 +490,31 @@ class ArticleDetailView(generics.RetrieveUpdateAPIView):
 @permission_classes([IsAuthenticated, IsAdminUser])
 def publish_article(request, article_id):
     article = get_object_or_404(Article, pk=article_id)
-    article.status = 'published'; article.approved_at = timezone.now(); article.save()
+    article.status = 'published'
+    article.remarks = None
+    article.is_hidden = False
+    article.approved_at = timezone.now()
+    article.save()
     ActivityLog.objects.create(action=f"Article published: {article.title}", module="CMS & News Feed", user=request.user, status="Completed")
     return Response({"detail": "Article published.", "status": article.status})
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def deny_article(request, article_id):
+    article = get_object_or_404(Article, pk=article_id)
+    article.status = 'denied'
+    article.remarks = request.data.get('remarks', '')
+    article.save()
+    ActivityLog.objects.create(action=f"Article denied: {article.title}", module="CMS & News Feed", user=request.user, status="Denied")
+    return Response({"detail": "Article denied.", "status": article.status})
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def article_toggle_hide(request, article_id):
+    article = get_object_or_404(Article, pk=article_id)
+    article.is_hidden = not article.is_hidden
+    article.save()
+    return Response({"detail": "Updated.", "is_hidden": article.is_hidden})
 
 class ArticleDelete(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
@@ -487,12 +529,12 @@ class ArticleDelete(generics.DestroyAPIView):
 class PublishedArticleList(generics.ListAPIView):
     serializer_class = ArticleSerializer
     permission_classes = [AllowAny]
-    queryset = Article.objects.filter(status='published').order_by("-approved_at", "-created_at")
+    queryset = Article.objects.filter(status='published', is_hidden=False).order_by("-approved_at", "-created_at")
 
 class PublishedArticleDetail(generics.RetrieveAPIView):
     serializer_class = ArticleSerializer
     permission_classes = [AllowAny]
-    def get_queryset(self): return Article.objects.filter(status='published')
+    def get_queryset(self): return Article.objects.filter(status='published', is_hidden=False)
 
 class ActivityLogListView(generics.ListAPIView):
     queryset = ActivityLog.objects.all()[:10]

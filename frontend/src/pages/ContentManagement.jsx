@@ -13,8 +13,12 @@ function ContentManagement() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [publishingId, setPublishingId] = useState(null);
+    const [denyingId, setDenyingId] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
+    const [togglingId, setTogglingId] = useState(null);
     const [detailsArticle, setDetailsArticle] = useState(null);
+    const [denyRemarks, setDenyRemarks] = useState('');
+    const [showDenyInput, setShowDenyInput] = useState(null);
 
     useEffect(() => {
         api.get('/api/articles/')
@@ -44,6 +48,42 @@ function ContentManagement() {
             })
             .catch(() => {})
             .finally(() => setPublishingId(null));
+    };
+
+    const handleDeny = (id) => {
+        setDenyingId(id);
+        api.post(`/api/articles/${id}/deny/`, { remarks: denyRemarks })
+            .then(() => api.get('/api/articles/'))
+            .then((res) => {
+                setArticles(res.data);
+                setShowDenyInput(null);
+                setDenyRemarks('');
+            })
+            .catch(() => {})
+            .finally(() => setDenyingId(null));
+    };
+
+    const handleToggleHide = (id) => {
+        setTogglingId(id);
+        api.patch(`/api/articles/${id}/toggle-hide/`)
+            .then((res) => {
+                setArticles((prev) => prev.map((a) => (a.id === id ? { ...a, is_hidden: res.data.is_hidden } : a)));
+                if (detailsArticle?.id === id) setDetailsArticle((d) => (d ? { ...d, is_hidden: res.data.is_hidden } : null));
+            })
+            .catch(() => {})
+            .finally(() => setTogglingId(null));
+    };
+
+    const getStatusClass = (a) => {
+        if (a.status === 'published') return a.is_hidden ? 'draft' : 'published';
+        if (a.status === 'denied') return 'denied';
+        return 'draft';
+    };
+
+    const getStatusLabel = (a) => {
+        if (a.status === 'published') return a.is_hidden ? 'Hidden' : 'Published';
+        if (a.status === 'denied') return 'Denied';
+        return 'Pending';
     };
 
     const handleDelete = (id) => {
@@ -90,8 +130,8 @@ function ContentManagement() {
                                             <td>{formatDate(a.updated_at)}</td>
                                             <td>{formatDate(a.date_published || a.approved_at)}</td>
                                             <td>
-                                                <span className={`content-mgmt-status content-mgmt-status-${a.status}`}>
-                                                    {a.status === 'published' ? 'Published' : 'Draft'}
+                                                <span className={`content-mgmt-status content-mgmt-status-${getStatusClass(a)}`}>
+                                                    {getStatusLabel(a)}
                                                 </span>
                                             </td>
                                             <td>
@@ -105,13 +145,6 @@ function ContentManagement() {
                                             </td>
                                             <td>
                                                 <span className="content-mgmt-actions">
-                                                    <button
-                                                        type="button"
-                                                        className="content-mgmt-edit-btn"
-                                                        onClick={() => navigate(`/dashboard/content/edit/${a.id}`)}
-                                                    >
-                                                        Edit
-                                                    </button>
                                                     {a.status === 'draft' && (
                                                         <button
                                                             type="button"
@@ -122,14 +155,83 @@ function ContentManagement() {
                                                             {publishingId === a.id ? '…' : 'Publish'}
                                                         </button>
                                                     )}
-                                                    <button
-                                                        type="button"
-                                                        className="content-mgmt-delete-btn"
-                                                        onClick={() => handleDelete(a.id)}
-                                                        disabled={deletingId === a.id}
-                                                    >
-                                                        {deletingId === a.id ? '…' : 'Delete'}
-                                                    </button>
+                                                    {a.status === 'draft' && (
+                                                        <>
+                                                            {showDenyInput === a.id ? (
+                                                                <>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={denyRemarks}
+                                                                        onChange={(e) => setDenyRemarks(e.target.value)}
+                                                                        placeholder="Reason for denial..."
+                                                                        style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, width: 180 }}
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        className="content-mgmt-delete-btn"
+                                                                        onClick={() => handleDeny(a.id)}
+                                                                        disabled={denyingId === a.id}
+                                                                    >
+                                                                        {denyingId === a.id ? '…' : 'Confirm'}
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="content-mgmt-delete-btn"
+                                                                        onClick={() => { setShowDenyInput(null); setDenyRemarks(''); }}
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                </>
+                                                            ) : (
+                                                                <button
+                                                                    type="button"
+                                                                    className="content-mgmt-delete-btn"
+                                                                    onClick={() => setShowDenyInput(a.id)}
+                                                                >
+                                                                    Deny
+                                                                </button>
+                                                            )}
+                                                        </>
+                                                    )}
+
+                                                    {a.status === 'published' && (
+                                                        <>
+                                                            <button
+                                                                type="button"
+                                                                className="content-mgmt-edit-btn"
+                                                                onClick={() => navigate(`/dashboard/content/edit/${a.id}`)}
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="content-mgmt-publish-btn"
+                                                                onClick={() => handleToggleHide(a.id)}
+                                                                disabled={togglingId === a.id}
+                                                            >
+                                                                {togglingId === a.id ? '…' : (a.is_hidden ? 'Activate' : 'Deactivate')}
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="content-mgmt-delete-btn"
+                                                                onClick={() => handleDelete(a.id)}
+                                                                disabled={deletingId === a.id}
+                                                            >
+                                                                {deletingId === a.id ? '…' : 'Delete'}
+                                                            </button>
+                                                        </>
+                                                    )}
+
+                                                    {a.status === 'denied' && (
+                                                        <button
+                                                            type="button"
+                                                            className="content-mgmt-delete-btn"
+                                                            onClick={() => handleDelete(a.id)}
+                                                            disabled={deletingId === a.id}
+                                                        >
+                                                            {deletingId === a.id ? '…' : 'Delete'}
+                                                        </button>
+                                                    )}
                                                 </span>
                                             </td>
                                         </tr>
@@ -187,10 +289,16 @@ function ContentManagement() {
                                 )}
                                 <div className="content-mgmt-detail-row">
                                     <span className="content-mgmt-detail-label">Status</span>
-                                    <span className={`content-mgmt-status content-mgmt-status-${detailsArticle.status}`}>
-                                        {detailsArticle.status === 'published' ? 'Published' : 'Draft'}
+                                    <span className={`content-mgmt-status content-mgmt-status-${getStatusClass(detailsArticle)}`}>
+                                        {getStatusLabel(detailsArticle)}
                                     </span>
                                 </div>
+                                {detailsArticle.remarks && (
+                                    <div className="content-mgmt-detail-row content-mgmt-detail-block">
+                                        <span className="content-mgmt-detail-label">Denial Remarks</span>
+                                        <span className="content-mgmt-detail-value">{detailsArticle.remarks}</span>
+                                    </div>
+                                )}
                                 <div className="content-mgmt-detail-row">
                                     <span className="content-mgmt-detail-label">Created</span>
                                     <span className="content-mgmt-detail-value">
@@ -208,6 +316,18 @@ function ContentManagement() {
                             </div>
                             <div className="content-mgmt-modal-actions">
                                 <div />
+                                {detailsArticle.status === 'draft' && (
+                                    <button
+                                        type="button"
+                                        className="content-mgmt-edit-btn"
+                                        onClick={() => {
+                                            setDetailsArticle(null);
+                                            navigate(`/dashboard/content/edit/${detailsArticle.id}`);
+                                        }}
+                                    >
+                                        Edit
+                                    </button>
+                                )}
                                 <button type="button" className="content-mgmt-modal-close" onClick={() => setDetailsArticle(null)}>
                                     Close
                                 </button>

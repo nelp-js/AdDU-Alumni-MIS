@@ -68,7 +68,7 @@ function Dashboard() {
                 setAlumniCount(active.length);
             }),
             api.get('/api/events/').then((res) => {
-                setEventsCount((res.data || []).filter(e => e.is_approved === true).length);
+                setEventsCount((res.data || []).filter(e => e.status === 'approved' && e.is_hidden !== true).length);
             }),
             api.get('/api/articles/published/').then((res) => {
                 setArticlesCount(Array.isArray(res.data) ? res.data.length : 0);
