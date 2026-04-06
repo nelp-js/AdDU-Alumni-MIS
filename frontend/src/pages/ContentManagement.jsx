@@ -1,10 +1,74 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/ContentManagement.css';
 import { useTitle } from '../Hooks/useTitle';
+
+/* Split dropdown used for published articles */
+function SplitDropdown({ article, onEdit, onToggleHide, onDelete, togglingId, deletingId }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+
+    /* close on outside click */
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [open]);
+
+    return (
+        <div className="content-mgmt-btn-group" ref={ref}>
+            {/* Left: Edit */}
+            <button
+                type="button"
+                className="content-mgmt-split-main"
+                onClick={() => { setOpen(false); onEdit(); }}
+            >
+                Edit
+            </button>
+
+            {/* Right: chevron toggle */}
+            <button
+                type="button"
+                className="content-mgmt-split-toggle"
+                onClick={() => setOpen((v) => !v)}
+                aria-expanded={open}
+            >
+                ▾
+            </button>
+
+            {/* Dropdown menu */}
+            {open && (
+                <ul className="content-mgmt-dropdown-menu" role="menu">
+                    <li>
+                        <button
+                            type="button"
+                            className={`content-mgmt-dropdown-item ${article.is_hidden ? 'item-activate' : 'item-deactivate'}`}
+                            onClick={() => { setOpen(false); onToggleHide(); }}
+                            disabled={togglingId === article.id}
+                        >
+                            {togglingId === article.id ? '…' : (article.is_hidden ? 'Activate' : 'Deactivate')}
+                        </button>
+                    </li>
+                    
+                    <li>
+                        <button
+                            type="button"
+                            className="content-mgmt-dropdown-item item-delete"
+                            onClick={() => { setOpen(false); onDelete(); }}
+                            disabled={deletingId === article.id}
+                        >
+                            {deletingId === article.id ? '…' : 'Delete'}
+                        </button>
+                    </li>
+                </ul>
+            )}
+        </div>
+    );
+}
 
 function ContentManagement() {
     useTitle('Manage Content');
@@ -43,9 +107,7 @@ function ContentManagement() {
         setPublishingId(id);
         api.post(`/api/articles/${id}/publish/`)
             .then(() => api.get('/api/articles/'))
-            .then((res) => {
-                setArticles(res.data);
-            })
+            .then((res) => setArticles(res.data))
             .catch(() => {})
             .finally(() => setPublishingId(null));
     };
@@ -145,18 +207,18 @@ function ContentManagement() {
                                             </td>
                                             <td>
                                                 <span className="content-mgmt-actions">
-                                                    {a.status === 'draft' && (
-                                                        <button
-                                                            type="button"
-                                                            className="content-mgmt-publish-btn"
-                                                            onClick={() => handlePublish(a.id)}
-                                                            disabled={publishingId === a.id}
-                                                        >
-                                                            {publishingId === a.id ? '…' : 'Publish'}
-                                                        </button>
-                                                    )}
+
+                                                    {/* ── Draft / Pending ── */}
                                                     {a.status === 'draft' && (
                                                         <>
+                                                            <button
+                                                                type="button"
+                                                                className="content-mgmt-publish-btn"
+                                                                onClick={() => handlePublish(a.id)}
+                                                                disabled={publishingId === a.id}
+                                                            >
+                                                                {publishingId === a.id ? '…' : 'Publish'}
+                                                            </button>
                                                             {showDenyInput === a.id ? (
                                                                 <>
                                                                     <input
@@ -164,11 +226,11 @@ function ContentManagement() {
                                                                         value={denyRemarks}
                                                                         onChange={(e) => setDenyRemarks(e.target.value)}
                                                                         placeholder="Reason for denial..."
-                                                                        style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, width: 180 }}
+                                                                        style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, width: 180 }}
                                                                     />
                                                                     <button
                                                                         type="button"
-                                                                        className="content-mgmt-delete-btn"
+                                                                        className="content-mgmt-deny-confirm-btn"
                                                                         onClick={() => handleDeny(a.id)}
                                                                         disabled={denyingId === a.id}
                                                                     >
@@ -176,7 +238,7 @@ function ContentManagement() {
                                                                     </button>
                                                                     <button
                                                                         type="button"
-                                                                        className="content-mgmt-delete-btn"
+                                                                        className="content-mgmt-cancel-btn"
                                                                         onClick={() => { setShowDenyInput(null); setDenyRemarks(''); }}
                                                                     >
                                                                         Cancel
@@ -185,7 +247,7 @@ function ContentManagement() {
                                                             ) : (
                                                                 <button
                                                                     type="button"
-                                                                    className="content-mgmt-delete-btn"
+                                                                    className="content-mgmt-deny-confirm-btn"
                                                                     onClick={() => setShowDenyInput(a.id)}
                                                                 >
                                                                     Deny
@@ -194,34 +256,19 @@ function ContentManagement() {
                                                         </>
                                                     )}
 
+                                                    {/* ── Published — split dropdown ── */}
                                                     {a.status === 'published' && (
-                                                        <>
-                                                            <button
-                                                                type="button"
-                                                                className="content-mgmt-edit-btn"
-                                                                onClick={() => navigate(`/dashboard/content/edit/${a.id}`)}
-                                                            >
-                                                                Edit
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                className="content-mgmt-publish-btn"
-                                                                onClick={() => handleToggleHide(a.id)}
-                                                                disabled={togglingId === a.id}
-                                                            >
-                                                                {togglingId === a.id ? '…' : (a.is_hidden ? 'Activate' : 'Deactivate')}
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                className="content-mgmt-delete-btn"
-                                                                onClick={() => handleDelete(a.id)}
-                                                                disabled={deletingId === a.id}
-                                                            >
-                                                                {deletingId === a.id ? '…' : 'Delete'}
-                                                            </button>
-                                                        </>
+                                                        <SplitDropdown
+                                                            article={a}
+                                                            onEdit={() => navigate(`/dashboard/content/edit/${a.id}`)}
+                                                            onToggleHide={() => handleToggleHide(a.id)}
+                                                            onDelete={() => handleDelete(a.id)}
+                                                            togglingId={togglingId}
+                                                            deletingId={deletingId}
+                                                        />
                                                     )}
 
+                                                    {/* ── Denied — single delete button ── */}
                                                     {a.status === 'denied' && (
                                                         <button
                                                             type="button"
@@ -232,6 +279,7 @@ function ContentManagement() {
                                                             {deletingId === a.id ? '…' : 'Delete'}
                                                         </button>
                                                     )}
+
                                                 </span>
                                             </td>
                                         </tr>
@@ -249,6 +297,7 @@ function ContentManagement() {
                     </Link>
                 </div>
 
+                {/* View Details modal */}
                 {detailsArticle && (
                     <div className="content-mgmt-modal-overlay" onClick={() => setDetailsArticle(null)}>
                         <div className="content-mgmt-modal" onClick={(e) => e.stopPropagation()}>

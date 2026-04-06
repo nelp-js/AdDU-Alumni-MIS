@@ -127,36 +127,225 @@
 .content-mgmt-actions {
     display: flex;
     gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
-.content-mgmt-edit-btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px solid #040354;
-    background: #f0f0f5;
-    color: #040354;
+/* ── Split dropdown button ── */
+.content-mgmt-btn-group {
+    position: relative;
+    display: inline-flex;
+}
+
+/* Left half — "Edit" label */
+.content-mgmt-split-main {
+    padding: 8px 14px;
+    border: 1px solid #d1d5db;
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    background: transparent;
+    color: #374151;
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.content-mgmt-split-main:hover {
+    background: #f3f4f6;
 }
 
-.content-mgmt-publish-btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px solid #059669;
-    background: #ecfdf5;
-    color: #059669;
+/* Right half — chevron toggle */
+.content-mgmt-split-toggle {
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 0 8px 8px 0;
+    background: transparent;
+    color: #374151;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+}
+.content-mgmt-split-toggle:hover {
+    background: #f3f4f6;
+}
+
+/* Dropdown menu */
+.content-mgmt-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 150px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+    z-index: 100;
+    overflow: hidden;
+    padding: 4px 0;
+}
+
+.content-mgmt-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 9px 16px;
+    background: none;
+    border: none;
+    text-align: left;
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.12s;
+    box-sizing: border-box;
 }
 
+/* Activate — gray */
+.content-mgmt-dropdown-item.item-activate {
+    color: #374151;
+}
+.content-mgmt-dropdown-item.item-activate:hover {
+    background: #f3f4f6;
+}
+
+/* Deactivate — gray */
+.content-mgmt-dropdown-item.item-deactivate {
+    color: #374151;
+}
+.content-mgmt-dropdown-item.item-deactivate:hover {
+    background: #f3f4f6;
+}
+
+/* Delete — red */
+.content-mgmt-dropdown-item.item-delete {
+    color: #b91c1c;
+}
+.content-mgmt-dropdown-item.item-delete:hover {
+    background: #fee2e2;
+}
+
+.content-mgmt-dropdown-item:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Standalone delete button (denied entries) */
 .content-mgmt-delete-btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px solid #dc2626;
-    background: #fef2f2;
-    color: #dc2626;
+    padding: 8px 16px;
+    min-width: 90px;
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    background: transparent;
+    color: #b91c1c;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.content-mgmt-delete-btn:hover:not(:disabled) {
+    border-color: #f87171;
+    color: #991b1b;
+}
+.content-mgmt-delete-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Draft-row buttons (Publish / Deny flow) */
+.content-mgmt-publish-btn {
+    padding: 8px 16px;
+    min-width: 90px;
+    border: 1px solid #86efac;
+    border-radius: 8px;
+    background: transparent;
+    color: #047857;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.content-mgmt-publish-btn:hover:not(:disabled) {
+    border-color: #4ade80;
+    color: #065f46;
+}
+.content-mgmt-publish-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.content-mgmt-deny-confirm-btn {
+    padding: 8px 16px;
+    min-width: 90px;
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    background: transparent;
+    color: #b91c1c;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.content-mgmt-deny-confirm-btn:hover:not(:disabled) {
+    border-color: #f87171;
+    color: #991b1b;
+}
+.content-mgmt-deny-confirm-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.content-mgmt-cancel-btn {
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    color: #6d7280;
     font-size: 13px;
     cursor: pointer;
+}
+.content-mgmt-cancel-btn:hover {
+    color: #374151;
+}
+
+/* Modal close button */
+.content-mgmt-modal-close {
+    padding: 8px 16px;
+    min-width: 90px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: transparent;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.content-mgmt-modal-close:hover {
+    background: #f3f4f6;
+}
+
+/* Modal edit button */
+.content-mgmt-edit-btn {
+    padding: 8px 16px;
+    min-width: 90px;
+    border: 1px solid #93c5fd;
+    border-radius: 8px;
+    background: transparent;
+    color: #1d4ed8;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.content-mgmt-edit-btn:hover {
+    border-color: #60a5fa;
+    color: #1e40af;
 }
 
 .content-mgmt-back {
@@ -266,16 +455,7 @@
 .content-mgmt-modal-actions {
     display: flex;
     justify-content: flex-end;
+    gap: 8px;
     padding: 16px 24px;
     border-top: 1px solid #e5e7eb;
-}
-
-.content-mgmt-modal-close {
-    padding: 10px 20px;
-    background: #040354;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
 }
