@@ -37,6 +37,7 @@
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
     padding: 24px;
     margin-bottom: 24px;
+    overflow: visible;
 }
 
 .event-mgmt-loading,
@@ -54,8 +55,8 @@
 
 .event-mgmt-table-wrap {
     overflow-x: auto;
-    max-height: 360px;
-    overflow-y: auto;
+    overflow-y: visible;
+    max-height: none;
 }
 
 .event-mgmt-table {
@@ -97,6 +98,8 @@
 .event-mgmt-table td {
     padding: 14px 16px;
     color: #4b5563;
+    vertical-align: middle;
+    overflow: visible;
 }
 
 .event-mgmt-status {
@@ -104,6 +107,8 @@
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 13px;
+    display: inline-flex;
+    align-items: center;
 }
 
 .event-mgmt-status.pending {
@@ -116,12 +121,18 @@
     color: #065f46;
 }
 
+.event-mgmt-status.denied {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
 .event-mgmt-actions {
-    display: flex;         
-    flex-direction: row;  
-    gap: 8px;            
-    align-items: center;  
-    white-space: nowrap; 
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    white-space: nowrap;
+    flex-wrap: wrap;
 }
 
 .event-mgmt-approve-btn,
@@ -213,6 +224,137 @@
     opacity: 0.85;
 }
 
+.event-mgmt-deny-input {
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    width: 180px;
+    box-sizing: border-box;
+}
+
+.event-mgmt-deny-input:focus {
+    outline: none;
+    border-color: #040354;
+}
+
+/* Split dropdown */
+.event-mgmt-btn-group {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+.event-mgmt-split-main {
+    padding: 8px 14px;
+    border: 1px solid #d1d5db;
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    background: transparent;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.event-mgmt-split-main:hover {
+    background: #f3f4f6;
+}
+
+.event-mgmt-split-toggle {
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 0 8px 8px 0;
+    background: transparent;
+    color: #374151;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    line-height: 1;
+}
+
+.event-mgmt-split-toggle:hover {
+    background: #f3f4f6;
+}
+
+.event-mgmt-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 150px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+    z-index: 9999;
+    overflow: hidden;
+    padding: 4px 0;
+    margin: 0;
+    list-style: none;
+}
+
+.event-mgmt-dropdown-menu.open-up {
+    top: auto;
+    bottom: calc(100% + 6px);
+}
+
+.event-mgmt-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 9px 16px;
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.12s;
+    box-sizing: border-box;
+}
+
+/* Activate — gray */
+.event-mgmt-dropdown-item.item-activate {
+    color: #374151;
+}
+
+.event-mgmt-dropdown-item.item-activate:hover {
+    background: #f3f4f6;
+}
+
+/* Deactivate — gray */
+.event-mgmt-dropdown-item.item-deactivate {
+    color: #374151;
+}
+
+.event-mgmt-dropdown-item.item-deactivate:hover {
+    background: #f3f4f6;
+}
+
+/* Delete — red */
+.event-mgmt-dropdown-item.item-delete {
+    color: #b91c1c;
+}
+
+.event-mgmt-dropdown-item.item-delete:hover {
+    background: #fee2e2;
+}
+
+.event-mgmt-dropdown-item:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Details (read-only) modal */
 .event-mgmt-details-modal .event-mgmt-details-content {
     display: flex;
@@ -272,7 +414,7 @@
     margin-left: auto;
 }
 
-/* Edit modal */
+/* Modal */
 .event-mgmt-modal-overlay {
     position: fixed;
     inset: 0;
@@ -437,17 +579,3 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
-
-@media (max-width: 768px) {
-    .event-mgmt-main {
-        padding: 40px 16px 32px;
-    }
-
-    .event-mgmt-table th,
-    .event-mgmt-table td {
-        padding: 10px 12px;
-        font-size: 13px;
-    }
-}
-
-

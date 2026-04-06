@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -6,41 +6,157 @@ import api from '../api';
 import '../styles/EventManagement.css';
 import { useTitle } from '../Hooks/useTitle';
 
+function SplitDropdown({
+    eventId,
+    onEdit,
+    onDelete,
+    onToggle,
+    deletingId,
+    togglingId,
+    isHidden,
+    openUp = false,
+}) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+
+    useEffect(() => {
+        if (!open) return;
+
+        const handler = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [open]);
+
+    return (
+        <div className="event-mgmt-btn-group" ref={ref}>
+            <button
+                type="button"
+                className="event-mgmt-split-main"
+                onClick={() => {
+                    setOpen(false);
+                    onEdit();
+                }}
+            >
+                Edit
+            </button>
+
+            <button
+                type="button"
+                className="event-mgmt-split-toggle"
+                onClick={() => setOpen((v) => !v)}
+                aria-expanded={open}
+                aria-haspopup="menu"
+            >
+                ▾
+            </button>
+
+            {open && (
+                <ul
+                    className={`event-mgmt-dropdown-menu ${openUp ? 'open-up' : ''}`}
+                    role="menu"
+                >
+                    <li>
+                        <button
+                            type="button"
+                            className={`event-mgmt-dropdown-item ${
+                                isHidden ? 'item-activate' : 'item-deactivate'
+                            }`}
+                            onClick={() => {
+                                setOpen(false);
+                                onToggle();
+                            }}
+                            disabled={togglingId === eventId}
+                        >
+                            {togglingId === eventId ? '...' : isHidden ? 'Activate' : 'Deactivate'}
+                        </button>
+                    </li>
+
+                    <li>
+                        <button
+                            type="button"
+                            className="event-mgmt-dropdown-item item-delete"
+                            onClick={() => {
+                                setOpen(false);
+                                onDelete();
+                            }}
+                            disabled={deletingId === eventId}
+                        >
+                            {deletingId === eventId ? '...' : 'Delete'}
+                        </button>
+                    </li>
+                </ul>
+            )}
+        </div>
+    );
+}
+
 function EventManagement() {
     useTitle('Event Management');
     const navigate = useNavigate();
 
-    const [events, setEvents]             = useState([]);
-    const [loading, setLoading]           = useState(true);
-    const [error, setError]               = useState(null);
-    const [approvingId, setApprovingId]   = useState(null);
-    const [denyingId, setDenyingId]       = useState(null);
-    const [deletingId, setDeletingId]     = useState(null);
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [approvingId, setApprovingId] = useState(null);
+    const [denyingId, setDenyingId] = useState(null);
+    const [deletingId, setDeletingId] = useState(null);
     const [detailsEvent, setDetailsEvent] = useState(null);
-    const [togglingId, setTogglingId]     = useState(null);
-    const [denyRemarks, setDenyRemarks]   = useState('');
+    const [togglingId, setTogglingId] = useState(null);
+    const [denyRemarks, setDenyRemarks] = useState('');
     const [showDenyInput, setShowDenyInput] = useState(null);
 
     useEffect(() => {
         api.get('/api/events/')
             .then((res) => setEvents(res.data))
-            .catch((err) => setError(err.response?.status === 403 ? 'Admin access required.' : 'Failed to load events.'))
+            .catch((err) =>
+                setError(
+                    err.response?.status === 403
+                        ? 'Admin access required.'
+                        : 'Failed to load events.'
+                )
+            )
             .finally(() => setLoading(false));
     }, []);
 
     const handleApprove = (eventId) => {
         setApprovingId(eventId);
+
         api.post(`/api/events/${eventId}/approve/`)
-            .then(() => setEvents((prev) => prev.map((e) => e.id === eventId ? { ...e, status: 'approved', is_approved: true, remarks: null } : e)))
+            .then(() =>
+                setEvents((prev) =>
+                    prev.map((e) =>
+                        e.id === eventId
+                            ? { ...e, status: 'approved', is_approved: true, remarks: null }
+                            : e
+                    )
+                )
+            )
             .catch(() => {})
             .finally(() => setApprovingId(null));
     };
 
     const handleDeny = (eventId) => {
         setDenyingId(eventId);
+
         api.post(`/api/events/${eventId}/deny/`, { remarks: denyRemarks })
             .then(() => {
-                setEvents((prev) => prev.map((e) => e.id === eventId ? { ...e, status: 'denied', is_approved: false, remarks: denyRemarks } : e));
+                setEvents((prev) =>
+                    prev.map((e) =>
+                        e.id === eventId
+                            ? {
+                                  ...e,
+                                  status: 'denied',
+                                  is_approved: false,
+                                  remarks: denyRemarks,
+                              }
+                            : e
+                    )
+                );
                 setShowDenyInput(null);
                 setDenyRemarks('');
             })
@@ -50,18 +166,32 @@ function EventManagement() {
 
     const handleToggleHide = (eventId) => {
         setTogglingId(eventId);
+
         api.patch(`/api/events/${eventId}/toggle-hide/`)
             .then((res) => {
-                setEvents((prev) => prev.map((e) => e.id === eventId ? { ...e, is_hidden: res.data.is_hidden } : e));
-                if (detailsEvent?.id === eventId) setDetailsEvent((d) => (d ? { ...d, is_hidden: res.data.is_hidden } : null));
+                setEvents((prev) =>
+                    prev.map((e) =>
+                        e.id === eventId ? { ...e, is_hidden: res.data.is_hidden } : e
+                    )
+                );
+
+                if (detailsEvent?.id === eventId) {
+                    setDetailsEvent((prev) =>
+                        prev ? { ...prev, is_hidden: res.data.is_hidden } : null
+                    );
+                }
             })
             .catch(() => {})
             .finally(() => setTogglingId(null));
     };
 
     const handleDelete = (eventId) => {
-        if (!window.confirm('Are you sure you want to delete this event? This cannot be undone.')) return;
+        if (!window.confirm('Are you sure you want to delete this event? This cannot be undone.')) {
+            return;
+        }
+
         setDeletingId(eventId);
+
         api.delete(`/api/events/delete/${eventId}/`)
             .then(() => setEvents((prev) => prev.filter((e) => e.id !== eventId)))
             .catch(() => alert('Failed to delete event.'))
@@ -70,8 +200,16 @@ function EventManagement() {
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '—';
-        try { return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }); }
-        catch { return dateStr; }
+
+        try {
+            return new Date(dateStr).toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+            });
+        } catch {
+            return dateStr;
+        }
     };
 
     const formatTime = (timeStr) => {
@@ -85,31 +223,40 @@ function EventManagement() {
         return t ? `${d} at ${t}` : d;
     };
 
-    const getStatusClass = (e) => {
-        const s = e.status || (e.is_approved ? 'approved' : 'pending');
-        if (s === 'approved') return e.is_hidden ? 'denied' : 'approved';
-        if (s === 'denied') return 'denied';
+    const getStatusClass = (event) => {
+        const status = event.status || (event.is_approved ? 'approved' : 'pending');
+
+        if (status === 'approved') return event.is_hidden ? 'denied' : 'approved';
+        if (status === 'denied') return 'denied';
         return 'pending';
     };
-    const getStatusLabel = (e) => {
-        const s = e.status || (e.is_approved ? 'approved' : 'pending');
-        if (s === 'approved') return e.is_hidden ? 'Hidden' : 'Approved';
-        if (s === 'denied') return 'Denied';
+
+    const getStatusLabel = (event) => {
+        const status = event.status || (event.is_approved ? 'approved' : 'pending');
+
+        if (status === 'approved') return event.is_hidden ? 'Hidden' : 'Approved';
+        if (status === 'denied') return 'Denied';
         return 'Pending';
     };
-    const isPending = (e) => (e.status || (!e.is_approved ? 'pending' : 'approved')) === 'pending';
+
+    const isPending = (event) =>
+        (event.status || (!event.is_approved ? 'pending' : 'approved')) === 'pending';
 
     return (
         <div className="event-mgmt-page">
             <Header />
+
             <main className="event-mgmt-main">
                 <h1 className="event-mgmt-title">Event Management</h1>
                 <p className="event-mgmt-subtitle">Create, manage, and approve events.</p>
 
                 <div className="event-mgmt-card">
                     {loading && <div className="event-mgmt-loading">Loading events...</div>}
-                    {error   && <div className="event-mgmt-error">{error}</div>}
-                    {!loading && !error && events.length === 0 && <div className="event-mgmt-empty">No events yet.</div>}
+                    {error && <div className="event-mgmt-error">{error}</div>}
+                    {!loading && !error && events.length === 0 && (
+                        <div className="event-mgmt-empty">No events yet.</div>
+                    )}
+
                     {!loading && !error && events.length > 0 && (
                         <div className="event-mgmt-table-wrap">
                             <table className="event-mgmt-table">
@@ -123,14 +270,19 @@ function EventManagement() {
                                         <th>ACTION</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
-                                    {events.map((ev) => (
+                                    {events.map((ev, index) => (
                                         <tr key={ev.id}>
                                             <td>{ev.event_name || '—'}</td>
                                             <td>{ev.venue || '—'}</td>
                                             <td>{formatDateTime(ev.start_date, ev.start_time)}</td>
                                             <td>
-                                                <button type="button" className="event-mgmt-details-link" onClick={() => setDetailsEvent(ev)}>
+                                                <button
+                                                    type="button"
+                                                    className="event-mgmt-details-link"
+                                                    onClick={() => setDetailsEvent(ev)}
+                                                >
                                                     View Details
                                                 </button>
                                             </td>
@@ -142,46 +294,79 @@ function EventManagement() {
                                             <td>
                                                 {isPending(ev) ? (
                                                     <span className="event-mgmt-actions">
-                                                        <button type="button" className="event-mgmt-approve-btn" onClick={() => handleApprove(ev.id)} disabled={approvingId === ev.id}>
+                                                        <button
+                                                            type="button"
+                                                            className="event-mgmt-approve-btn"
+                                                            onClick={() => handleApprove(ev.id)}
+                                                            disabled={approvingId === ev.id}
+                                                        >
                                                             {approvingId === ev.id ? '...' : 'Approve'}
                                                         </button>
+
                                                         {showDenyInput === ev.id ? (
                                                             <span className="event-mgmt-actions">
                                                                 <input
                                                                     type="text"
                                                                     value={denyRemarks}
-                                                                    onChange={(e) => setDenyRemarks(e.target.value)}
+                                                                    onChange={(e) =>
+                                                                        setDenyRemarks(e.target.value)
+                                                                    }
                                                                     placeholder="Reason for denial..."
-                                                                    style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, width: 180 }}
+                                                                    className="event-mgmt-deny-input"
                                                                 />
-                                                                <button type="button" className="event-mgmt-reject-btn" onClick={() => handleDeny(ev.id)} disabled={denyingId === ev.id}>
+                                                                <button
+                                                                    type="button"
+                                                                    className="event-mgmt-reject-btn"
+                                                                    onClick={() => handleDeny(ev.id)}
+                                                                    disabled={denyingId === ev.id}
+                                                                >
                                                                     {denyingId === ev.id ? '...' : 'Confirm'}
                                                                 </button>
-                                                                <button type="button" className="event-mgmt-reject-btn" onClick={() => { setShowDenyInput(null); setDenyRemarks(''); }}>
+                                                                <button
+                                                                    type="button"
+                                                                    className="event-mgmt-reject-btn"
+                                                                    onClick={() => {
+                                                                        setShowDenyInput(null);
+                                                                        setDenyRemarks('');
+                                                                    }}
+                                                                >
                                                                     Cancel
                                                                 </button>
                                                             </span>
                                                         ) : (
-                                                            <button type="button" className="event-mgmt-reject-btn" onClick={() => setShowDenyInput(ev.id)}>
+                                                            <button
+                                                                type="button"
+                                                                className="event-mgmt-reject-btn"
+                                                                onClick={() => setShowDenyInput(ev.id)}
+                                                            >
                                                                 Deny
                                                             </button>
                                                         )}
                                                     </span>
-                                                ) : (ev.status === 'approved' || ev.is_approved) ? (
-                                                    <span className="event-mgmt-actions">
-                                                        <button type="button" className="event-mgmt-edit-btn" onClick={() => navigate(`/dashboard/events/edit/${ev.id}`)}>
-                                                            Edit
-                                                        </button>
-                                                        <button type="button" className="event-mgmt-reject-btn" onClick={() => handleToggleHide(ev.id)} disabled={togglingId === ev.id}>
-                                                            {togglingId === ev.id ? '...' : (ev.is_hidden ? 'Activate' : 'Deactivate')}
-                                                        </button>
-                                                        <button type="button" className="event-mgmt-delete-btn" onClick={() => handleDelete(ev.id)} disabled={deletingId === ev.id}>
-                                                            {deletingId === ev.id ? '...' : 'Delete'}
-                                                        </button>
-                                                    </span>
+                                                ) : ev.status === 'approved' || ev.is_approved ? (
+                                                    <SplitDropdown
+                                                        eventId={ev.id}
+                                                        onEdit={() =>
+                                                            navigate(`/dashboard/events/edit/${ev.id}`)
+                                                        }
+                                                        onDelete={() => handleDelete(ev.id)}
+                                                        onToggle={() => handleToggleHide(ev.id)}
+                                                        deletingId={deletingId}
+                                                        togglingId={togglingId}
+                                                        isHidden={ev.is_hidden}
+                                                        openUp={
+                                                            events.length > 2 &&
+                                                            index >= events.length - 2
+                                                        }
+                                                    />
                                                 ) : (
                                                     <span className="event-mgmt-actions">
-                                                        <button type="button" className="event-mgmt-delete-btn" onClick={() => handleDelete(ev.id)} disabled={deletingId === ev.id}>
+                                                        <button
+                                                            type="button"
+                                                            className="event-mgmt-delete-btn"
+                                                            onClick={() => handleDelete(ev.id)}
+                                                            disabled={deletingId === ev.id}
+                                                        >
                                                             {deletingId === ev.id ? '...' : 'Delete'}
                                                         </button>
                                                     </span>
@@ -196,117 +381,179 @@ function EventManagement() {
                 </div>
 
                 <div className="event-mgmt-back">
-                    <Link to="/dashboard" className="event-mgmt-back-link">← Back to Dashboard</Link>
-                    <Link to="/dashboard/events/registrations" className="event-mgmt-back-link event-mgmt-create-link">View Registrations</Link>
-                    <Link to="/create-event" className="event-mgmt-back-link event-mgmt-create-link">Create Event</Link>
+                    <Link to="/dashboard" className="event-mgmt-back-link">
+                        ← Back to Dashboard
+                    </Link>
+                    <Link
+                        to="/dashboard/events/registrations"
+                        className="event-mgmt-back-link event-mgmt-create-link"
+                    >
+                        View Registrations
+                    </Link>
+                    <Link
+                        to="/create-event"
+                        className="event-mgmt-back-link event-mgmt-create-link"
+                    >
+                        Create Event
+                    </Link>
                 </div>
 
-                {/* View Details modal */}
                 {detailsEvent && (
-                    <div className="event-mgmt-modal-overlay" onClick={() => setDetailsEvent(null)}>
-                        <div className="event-mgmt-modal event-mgmt-details-modal" onClick={(e) => e.stopPropagation()}>
+                    <div
+                        className="event-mgmt-modal-overlay"
+                        onClick={() => setDetailsEvent(null)}
+                    >
+                        <div
+                            className="event-mgmt-modal event-mgmt-details-modal"
+                            onClick={(e) => e.stopPropagation()}
+                        >
                             <h2 className="event-mgmt-modal-title">Event Details</h2>
-                            <div className="event-mgmt-details-content">
 
+                            <div className="event-mgmt-details-content">
                                 {detailsEvent.event_image && (
                                     <div className="event-mgmt-details-row">
                                         <span className="event-mgmt-details-label">Cover Photo</span>
-                                        <img src={detailsEvent.event_image} alt="Cover"
-                                            style={{ maxHeight: '140px', borderRadius: '8px', objectFit: 'cover' }} />
+                                        <img
+                                            src={detailsEvent.event_image}
+                                            alt="Cover"
+                                            style={{
+                                                maxHeight: '140px',
+                                                borderRadius: '8px',
+                                                objectFit: 'cover',
+                                            }}
+                                        />
                                     </div>
                                 )}
+
                                 <div className="event-mgmt-details-row">
                                     <span className="event-mgmt-details-label">Event Name</span>
-                                    <span className="event-mgmt-details-value">{detailsEvent.event_name || '—'}</span>
+                                    <span className="event-mgmt-details-value">
+                                        {detailsEvent.event_name || '—'}
+                                    </span>
                                 </div>
+
                                 <div className="event-mgmt-details-row">
                                     <span className="event-mgmt-details-label">Category</span>
-                                    <span className="event-mgmt-details-value">{detailsEvent.category || '—'}</span>
+                                    <span className="event-mgmt-details-value">
+                                        {detailsEvent.category || '—'}
+                                    </span>
                                 </div>
+
                                 {detailsEvent.preview_text && (
                                     <div className="event-mgmt-details-row event-mgmt-details-row-block">
                                         <span className="event-mgmt-details-label">Short Preview</span>
-                                        <span className="event-mgmt-details-value">{detailsEvent.preview_text}</span>
+                                        <span className="event-mgmt-details-value">
+                                            {detailsEvent.preview_text}
+                                        </span>
                                     </div>
                                 )}
+
                                 <div className="event-mgmt-details-row event-mgmt-details-row-block">
                                     <span className="event-mgmt-details-label">Description</span>
-                                    <span className="event-mgmt-details-value">{detailsEvent.event_description || '—'}</span>
+                                    <span className="event-mgmt-details-value">
+                                        {detailsEvent.event_description || '—'}
+                                    </span>
                                 </div>
+
                                 <div className="event-mgmt-details-row">
                                     <span className="event-mgmt-details-label">Venue</span>
-                                    <span className="event-mgmt-details-value">{detailsEvent.venue || '—'}</span>
+                                    <span className="event-mgmt-details-value">
+                                        {detailsEvent.venue || '—'}
+                                    </span>
                                 </div>
+
                                 <div className="event-mgmt-details-row">
                                     <span className="event-mgmt-details-label">Start</span>
-                                    <span className="event-mgmt-details-value">{formatDateTime(detailsEvent.start_date, detailsEvent.start_time)}</span>
+                                    <span className="event-mgmt-details-value">
+                                        {formatDateTime(detailsEvent.start_date, detailsEvent.start_time)}
+                                    </span>
                                 </div>
+
                                 <div className="event-mgmt-details-row">
                                     <span className="event-mgmt-details-label">End</span>
                                     <span className="event-mgmt-details-value">
-                                        {detailsEvent.end_date ? formatDateTime(detailsEvent.end_date, detailsEvent.end_time) : '—'}
+                                        {detailsEvent.end_date
+                                            ? formatDateTime(
+                                                  detailsEvent.end_date,
+                                                  detailsEvent.end_time
+                                              )
+                                            : '—'}
                                     </span>
                                 </div>
+
                                 <div className="event-mgmt-details-row">
                                     <span className="event-mgmt-details-label">Cost</span>
-                                    <span className="event-mgmt-details-value">{detailsEvent.cost || '—'}</span>
+                                    <span className="event-mgmt-details-value">
+                                        {detailsEvent.cost || '—'}
+                                    </span>
                                 </div>
+
                                 <div className="event-mgmt-details-row">
                                     <span className="event-mgmt-details-label">Capacity</span>
-                                    <span className="event-mgmt-details-value">{detailsEvent.participants || '—'}</span>
+                                    <span className="event-mgmt-details-value">
+                                        {detailsEvent.participants || '—'}
+                                    </span>
                                 </div>
+
                                 <div className="event-mgmt-details-row">
                                     <span className="event-mgmt-details-label">Organizers</span>
-                                    <span className="event-mgmt-details-value">{detailsEvent.organizer_names || '—'}</span>
+                                    <span className="event-mgmt-details-value">
+                                        {detailsEvent.organizer_names || '—'}
+                                    </span>
                                 </div>
+
                                 <div className="event-mgmt-details-row">
                                     <span className="event-mgmt-details-label">Status</span>
-                                    <span className={`event-mgmt-status ${getStatusClass(detailsEvent)}`}>
+                                    <span
+                                        className={`event-mgmt-status ${getStatusClass(detailsEvent)}`}
+                                    >
                                         {getStatusLabel(detailsEvent)}
                                     </span>
                                 </div>
+
                                 {detailsEvent.remarks && (
                                     <div className="event-mgmt-details-row event-mgmt-details-row-block">
                                         <span className="event-mgmt-details-label">Denial Remarks</span>
-                                        <span className="event-mgmt-details-value">{detailsEvent.remarks}</span>
+                                        <span className="event-mgmt-details-value">
+                                            {detailsEvent.remarks}
+                                        </span>
                                     </div>
                                 )}
+
                                 {detailsEvent.created_at && (
                                     <div className="event-mgmt-details-row">
                                         <span className="event-mgmt-details-label">Created</span>
-                                        <span className="event-mgmt-details-value">{formatDate(detailsEvent.created_at)}</span>
+                                        <span className="event-mgmt-details-value">
+                                            {formatDate(detailsEvent.created_at)}
+                                        </span>
                                     </div>
                                 )}
+
                                 {detailsEvent.updated_at && (
                                     <div className="event-mgmt-details-row">
                                         <span className="event-mgmt-details-label">Last Updated</span>
-                                        <span className="event-mgmt-details-value">{formatDate(detailsEvent.updated_at)}</span>
+                                        <span className="event-mgmt-details-value">
+                                            {formatDate(detailsEvent.updated_at)}
+                                        </span>
                                     </div>
                                 )}
                             </div>
+
                             <div className="event-mgmt-modal-actions event-mgmt-details-actions">
                                 <div />
-                                <div style={{ display: 'flex', gap: 8 }}>
-                                    {(detailsEvent.status == null || detailsEvent.status === 'pending') && (
-                                        <button
-                                            type="button"
-                                            className="event-mgmt-edit-btn"
-                                            onClick={() => {
-                                                setDetailsEvent(null);
-                                                navigate(`/dashboard/events/edit/${detailsEvent.id}`);
-                                            }}
-                                        >
-                                            Edit
-                                        </button>
-                                    )}
-                                    <button type="button" className="event-mgmt-modal-cancel" onClick={() => setDetailsEvent(null)}>Close</button>
-                                </div>
+                                <button
+                                    type="button"
+                                    className="event-mgmt-modal-cancel"
+                                    onClick={() => setDetailsEvent(null)}
+                                >
+                                    Close
+                                </button>
                             </div>
                         </div>
                     </div>
                 )}
-
             </main>
+
             <Footer />
         </div>
     );
