@@ -15,11 +15,11 @@ const ICON_COLOR = '#040354';
 
 const MODULE_CARDS = [
     { icon: 'users',       title: 'User Management',         description: 'Manage registration and accounts of users.',                                       button: 'Manage Users',     to: '/dashboard/users' },
-    { icon: 'document',    title: 'CMS & News Feed',         description: 'Manage website content, news articles, and information dissemination',             button: 'Manage Content',   to: '/dashboard/content',  secondaryButton: 'Create Content',    secondaryTo: '/dashboard/content/create' },
-    { icon: 'calendar',    title: 'Event Management',        description: 'Create, manage, and track alumni events and attendance',                           button: 'Manage Events',    to: '/dashboard/events',   secondaryButton: 'Create Event',      secondaryTo: '/create-event' },
-    { icon: 'briefcase',   title: 'Job & Internship',        description: 'Job postings, applications, and career tracking',                                  button: 'Manage Jobs',      to: '/dashboard/jobs',     secondaryButton: 'Create Job',        secondaryTo: '/dashboard/jobs/create' },
-    { icon: 'survey',      title: 'Feedback & Surveys',      description: 'Create surveys, collect feedback, and analyze tracer studies',                     button: 'Manage Surveys',   to: '#' },
-    { icon: 'fundraising', title: 'Fundraising & Donations', description: 'Campaign management, donations, and financial support',                            button: 'Manage Campaigns', to: '#',                   secondaryButton: 'Create Campaign',   secondaryTo: '/dashboard/donations/create' },
+    { icon: 'document',    title: 'CMS & News Feed',         description: 'Manage website content, news articles, and information dissemination.',             button: 'Manage Content',   to: '/dashboard/content',  secondaryButton: 'Create Content',    secondaryTo: '/dashboard/content/create' },
+    { icon: 'calendar',    title: 'Event Management',        description: 'Create, manage, and track alumni events and attendance.',                           button: 'Manage Events',    to: '/dashboard/events',   secondaryButton: 'Create Event',      secondaryTo: '/create-event' },
+    { icon: 'briefcase',   title: 'Job & Internship',        description: 'Job postings, applications, and career tracking.',                                  button: 'Manage Jobs & Internships',      to: '/dashboard/jobs',     secondaryButton: 'Create Job or Internship',        secondaryTo: '/dashboard/jobs/create' },
+    { icon: 'survey',      title: 'Feedback & Surveys',      description: 'Create surveys, collect feedback, and analyze tracer studies.',                     button: 'Manage Surveys',   to: '#' },
+    { icon: 'fundraising', title: 'Fundraising & Donations', description: 'Campaign management, donations, and financial support.',                            button: 'Manage Campaigns', to: '/dashboard/campaigns', secondaryButton: 'Create Campaign',   secondaryTo: '/dashboard/donations/create' },
 ];
 
 const STAT_ICON_MAP   = { people: FiUsers, calendar: FiCalendar, briefcase: FiBriefcase, donation: FiDollarSign, document: FiFileText };
@@ -80,7 +80,7 @@ function Dashboard() {
                 setInternshipsCount((res.data || []).filter(i => i.status === 'approved').length);
             }).catch(() => {}),
             api.get('/api/campaigns/').then((res) => {
-                setCampaignsCount((res.data || []).filter(c => c.is_active).length);
+                setCampaignsCount((res.data || []).filter(c => c.is_active && c.status === 'approved').length);
             }).catch(() => {}),
         ])
         .catch(err => console.error(err))
@@ -136,6 +136,7 @@ function Dashboard() {
                         if (card.title === 'Event Management')        badgeValue = notifications.events;
                         if (card.title === 'CMS & News Feed')         badgeValue = notifications.articles;
                         if (card.title === 'Job & Internship')        badgeValue = (notifications.jobs || 0) + (notifications.internships || 0);
+                        if (card.title === 'Fundraising & Donations') badgeValue = (notifications.campaigns || 0);
 
                         return (
                             <div key={card.title} className="dashboard-module-card" style={{ position: 'relative' }}>

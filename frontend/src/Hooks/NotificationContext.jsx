@@ -4,7 +4,7 @@ import api from '../api';
 const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
-    const [notifications, setNotifications] = useState({ total: 0, users: 0, events: 0, articles: 0 });
+    const [notifications, setNotifications] = useState({ total: 0, users: 0, events: 0, articles: 0, jobs: 0, internships: 0, campaigns: 0 });
 
     const fetchStats = async () => {
         try {

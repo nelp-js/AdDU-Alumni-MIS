@@ -35,7 +35,8 @@ def dashboard_stats(request):
     pending_articles    = Article.objects.filter(status='draft').count()
     pending_jobs        = Job.objects.filter(status='pending').count()
     pending_internships = Internship.objects.filter(status='pending').count()
-    total = pending_users + pending_events + pending_articles + pending_jobs + pending_internships
+    pending_campaigns   = Campaign.objects.filter(status='pending').count()
+    total = pending_users + pending_events + pending_articles + pending_jobs + pending_internships + pending_campaigns
     return Response({
         'total':        total,
         'users':        pending_users,
@@ -43,6 +44,7 @@ def dashboard_stats(request):
         'articles':     pending_articles,
         'jobs':         pending_jobs,
         'internships':  pending_internships,
+        'campaigns':    pending_campaigns,
     })
 
 
@@ -361,11 +363,11 @@ def internship_toggle_hide(request, internship_id):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def campaign_list_create(request):
     if request.method == 'GET':
-        # Admins see all, public sees only active
+        # Admins see all, public sees only approved + active
         if request.user.is_authenticated and request.user.is_staff:
             campaigns = Campaign.objects.all()
         else:
-            campaigns = Campaign.objects.filter(is_active=True)
+            campaigns = Campaign.objects.filter(is_active=True, status='approved')
         return Response(CampaignSerializer(campaigns, many=True).data)
 
     # POST — admin only
@@ -373,8 +375,8 @@ def campaign_list_create(request):
         return Response({'detail': 'Admin access required.'}, status=403)
     serializer = CampaignSerializer(data=request.data)
     if serializer.is_valid():
-        campaign = serializer.save(created_by=request.user)
-        ActivityLog.objects.create(action=f"Campaign created: {campaign.title}", module="Fundraising", user=request.user, status="Completed")
+        campaign = serializer.save(created_by=request.user, status='pending', remarks=None)
+        ActivityLog.objects.create(action=f"Campaign submitted: {campaign.title}", module="Fundraising", user=request.user, status="Pending")
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
 
@@ -408,9 +410,29 @@ def campaign_toggle_active(request, campaign_id):
     return Response({'detail': f'Campaign {action}.', 'is_active': campaign.is_active})
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def campaign_approve(request, campaign_id):
+    campaign = get_object_or_404(Campaign, pk=campaign_id)
+    campaign.status = 'approved'
+    campaign.remarks = None
+    campaign.save()
+    ActivityLog.objects.create(action=f"Campaign approved: {campaign.title}", module="Fundraising", user=request.user, status="Completed")
+    return Response({'detail': 'Campaign approved.', 'status': 'approved'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def campaign_deny(request, campaign_id):
+    campaign = get_object_or_404(Campaign, pk=campaign_id)
+    campaign.status = 'denied'
+    campaign.remarks = request.data.get('remarks', '')
+    campaign.save()
+    ActivityLog.objects.create(action=f"Campaign denied: {campaign.title}", module="Fundraising", user=request.user, status="Denied")
+    return Response({'detail': 'Campaign denied.', 'status': 'denied'})
+
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def campaign_donate(request, campaign_id):
-    campaign = get_object_or_404(Campaign, pk=campaign_id, is_active=True)
+    campaign = get_object_or_404(Campaign, pk=campaign_id, is_active=True, status='approved')
     serializer = CampaignDonationSerializer(data={**request.data, 'campaign': campaign.id})
     if serializer.is_valid():
         donation = serializer.save()

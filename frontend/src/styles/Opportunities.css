@@ -1,0 +1,139 @@
+.opp-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #f5f5f7;
+}
+
+.opp-main {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 40px 24px 72px;
+    box-sizing: border-box;
+}
+
+.opp-title {
+    margin: 0;
+    font-size: 36px;
+    font-weight: 300;
+    color: #111827;
+}
+
+.opp-subtitle {
+    margin: 8px 0 24px;
+    color: #6b7280;
+    font-size: 15px;
+}
+
+.opp-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.opp-tab {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+}
+
+.opp-tab.active {
+    background: #040354;
+    color: #fff;
+    border-color: #040354;
+}
+
+.opp-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.opp-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.opp-card-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.opp-card-company {
+    margin: 0;
+    font-size: 14px;
+    color: #4b5563;
+}
+
+.opp-card-meta {
+    margin: 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.opp-card-dates {
+    margin: 0;
+    font-size: 13px;
+    color: #4b5563;
+}
+
+.opp-card-desc {
+    margin: 0;
+    font-size: 14px;
+    color: #374151;
+    line-height: 1.5;
+}
+
+.opp-card-apply {
+    margin-top: auto;
+    text-decoration: none;
+    background: #040354;
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.opp-progress {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    overflow: hidden;
+}
+
+.opp-progress-bar {
+    height: 100%;
+    background: #040354;
+}
+
+.opp-state {
+    color: #6b7280;
+}
+
+.opp-error {
+    color: #b91c1c;
+}
+
+@media (max-width: 900px) {
+    .opp-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 640px) {
+    .opp-main { padding: 28px 16px 48px; }
+    .opp-title { font-size: 28px; }
+    .opp-grid { grid-template-columns: 1fr; }
+}

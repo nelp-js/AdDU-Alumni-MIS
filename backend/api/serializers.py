@@ -308,7 +308,7 @@ class CampaignSerializer(serializers.ModelSerializer):
             'id', 'title', 'description', 'category',
             'cover_image', 'image_url',
             'goal_amount', 'raised_amount', 'donors_count',
-            'end_date', 'is_active',
+            'end_date', 'status', 'remarks', 'is_active',
             'created_by', 'created_by_name',
             'created_at', 'updated_at',
             'donations_count',

@@ -233,6 +233,7 @@ class Campaign(models.Model):
         ('Research',       'Research'),
         ('Faculty',        'Faculty'),
     ]
+    STATUS_CHOICES = [('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied')]
 
     title         = models.CharField(max_length=255)
     description   = models.TextField(blank=True, default='')
@@ -243,6 +244,8 @@ class Campaign(models.Model):
     raised_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     donors_count  = models.PositiveIntegerField(default=0)
     end_date      = models.DateField()
+    status        = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    remarks       = models.TextField(blank=True, null=True)
     is_active     = models.BooleanField(default=True)
     created_by    = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='campaigns')
     created_at    = models.DateTimeField(auto_now_add=True)

@@ -55,7 +55,7 @@ function CreateCampaign() {
 
             await api.post('/api/campaigns/', data);
             setSuccess(true);
-            setTimeout(() => navigate('/dashboard/donations'), 3000);
+            setTimeout(() => navigate('/dashboard/campaigns'), 3000);
         } catch (err) {
             const d = err.response?.data;
             alert(`Failed to create campaign: ${d?.detail || 'Please try again.'}`);
@@ -71,7 +71,7 @@ function CreateCampaign() {
                 <main className="create-event-main">
                     <div className="create-event-form-box">
                         <div className="ce-success-message">
-                            <p>✓ Campaign created successfully!</p>
+                            <p>✓ Campaign submitted and pending approval.</p>
                             <p>Redirecting to dashboard...</p>
                         </div>
                     </div>

@@ -66,7 +66,32 @@ function CreateJob() {
         setLoading(true);
         try {
             const endpoint = type === 'job' ? '/api/jobs/' : '/api/internships/';
-            await api.post(endpoint, { ...formData, status: 'pending' });
+            const payload =
+                type === 'job'
+                    ? {
+                          company: formData.company,
+                          position: formData.position,
+                          location: formData.location,
+                          modality: formData.modality,
+                          employment_type: formData.employmentType,
+                          salary: formData.salary || '',
+                          email: formData.email,
+                          start_date: formData.startDate,
+                          end_date: formData.endDate,
+                          description: formData.description,
+                      }
+                    : {
+                          company: formData.company,
+                          position: formData.position,
+                          location: formData.location,
+                          modality: formData.modality,
+                          allowance: formData.allowance || '',
+                          email: formData.email,
+                          start_date: formData.startDate,
+                          end_date: formData.endDate,
+                          description: formData.description,
+                      };
+            await api.post(endpoint, payload);
             setSuccess(true);
             setTimeout(() => navigate('/dashboard/jobs'), 3000);
         } catch (err) {

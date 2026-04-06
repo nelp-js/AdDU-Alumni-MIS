@@ -48,6 +48,8 @@ urlpatterns = [
     # --- CAMPAIGN VIEWS ---
     path("campaigns/",                                  views.campaign_list_create,    name="campaign-list"),
     path("campaigns/<int:campaign_id>/",                views.campaign_detail,         name="campaign-detail"),
+    path("campaigns/<int:campaign_id>/approve/",        views.campaign_approve,        name="campaign-approve"),
+    path("campaigns/<int:campaign_id>/deny/",           views.campaign_deny,           name="campaign-deny"),
     path("campaigns/<int:campaign_id>/toggle-active/",  views.campaign_toggle_active,  name="campaign-toggle-active"),
     path("campaigns/<int:campaign_id>/donate/",         views.campaign_donate,         name="campaign-donate"),
 
