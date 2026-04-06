@@ -1,0 +1,374 @@
+.jm-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #F5F5F7;
+}
+
+.jm-main {
+    flex: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 60px 24px 40px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.jm-title {
+    font-size: 28px;
+    font-weight: 400;
+    color: #333;
+    text-align: center;
+    margin: 0 0 8px 0;
+    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
+}
+
+.jm-subtitle {
+    font-size: 14px;
+    color: #6d7280;
+    text-align: center;
+    margin: 0 0 24px 0;
+}
+
+/* ── Tabs ── */
+.jm-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 24px;
+}
+
+.jm-tab {
+    padding: 10px 28px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6d7280;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.15s;
+}
+
+.jm-tab.active {
+    color: #040354;
+    border-bottom-color: #040354;
+}
+
+.jm-tab:hover:not(.active) { color: #374151; }
+
+.jm-tab-badge {
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 99px;
+}
+
+/* ── Card ── */
+.jm-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.jm-state {
+    text-align: center;
+    padding: 32px;
+    color: #6d7280;
+    font-size: 15px;
+}
+
+.jm-error { color: #dc3545; }
+
+/* ── Table ── */
+.jm-table-wrap {
+    overflow-x: auto;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.jm-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.jm-table thead {
+    background: #f3f4f6;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    box-shadow: 0 1px 0 0 #e5e7eb;
+}
+
+.jm-table th {
+    text-align: left;
+    padding: 14px 16px;
+    font-weight: 600;
+    color: #040354;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    background: #f3f4f6;
+    white-space: nowrap;
+}
+
+.jm-table tbody tr { border-bottom: 1px solid #e5e7eb; }
+.jm-table tbody tr:last-child { border-bottom: none; }
+.jm-table tbody tr:nth-child(even) { background: #fafafa; }
+.jm-table tbody tr.jm-row-hidden { opacity: 0.5; }
+
+.jm-table td {
+    padding: 14px 16px;
+    color: #4b5563;
+    white-space: nowrap;
+}
+
+/* ── Status badge ── */
+.jm-status {
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    text-transform: capitalize;
+}
+
+.jm-status.pending  { background: #fef3c7; color: #92400e; }
+.jm-status.approved { background: #d1fae5; color: #065f46; }
+.jm-status.denied   { background: #fee2e2; color: #991b1b; }
+
+/* ── Actions ── */
+.jm-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.jm-details-link {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #040354;
+    text-decoration: underline;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.jm-details-link:hover { opacity: 0.85; }
+
+.jm-approve-btn {
+    padding: 8px 16px;
+    border: 1px solid #86efac;
+    color: #047857;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+
+.jm-approve-btn:hover:not(:disabled) { border-color: #4ade80; color: #065f46; }
+.jm-approve-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.jm-reject-btn {
+    padding: 8px 16px;
+    border: 1px solid #fca5a5;
+    color: #b91c1c;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+
+.jm-reject-btn:hover:not(:disabled) { border-color: #f87171; color: #991b1b; }
+.jm-reject-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.jm-hide-btn {
+    padding: 8px 16px;
+    border: 1px solid #d1d5db;
+    color: #374151;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+
+.jm-hide-btn:hover { background: #f3f4f6; }
+
+.jm-delete-btn {
+    padding: 8px 16px;
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+
+.jm-delete-btn:hover:not(:disabled) { background: #fee2e2; }
+.jm-delete-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.jm-cancel-deny-btn {
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    color: #6d7280;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+/* ── Deny inline input ── */
+.jm-deny-inline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.jm-deny-input {
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    width: 180px;
+}
+
+.jm-deny-input:focus {
+    outline: none;
+    border-color: #040354;
+}
+
+/* ── Back row ── */
+.jm-back {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.jm-back-link {
+    color: #040354;
+    text-decoration: underline;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.jm-back-link:hover { opacity: 0.8; }
+.jm-create-link { margin-left: auto; }
+
+/* ── Modal ── */
+.jm-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.jm-modal {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+.jm-modal-title {
+    margin: 0 0 20px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+}
+
+.jm-details-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.jm-details-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.jm-details-block {
+    flex-direction: column;
+    gap: 4px;
+}
+
+.jm-details-label {
+    flex-shrink: 0;
+    width: 140px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.jm-details-value {
+    flex: 1;
+    font-size: 14px;
+    color: #374151;
+    word-break: break-word;
+}
+
+.jm-remarks {
+    color: #991b1b;
+    font-style: italic;
+}
+
+.jm-modal-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.jm-modal-close {
+    padding: 10px 20px;
+    background: transparent;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #4b5563;
+}
+
+.jm-modal-close:hover { background: #f3f4f6; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .jm-main { padding: 40px 16px 32px; }
+    .jm-table th, .jm-table td { padding: 10px 12px; font-size: 13px; }
+    .jm-deny-input { width: 120px; }
+}
