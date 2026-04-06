@@ -39,13 +39,19 @@ function Events() {
         return bDate - aDate; // most recent past first
     });
 
-    const filteredEvents = sortedEvents.filter(
-        (e) =>
-            !searchQuery.trim() ||
-            (e.event_name && e.event_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-            (e.venue && e.venue.toLowerCase().includes(searchQuery.toLowerCase())) ||
-            (e.preview_text && e.preview_text.toLowerCase().includes(searchQuery.toLowerCase()))
+    const filteredEvents = sortedEvents.filter((e) => {
+    if (e.is_hidden) return false;
+    if (!e.is_approved) return false;
+    if (!searchQuery.trim()) return true;
+
+    const query = searchQuery.toLowerCase();
+
+    return (
+        (e.event_name && e.event_name.toLowerCase().includes(query)) ||
+        (e.venue && e.venue.toLowerCase().includes(query)) ||
+        (e.preview_text && e.preview_text.toLowerCase().includes(query))
     );
+});
 
     const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
