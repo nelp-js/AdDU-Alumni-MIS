@@ -79,7 +79,7 @@ function Header() {
                     <Link to="/stories">News &amp; Stories</Link>
                     <Link to="/events">Events</Link>
                     <Link to="/jobs">Engage</Link>
-                    <Link to="/campaigns">Support</Link>
+                    <Link to="/Campaigns">Support</Link>
                     <a href="#volunteer">Volunteer</a>
 
                     {isAdmin && (
