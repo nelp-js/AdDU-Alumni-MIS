@@ -102,6 +102,11 @@
     overflow: visible;
 }
 
+.event-mgmt-table th:nth-child(3),
+.event-mgmt-table td:nth-child(3) {
+    white-space: nowrap;
+}
+
 .event-mgmt-status {
     font-weight: 500;
     padding: 4px 10px;
@@ -138,6 +143,7 @@
 .event-mgmt-approve-btn,
 .event-mgmt-reject-btn {
     padding: 8px 14px;
+    min-width: 96px;
     background: transparent;
     border-radius: 8px;
     font-size: 13px;
@@ -145,6 +151,7 @@
     cursor: pointer;
     transition: all 0.2s ease;
     box-sizing: border-box;
+    text-align: center;
 }
 
 .event-mgmt-approve-btn {
@@ -216,9 +223,11 @@
 
 .event-mgmt-delete-btn {
     padding: 8px 14px;
+    min-width: 96px;
     background: transparent;
     color: #dc3545;
     border: 1px solid #dc3545;
+    text-align: center;
 }
 
 .event-mgmt-delete-btn:hover:not(:disabled) {

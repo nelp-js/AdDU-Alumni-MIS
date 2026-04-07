@@ -94,7 +94,7 @@ function getStatusLabel(campaign) {
     return 'Pending';
 }
 
-function truncateText(value, max = 65) {
+function truncateText(value, max = 100) {
     const text = typeof value === 'string' ? value : '';
     if (text.length <= max) return text;
     return `${text.slice(0, max).trimEnd()}...`;
@@ -266,7 +266,7 @@ function CampaignManagement() {
                     )}
                     {!loading && !error && campaigns.length > 0 && (
                         <div className="jm-table-wrap">
-                            <table className="jm-table">
+                            <table className="jm-table campaign-mgmt-table">
                                 <thead>
                                     <tr>
                                         <th>TITLE</th>
@@ -282,7 +282,7 @@ function CampaignManagement() {
                                 <tbody>
                                     {campaigns.map((c) => (
                                         <tr key={c.id} className={!c.is_active ? 'jm-row-hidden' : ''}>
-                                            <td className="jm-cell-wrap-2" title={c.title || ''}>
+                                            <td className="campaign-mgmt-title-cell" title={c.title || ''}>
                                                 {truncateText(c.title || '—')}
                                             </td>
                                             <td className="jm-cell-nowrap">{c.category || '—'}</td>

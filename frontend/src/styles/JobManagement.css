@@ -150,6 +150,14 @@
     white-space: nowrap;
 }
 
+/* Campaign table: let title wrap naturally like Event Management */
+.campaign-mgmt-table .campaign-mgmt-title-cell {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+}
+
 /* ── Status badge ── */
 .jm-status {
     font-weight: 500;
