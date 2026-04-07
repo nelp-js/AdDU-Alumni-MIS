@@ -459,3 +459,9 @@
     padding: 16px 24px;
     border-top: 1px solid #e5e7eb;
 }
+
+.content-mgmt-table tbody tr:last-child .content-mgmt-dropdown-menu {
+    top: auto;
+    bottom: calc(100% + 4px);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.10); /* flips the shadow to point up */
+}
