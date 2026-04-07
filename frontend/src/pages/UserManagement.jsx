@@ -385,7 +385,7 @@ function UserManagement() {
                             </div>
                             <div className="content-mgmt-modal-actions">
                                 <div />
-                                <button type="button" className="content-mgmt-modal-close" onClick={() => setDetailsUser(null)}>Close</button>
+                                <button type="button" className="user-details-modal-close-deny" onClick={() => setDetailsUser(null)}>Close</button>
                             </div>
                         </div>
                     </div>

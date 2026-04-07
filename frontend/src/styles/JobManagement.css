@@ -127,7 +127,7 @@
 .jm-table td {
     padding: 14px 16px;
     color: #4b5563;
-    vertical-align: top;
+    vertical-align: middle;
 }
 
 .jm-table th:nth-last-child(-n+3),
@@ -140,10 +140,6 @@
     word-break: break-word;
     overflow-wrap: anywhere;
     line-height: 1.35;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
 }
 
 .jm-cell-nowrap {
@@ -160,11 +156,17 @@
 
 /* ── Status badge ── */
 .jm-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-weight: 500;
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 13px;
     text-transform: capitalize;
+    min-width: 86px;
+    text-align: center;
+    box-sizing: border-box;
 }
 
 .jm-status.pending  { background: #fef3c7; color: #92400e; }
@@ -177,16 +179,19 @@
     flex-direction: row;
     gap: 8px;
     align-items: center;
+    white-space: nowrap;
     flex-wrap: wrap;
 }
 
 .jm-btn-group {
     position: relative;
     display: inline-flex;
+    align-items: stretch;
+    min-width: 96px;
 }
 
 .jm-split-main {
-    padding: 8px 14px;
+    padding: 8px 10px;
     border: 1px solid #d1d5db;
     border-right: none;
     border-radius: 8px 0 0 8px;
@@ -197,6 +202,10 @@
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
 }
 
 .jm-split-main:hover {
@@ -204,7 +213,8 @@
 }
 
 .jm-split-toggle {
-    padding: 8px 10px;
+    padding: 8px 0;
+    width: 30px;
     border: 1px solid #d1d5db;
     border-radius: 0 8px 8px 0;
     background: transparent;
@@ -214,6 +224,9 @@
     transition: all 0.15s;
     display: flex;
     align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    height: auto;
 }
 
 .jm-split-toggle:hover {
@@ -234,6 +247,18 @@
     padding: 4px 0;
     list-style: none;
     margin: 0;
+}
+
+.jm-table tbody tr:last-child .jm-dropdown-menu {
+    top: auto;
+    bottom: calc(100% + 4px);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.10);
+}
+
+.jm-table tbody tr:only-child .jm-dropdown-menu {
+    top: calc(100% + 4px);
+    bottom: auto;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
 }
 
 .jm-dropdown-item {
@@ -290,6 +315,7 @@
 
 .jm-approve-btn {
     padding: 8px 14px;
+    min-width: 96px;
     border: 1px solid #86efac;
     color: #047857;
     background: transparent;
@@ -299,6 +325,7 @@
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.15s;
+    text-align: center;
 }
 
 .jm-approve-btn:hover:not(:disabled) { background: #dcfce7; border-color: #4ade80; color: #065f46; }
@@ -306,6 +333,7 @@
 
 .jm-reject-btn {
     padding: 8px 14px;
+    min-width: 96px;
     border: 1px solid #fca5a5;
     color: #b91c1c;
     background: transparent;
@@ -315,6 +343,7 @@
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.15s;
+    text-align: center;
 }
 
 .jm-reject-btn:hover:not(:disabled) { background: #fee2e2; border-color: #f87171; color: #991b1b; }
@@ -322,6 +351,7 @@
 
 .jm-confirm-btn {
     padding: 8px 14px;
+    min-width: 96px;
     border: 1px solid #93c5fd;
     color: #1d4ed8;
     background: transparent;
@@ -331,6 +361,7 @@
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.15s;
+    text-align: center;
 }
 
 .jm-confirm-btn:hover:not(:disabled) { background: #dbeafe; border-color: #60a5fa; color: #1e40af; }
@@ -353,8 +384,9 @@
 
 .jm-delete-btn {
     padding: 8px 14px;
-    border: 1px solid #dc3545;
-    color: #dc3545;
+    min-width: 96px;
+    border: 1px solid #fca5a5;
+    color: #b91c1c;
     background: transparent;
     border-radius: 8px;
     font-size: 13px;
@@ -362,6 +394,7 @@
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.15s;
+    text-align: center;
 }
 
 .jm-delete-btn:hover:not(:disabled) { background: #fee2e2; border-color: #f87171; color: #991b1b; }
@@ -382,6 +415,40 @@
     align-items: center;
     gap: 6px;
     flex-wrap: wrap;
+}
+
+.jm-deny-block {
+    width: calc((96px * 2) + 8px);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.jm-deny-textarea {
+    width: 100%;
+    height: 50px;
+    padding: 6px 10px;
+    border: 1px solid #93c5fd;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.35;
+    box-sizing: border-box;
+    resize: none;
+    overflow-y: auto;
+}
+
+.jm-deny-textarea:focus {
+    outline: none;
+    border-color: #60a5fa;
+}
+
+.jm-deny-textarea::placeholder {
+    font-size: 12px;
+}
+
+.jm-deny-actions {
+    display: flex;
+    gap: 8px;
 }
 
 .jm-deny-input {
@@ -407,7 +474,7 @@
 
 .jm-back-link {
     color: #040354;
-    text-decoration: underline;
+    text-decoration: none;
     font-size: 14px;
     font-weight: 400;
 }
@@ -502,6 +569,35 @@
 }
 
 .jm-modal-close:hover { background: #f3f4f6; }
+
+.jm-modal-details-neutral-btn {
+    padding: 8px 14px;
+    min-width: 72px;
+    background: transparent;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #4b5563;
+    text-align: center;
+    transition: all 0.15s;
+}
+
+.jm-modal-details-neutral-btn:hover {
+    background: #f3f4f6;
+}
+
+.jm-modal-details-close-deny {
+    border-color: #fca5a5;
+    color: #b91c1c;
+}
+
+.jm-modal-details-close-deny:hover {
+    background: #fee2e2;
+    border-color: #f87171;
+    color: #991b1b;
+}
 
 /* ── Responsive ── */
 @media (max-width: 768px) {

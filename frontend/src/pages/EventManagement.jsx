@@ -264,45 +264,49 @@ function EventManagement() {
                                             <td>
                                                 {isPending(ev) ? (
                                                     <span className="event-mgmt-actions">
-                                                        <button
-                                                            type="button"
-                                                            className="event-mgmt-approve-btn"
-                                                            onClick={() => handleApprove(ev.id)}
-                                                            disabled={approvingId === ev.id}
-                                                        >
-                                                            {approvingId === ev.id ? '...' : 'Approve'}
-                                                        </button>
+                                                        {showDenyInput !== ev.id && (
+                                                            <button
+                                                                type="button"
+                                                                className="event-mgmt-approve-btn"
+                                                                onClick={() => handleApprove(ev.id)}
+                                                                disabled={approvingId === ev.id}
+                                                            >
+                                                                {approvingId === ev.id ? '...' : 'Approve'}
+                                                            </button>
+                                                        )}
 
                                                         {showDenyInput === ev.id ? (
-                                                            <span className="event-mgmt-actions">
-                                                                <input
-                                                                    type="text"
+                                                            <div className="event-mgmt-deny-block">
+                                                                <textarea
                                                                     value={denyRemarks}
                                                                     onChange={(e) =>
                                                                         setDenyRemarks(e.target.value)
                                                                     }
-                                                                    placeholder="Reason for denial..."
-                                                                    className="event-mgmt-deny-input"
+                                                                    maxLength={140}
+                                                                    placeholder="Reason for denial... (max 140 chars)"
+                                                                    className="event-mgmt-deny-textarea"
                                                                 />
-                                                                <button
-                                                                    type="button"
-                                                                    className="event-mgmt-confirm-btn"
-                                                                    onClick={() => handleDeny(ev.id)}
-                                                                    disabled={denyingId === ev.id}
-                                                                >
-                                                                    {denyingId === ev.id ? '...' : 'Confirm'}
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    className="event-mgmt-reject-btn btn btn-deactivate"
-                                                                    onClick={() => {
-                                                                        setShowDenyInput(null);
-                                                                        setDenyRemarks('');
-                                                                    }}
-                                                                >
-                                                                    Cancel
-                                                                </button>
-                                                            </span>
+                                                                <div className="event-mgmt-deny-actions">
+                                                                    <button
+                                                                        type="button"
+                                                                        className="event-mgmt-confirm-btn"
+                                                                        onClick={() => handleDeny(ev.id)}
+                                                                        disabled={denyingId === ev.id}
+                                                                    >
+                                                                        {denyingId === ev.id ? '...' : 'Confirm'}
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="event-mgmt-reject-btn"
+                                                                        onClick={() => {
+                                                                            setShowDenyInput(null);
+                                                                            setDenyRemarks('');
+                                                                        }}
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                </div>
+                                                            </div>
                                                         ) : (
                                                             <button
                                                                 type="button"
@@ -504,13 +508,28 @@ function EventManagement() {
 
                             <div className="event-mgmt-modal-actions event-mgmt-details-actions">
                                 <div />
-                                <button
-                                    type="button"
-                                    className="event-mgmt-modal-cancel btn btn-close"
-                                    onClick={() => setDetailsEvent(null)}
-                                >
-                                    Close
-                                </button>
+                                <div className="event-mgmt-modal-actions-right">
+                                    {isPending(detailsEvent) && (
+                                        <button
+                                            type="button"
+                                            className="event-mgmt-modal-neutral-btn"
+                                            onClick={() => {
+                                                const id = detailsEvent.id;
+                                                setDetailsEvent(null);
+                                                navigate(`/dashboard/events/edit/${id}`);
+                                            }}
+                                        >
+                                            Edit
+                                        </button>
+                                    )}
+                                    <button
+                                        type="button"
+                                        className="event-mgmt-modal-neutral-btn event-mgmt-modal-close-deny"
+                                        onClick={() => setDetailsEvent(null)}
+                                    >
+                                        Close
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

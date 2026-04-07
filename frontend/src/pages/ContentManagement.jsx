@@ -71,12 +71,6 @@ function SplitDropdown({ article, onEdit, onToggleHide, onDelete, togglingId, de
     );
 }
 
-function truncateText(value, max = 65) {
-    const text = typeof value === 'string' ? value : '';
-    if (text.length <= max) return text;
-    return `${text.slice(0, max).trimEnd()}...`;
-}
-
 function ContentManagement() {
     useTitle('Manage Content');
     const navigate = useNavigate();
@@ -195,7 +189,9 @@ function ContentManagement() {
                                     {articles.map((a) => (
                                         <tr key={a.id}>
                                             <td className="content-mgmt-cell-title" title={a.title || ''}>
-                                                {truncateText(a.title || '—')}
+                                                <span className="content-mgmt-cell-title-text">
+                                                    {a.title || '—'}
+                                                </span>
                                             </td>
                                             <td>{a.author_name || '—'}</td>
                                             <td>{formatDate(a.updated_at)}</td>
@@ -221,31 +217,32 @@ function ContentManagement() {
                                                     {a.status === 'draft' && (
                                                         <>
                                                             {showDenyInput === a.id ? (
-                                                                <>
-                                                                    <input
-                                                                        type="text"
+                                                                <div className="content-mgmt-deny-block">
+                                                                    <textarea
                                                                         value={denyRemarks}
                                                                         onChange={(e) => setDenyRemarks(e.target.value)}
                                                                         maxLength={140}
-                                                                        placeholder="Reason for denial..."
-                                                                        style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, width: 180 }}
+                                                                        placeholder="Reason for denial... (max 140 chars)"
+                                                                        className="content-mgmt-deny-textarea"
                                                                     />
-                                                                    <button
-                                                                        type="button"
-                                                                        className="content-mgmt-confirm-btn"
-                                                                        onClick={() => handleDeny(a.id)}
-                                                                        disabled={denyingId === a.id}
-                                                                    >
-                                                                        {denyingId === a.id ? '…' : 'Confirm'}
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        className="content-mgmt-deny-confirm-btn"
-                                                                        onClick={() => { setShowDenyInput(null); setDenyRemarks(''); }}
-                                                                    >
-                                                                        Cancel
-                                                                    </button>
-                                                                </>
+                                                                    <div className="content-mgmt-deny-actions">
+                                                                        <button
+                                                                            type="button"
+                                                                            className="content-mgmt-confirm-btn"
+                                                                            onClick={() => handleDeny(a.id)}
+                                                                            disabled={denyingId === a.id}
+                                                                        >
+                                                                            {denyingId === a.id ? '…' : 'Confirm'}
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            className="content-mgmt-deny-confirm-btn"
+                                                                            onClick={() => { setShowDenyInput(null); setDenyRemarks(''); }}
+                                                                        >
+                                                                            Cancel
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
                                                             ) : (
                                                                 <>
                                                                     <button
@@ -380,7 +377,7 @@ function ContentManagement() {
                                 {detailsArticle.status === 'draft' && (
                                     <button
                                         type="button"
-                                        className="content-mgmt-edit-btn btn btn-edit"
+                                        className="content-mgmt-modal-details-neutral-btn"
                                         onClick={() => {
                                             setDetailsArticle(null);
                                             navigate(`/dashboard/content/edit/${detailsArticle.id}`);
@@ -389,7 +386,7 @@ function ContentManagement() {
                                         Edit
                                     </button>
                                 )}
-                                <button type="button" className="content-mgmt-modal-close btn btn-close" onClick={() => setDetailsArticle(null)}>
+                                <button type="button" className="content-mgmt-modal-details-neutral-btn content-mgmt-modal-details-close-deny" onClick={() => setDetailsArticle(null)}>
                                     Close
                                 </button>
                             </div>

@@ -1,0 +1,561 @@
+/* Campaign Management - Styled identically to Event Management */
+.campaign-mgmt-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #F5F5F7;
+}
+
+.campaign-mgmt-main {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 24px 40px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.campaign-mgmt-title {
+    font-size: 28px;
+    font-weight: 400;
+    color: #333;
+    text-align: center;
+    margin: 0 0 8px 0;
+    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
+}
+
+.campaign-mgmt-subtitle {
+    font-size: 14px;
+    color: #6d7280;
+    text-align: center;
+    margin: 0 0 32px 0;
+}
+
+.campaign-mgmt-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+    margin-bottom: 24px;
+    overflow: visible;
+}
+
+.campaign-mgmt-loading,
+.campaign-mgmt-error,
+.campaign-mgmt-empty {
+    text-align: center;
+    padding: 32px;
+    color: #6d7280;
+    font-size: 15px;
+}
+
+.campaign-mgmt-error {
+    color: #dc3545;
+}
+
+/* ── TABLE WRAPPER ── */
+.campaign-mgmt-table-wrap {
+    overflow-x: auto;
+    overflow-y: visible;
+    max-height: none;
+}
+
+.campaign-mgmt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.campaign-mgmt-table thead {
+    background: #f3f4f6;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    box-shadow: 0 1px 0 0 #e5e7eb;
+}
+
+.campaign-mgmt-table th {
+    text-align: left;
+    padding: 14px 16px;
+    font-weight: 600;
+    color: #040354;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    background: #f3f4f6;
+}
+
+.campaign-mgmt-table tbody tr {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.campaign-mgmt-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.campaign-mgmt-table tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+/* Dim hidden/inactive campaigns */
+.campaign-mgmt-table tbody tr.campaign-mgmt-row-hidden { 
+    opacity: 0.6; 
+}
+
+.campaign-mgmt-table td {
+    padding: 14px 16px;
+    color: #4b5563;
+    vertical-align: middle;
+    overflow: visible;
+}
+
+/* ── Column behavior tuned to avoid deny-flow horizontal scroll ── */
+/* Give the Title column remaining space and let it wrap naturally */
+.campaign-mgmt-table td:first-child {
+    white-space: normal;
+    min-width: 220px;
+    line-height: 1.4;
+}
+
+/* Keep utility columns compact/single-line */
+.campaign-mgmt-table th:nth-child(2),
+.campaign-mgmt-table td:nth-child(2),
+.campaign-mgmt-table th:nth-child(3),
+.campaign-mgmt-table td:nth-child(3),
+.campaign-mgmt-table th:nth-child(4),
+.campaign-mgmt-table td:nth-child(4),
+.campaign-mgmt-table th:nth-child(5),
+.campaign-mgmt-table td:nth-child(5),
+.campaign-mgmt-table th:nth-child(6),
+.campaign-mgmt-table td:nth-child(6),
+.campaign-mgmt-table th:nth-child(7),
+.campaign-mgmt-table td:nth-child(7),
+.campaign-mgmt-table th:nth-child(8),
+.campaign-mgmt-table td:nth-child(8) {
+    white-space: nowrap;
+}
+
+/* ── STATUS BADGES ── */
+.campaign-mgmt-status {
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 86px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.campaign-mgmt-status.pending { background: #fef3c7; color: #92400e; }
+.campaign-mgmt-status.approved { background: #d1fae5; color: #065f46; }
+.campaign-mgmt-status.denied { background: #fee2e2; color: #b91c1c; }
+
+/* ── ACTIONS CONTAINER ── */
+.campaign-mgmt-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+    white-space: normal;
+    flex-wrap: nowrap;
+}
+
+/* ── BUTTON STYLES ── */
+.campaign-mgmt-approve-btn,
+.campaign-mgmt-reject-btn,
+.campaign-mgmt-confirm-btn {
+    padding: 8px 14px;
+    min-width: 96px;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.campaign-mgmt-approve-btn {
+    border: 1px solid #86efac;
+    color: #047857;
+}
+
+.campaign-mgmt-approve-btn:hover:not(:disabled) {
+    background: #dcfce7;
+    border-color: #4ade80;
+    color: #065f46;
+}
+
+.campaign-mgmt-reject-btn {
+    border: 1px solid #fca5a5;
+    color: #b91c1c;
+}
+
+.campaign-mgmt-reject-btn:hover:not(:disabled) {
+    background: #fee2e2;
+    border-color: #f87171;
+    color: #991b1b;
+}
+
+.campaign-mgmt-confirm-btn {
+    border: 1px solid #93c5fd;
+    color: #1d4ed8;
+}
+
+.campaign-mgmt-confirm-btn:hover:not(:disabled) {
+    background: #dbeafe;
+    border-color: #60a5fa;
+    color: #1e40af;
+}
+
+.campaign-mgmt-approve-btn:disabled,
+.campaign-mgmt-reject-btn:disabled,
+.campaign-mgmt-confirm-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Delete Button */
+.campaign-mgmt-delete-btn {
+    padding: 8px 14px;
+    min-width: 96px;
+    background: transparent;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.campaign-mgmt-delete-btn:hover:not(:disabled) {
+    background: #fee2e2;
+    border-color: #f87171;
+    color: #991b1b;
+}
+
+.campaign-mgmt-delete-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Details Link */
+.campaign-mgmt-details-link {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #040354;
+    text-decoration: underline;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.campaign-mgmt-details-link:hover {
+    opacity: 0.85;
+}
+
+/* Inline Deny Input */
+.campaign-mgmt-deny-inline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.campaign-mgmt-deny-input {
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    width: 180px;
+    box-sizing: border-box;
+}
+
+.campaign-mgmt-deny-input:focus {
+    outline: none;
+    border-color: #040354;
+}
+
+.campaign-mgmt-deny-block {
+    width: calc((96px * 2) + 8px);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.campaign-mgmt-deny-textarea {
+    width: 100%;
+    height: 50px;
+    padding: 6px 10px;
+    border: 1px solid #93c5fd;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.35;
+    box-sizing: border-box;
+    resize: none;
+    overflow-y: auto;
+}
+
+.campaign-mgmt-deny-textarea:focus {
+    outline: none;
+    border-color: #60a5fa;
+}
+
+.campaign-mgmt-deny-textarea::placeholder {
+    font-size: 12px;
+}
+
+.campaign-mgmt-deny-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ── SPLIT DROPDOWN ── */
+.campaign-mgmt-btn-group {
+    position: relative;
+    display: inline-flex;
+    align-items: stretch;
+    vertical-align: middle;
+    min-width: 96px;
+}
+
+.campaign-mgmt-split-main {
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    background: transparent;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.campaign-mgmt-split-main:hover { background: #f3f4f6; }
+
+.campaign-mgmt-split-toggle {
+    padding: 8px 0;
+    width: 30px;
+    border: 1px solid #d1d5db;
+    border-radius: 0 8px 8px 0;
+    background: transparent;
+    color: #374151;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    flex-shrink: 0;
+    height: auto;
+}
+
+.campaign-mgmt-split-toggle:hover { background: #f3f4f6; }
+
+.campaign-mgmt-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 100px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+    z-index: 9999;
+    overflow: hidden;
+    padding: 4px 0;
+    margin: 0;
+    list-style: none;
+}
+
+.campaign-mgmt-table tbody tr:last-child .campaign-mgmt-dropdown-menu {
+    top: auto;
+    bottom: calc(100% + 6px);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.10);
+}
+
+.campaign-mgmt-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 9px 16px;
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.12s;
+    box-sizing: border-box;
+}
+
+.campaign-mgmt-dropdown-item.item-activate,
+.campaign-mgmt-dropdown-item.item-deactivate { color: #374151; }
+.campaign-mgmt-dropdown-item.item-activate:hover,
+.campaign-mgmt-dropdown-item.item-deactivate:hover { background: #f3f4f6; }
+.campaign-mgmt-dropdown-item.item-delete { color: #b91c1c; }
+.campaign-mgmt-dropdown-item.item-delete:hover { background: #fee2e2; }
+.campaign-mgmt-dropdown-item:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── BACK LINKS ── */
+.campaign-mgmt-back {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.campaign-mgmt-back-link {
+    color: #040354;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.campaign-mgmt-back-link:hover { opacity: 0.8; }
+.campaign-mgmt-create-link { margin-left: auto; }
+
+/* ── MODALS ── */
+.campaign-mgmt-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.campaign-mgmt-modal {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    max-width: 600px;
+    min-width: 320px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+.campaign-mgmt-modal-title {
+    margin: 0 0 20px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+}
+
+.campaign-mgmt-details-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.campaign-mgmt-details-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.campaign-mgmt-details-block {
+    flex-direction: column;
+    gap: 4px;
+}
+
+.campaign-mgmt-details-label {
+    flex-shrink: 0;
+    width: 140px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.campaign-mgmt-details-value {
+    flex: 1;
+    font-size: 14px;
+    color: #374151;
+    word-break: break-word;
+}
+
+.campaign-mgmt-remarks {
+    color: #991b1b;
+    font-style: italic;
+}
+
+.campaign-mgmt-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+    gap: 8px;
+}
+
+.campaign-mgmt-modal-close {
+    padding: 10px 20px;
+    background: transparent;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #4b5563;
+}
+
+.campaign-mgmt-modal-close:hover { background: #f3f4f6; }
+
+.campaign-mgmt-modal-details-neutral-btn {
+    padding: 8px 14px;
+    min-width: 72px;
+    background: transparent;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #4b5563;
+    text-align: center;
+    transition: all 0.15s;
+}
+
+.campaign-mgmt-modal-details-neutral-btn:hover {
+    background: #f3f4f6;
+}
+
+.campaign-mgmt-modal-details-close-deny {
+    border-color: #fca5a5;
+    color: #b91c1c;
+}
+
+.campaign-mgmt-modal-details-close-deny:hover {
+    background: #fee2e2;
+    border-color: #f87171;
+    color: #991b1b;
+}
+
+.campaign-mgmt-modal-save {
+    padding: 10px 20px;
+    background: #040354;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.campaign-mgmt-modal-save:hover:not(:disabled) { opacity: 0.9; }

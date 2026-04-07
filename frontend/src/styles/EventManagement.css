@@ -114,6 +114,10 @@
     font-size: 13px;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    min-width: 86px;
+    text-align: center;
+    box-sizing: border-box;
 }
 
 .event-mgmt-status.pending {
@@ -178,6 +182,7 @@
 
 .event-mgmt-confirm-btn {
     padding: 8px 14px;
+    min-width: 96px;
     background: transparent;
     border-radius: 8px;
     font-size: 13px;
@@ -187,6 +192,7 @@
     box-sizing: border-box;
     border: 1px solid #93c5fd;
     color: #1d4ed8;
+    text-align: center;
 }
 
 .event-mgmt-confirm-btn:hover:not(:disabled) {
@@ -225,8 +231,8 @@
     padding: 8px 14px;
     min-width: 96px;
     background: transparent;
-    color: #dc3545;
-    border: 1px solid #dc3545;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
     text-align: center;
 }
 
@@ -258,9 +264,9 @@
 }
 
 .event-mgmt-deny-input {
-    padding: 8px 10px;
+    padding: 6px 10px;
     border: 1px solid #d1d5db;
-    border-radius: 8px;
+    border-radius: 6px;
     font-size: 13px;
     width: 180px;
     box-sizing: border-box;
@@ -271,16 +277,51 @@
     border-color: #040354;
 }
 
+.event-mgmt-deny-block {
+    width: calc((96px * 2) + 8px);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.event-mgmt-deny-textarea {
+    width: 100%;
+    height: 50px;
+    padding: 6px 10px;
+    border: 1px solid #93c5fd;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.35;
+    box-sizing: border-box;
+    resize: none;
+    overflow-y: auto;
+}
+
+.event-mgmt-deny-textarea:focus {
+    outline: none;
+    border-color: #60a5fa;
+}
+
+.event-mgmt-deny-textarea::placeholder {
+    font-size: 12px;
+}
+
+.event-mgmt-deny-actions {
+    display: flex;
+    gap: 8px;
+}
+
 /* Split dropdown */
 .event-mgmt-btn-group {
     position: relative;
     display: inline-flex;
-    align-items: center;
+    align-items: stretch;
     vertical-align: middle;
+    min-width: 96px;
 }
 
 .event-mgmt-split-main {
-    padding: 8px 14px;
+    padding: 8px 10px;
     border: 1px solid #d1d5db;
     border-right: none;
     border-radius: 8px 0 0 8px;
@@ -291,9 +332,10 @@
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.15s;
-    height: 34px;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    flex: 1;
 }
 
 .event-mgmt-split-main:hover {
@@ -301,7 +343,8 @@
 }
 
 .event-mgmt-split-toggle {
-    padding: 8px 10px;
+    padding: 8px 0;
+    width: 30px;
     border: 1px solid #d1d5db;
     border-radius: 0 8px 8px 0;
     background: transparent;
@@ -312,8 +355,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    height: 34px;
     line-height: 1;
+    flex-shrink: 0;
+    height: auto;
 }
 
 .event-mgmt-split-toggle:hover {
@@ -339,6 +383,18 @@
 .event-mgmt-dropdown-menu.open-up {
     top: auto;
     bottom: calc(100% + 6px);
+}
+
+.event-mgmt-table tbody tr:last-child .event-mgmt-dropdown-menu {
+    top: auto;
+    bottom: calc(100% + 6px);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.10);
+}
+
+.event-mgmt-table tbody tr:only-child .event-mgmt-dropdown-menu {
+    top: calc(100% + 6px);
+    bottom: auto;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
 }
 
 .event-mgmt-dropdown-item {
@@ -425,6 +481,35 @@
     justify-content: flex-end;
 }
 
+.event-mgmt-modal-neutral-btn {
+    padding: 8px 14px;
+    min-width: 72px;
+    background: transparent;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #4b5563;
+    text-align: center;
+    transition: all 0.15s;
+}
+
+.event-mgmt-modal-neutral-btn:hover {
+    background: #f3f4f6;
+}
+
+.event-mgmt-modal-close-deny {
+    border-color: #fca5a5;
+    color: #b91c1c;
+}
+
+.event-mgmt-modal-close-deny:hover {
+    background: #fee2e2;
+    border-color: #f87171;
+    color: #991b1b;
+}
+
 .event-mgmt-back {
     display: flex;
     gap: 20px;
@@ -434,7 +519,7 @@
 
 .event-mgmt-back-link {
     color: #040354;
-    text-decoration: underline;
+    text-decoration: none;
     font-size: 14px;
     font-weight: 400;
 }

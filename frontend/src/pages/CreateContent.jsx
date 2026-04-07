@@ -13,6 +13,8 @@ import { useTitle } from '../Hooks/useTitle';
 
 const MAX_SUBTITLE = 280;
 const MAX_WORDS = 1200;
+const MAX_TITLE = 140;
+const MAX_AUTHOR = 70;
 const FONT_SIZES = [12, 14, 16, 18, 20, 24];
 
 function stripHtml(html) {
@@ -109,8 +111,12 @@ function CreateContent() {
     const [coverImage, setCoverImage] = useState(null);
     const [existingCoverUrl, setExistingCoverUrl] = useState(null);
     const [content, setContent] = useState('');
+    const lastValidContentRef = useRef('');
+    const isRevertingEditorRef = useRef(false);
 
     const wordCount = useMemo(() => countWords(content), [content]);
+    const overTitle = title.length > MAX_TITLE;
+    const overAuthor = authorName.length > MAX_AUTHOR;
     const overSubtitle = subtitle.length > MAX_SUBTITLE;
     const overWords = wordCount > MAX_WORDS;
     
@@ -120,6 +126,8 @@ function CreateContent() {
         subtitle.trim() && 
         category && 
         (coverImage || existingCoverUrl) &&
+        !overTitle &&
+        !overAuthor &&
         !overSubtitle &&
         !overWords
     );
@@ -146,6 +154,7 @@ function CreateContent() {
                 setCategory(a.category || '');
                 setIsFeatured(a.is_featured || false);
                 setContent(a.content || '');
+                lastValidContentRef.current = a.content || '';
                 if (a.cover_image) setExistingCoverUrl(a.cover_image);
             })
             .catch(() => setLoadError('Failed to load article.'))
@@ -161,7 +170,22 @@ function CreateContent() {
             Placeholder.configure({ placeholder: 'Write your article…' })
         ],
         content: content || '',
-        onUpdate: ({ editor }) => setContent(editor.getHTML()),
+        onUpdate: ({ editor }) => {
+            if (isRevertingEditorRef.current) return;
+            const nextHtml = editor.getHTML();
+            const nextWords = countWords(nextHtml);
+
+            if (nextWords <= MAX_WORDS) {
+                setContent(nextHtml);
+                lastValidContentRef.current = nextHtml;
+                return;
+            }
+
+            // Hard-cap full content at MAX_WORDS by restoring last accepted value.
+            isRevertingEditorRef.current = true;
+            editor.commands.setContent(lastValidContentRef.current || '<p></p>', false);
+            isRevertingEditorRef.current = false;
+        },
     });
 
     const initialContentSet = useRef(false);
@@ -172,9 +196,21 @@ function CreateContent() {
         }
     }, [editor, isEditMode, content]);
 
-    const handleSubmit = (status) => {
-        if (!canSubmit) {
-            alert('Please fill in all required fields');
+    const handleSubmit = ({ forcePending = false } = {}) => {
+        setSubmitError('');
+        const issues = [];
+        if (!title.trim()) issues.push('Article title is required.');
+        if (!authorName.trim()) issues.push('Author name is required.');
+        if (!subtitle.trim()) issues.push('Summary is required.');
+        if (!category) issues.push('Category is required.');
+        if (!(coverImage || existingCoverUrl)) issues.push('Cover image is required.');
+        if (overTitle) issues.push(`Article title must be ${MAX_TITLE} characters or less.`);
+        if (overAuthor) issues.push(`Author name must be ${MAX_AUTHOR} characters or less.`);
+        if (overSubtitle) issues.push(`Summary must be ${MAX_SUBTITLE} characters or less.`);
+        if (overWords) issues.push(`Full content must be ${MAX_WORDS} words or less.`);
+
+        if (issues.length > 0) {
+            setSubmitError(`Publishing failed: ${issues.join(' ')}`);
             return;
         }
         setLoading(true);
@@ -186,7 +222,10 @@ function CreateContent() {
         formData.append('category', category);
         formData.append('is_featured', isFeatured);
         formData.append('content', html);
-        formData.append('status', status || 'published');
+        if (!isEditMode && forcePending) {
+            // New submissions enter admin review queue (shown as "Pending" in management UI).
+            formData.append('status', 'draft');
+        }
 
         if (coverImage) formData.append('cover_image', coverImage);
 
@@ -197,7 +236,15 @@ function CreateContent() {
                 setSuccess(true);
                 setTimeout(() => navigate('/dashboard/content'), 3000);
             })
-            .catch((err) => setSubmitError('Failed to save article.'))
+            .catch((err) => {
+                const data = err.response?.data;
+                if (data && typeof data === 'object') {
+                    const entries = Object.entries(data).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`);
+                    setSubmitError(`Publishing failed: ${entries.join(' ')}`);
+                } else {
+                    setSubmitError('Publishing failed. Please check highlighted limits and required fields.');
+                }
+            })
             .finally(() => setLoading(false));
     };
 
@@ -207,7 +254,16 @@ function CreateContent() {
             <main className="create-content-main">
                 <h1 className="create-content-title">{isEditMode ? 'Edit Content' : 'Create Content'}</h1>
                 <div className="create-content-form-box">
-                    {success && <div className="create-content-success"><p>✓ Article saved successfully! Redirecting...</p></div>}
+                    {success && (
+                        <div className="create-content-success">
+                            <p>
+                                ✓ {isEditMode
+                                    ? 'Article updated successfully!'
+                                    : 'Your content has been submitted and is pending approval.'}
+                            </p>
+                            <p>Redirecting to dashboard...</p>
+                        </div>
+                    )}
                     {fetchLoading && <div className="create-content-loading">Loading article data...</div>}
 
                     {!success && !fetchLoading && (
@@ -215,13 +271,39 @@ function CreateContent() {
                             {submitError && <div className="create-content-error">{submitError}</div>}
 
                             <div className="cc-field">
-                                <label className="cc-label">Article Title <span className="cc-required">*</span></label>
-                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="cc-input" placeholder="Enter article title" required />
+                                <div className="cc-label-row">
+                                    <label className="cc-label">Article Title <span className="cc-required">*</span></label>
+                                    <span className={`cc-counter ${overTitle ? 'cc-counter-over' : ''}`}>
+                                        {title.length}/{MAX_TITLE}
+                                    </span>
+                                </div>
+                                <textarea
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    maxLength={MAX_TITLE}
+                                    className="cc-textarea cc-title-input"
+                                    placeholder="Enter article title"
+                                    rows={2}
+                                    required
+                                />
                             </div>
 
                             <div className="cc-field">
-                                <label className="cc-label">Author Name <span className="cc-required">*</span></label>
-                                <input type="text" value={authorName} onChange={(e) => setAuthorName(e.target.value)} className="cc-input" placeholder="Enter author name" required />
+                                <div className="cc-label-row">
+                                    <label className="cc-label">Author Name <span className="cc-required">*</span></label>
+                                    <span className={`cc-counter ${overAuthor ? 'cc-counter-over' : ''}`}>
+                                        {authorName.length}/{MAX_AUTHOR}
+                                    </span>
+                                </div>
+                                <input
+                                    type="text"
+                                    value={authorName}
+                                    onChange={(e) => setAuthorName(e.target.value)}
+                                    maxLength={MAX_AUTHOR}
+                                    className="cc-input"
+                                    placeholder="Enter author name"
+                                    required
+                                />
                             </div>
 
                             <div className="cc-field">
@@ -244,7 +326,15 @@ function CreateContent() {
                                         {subtitle.length}/{MAX_SUBTITLE}
                                     </span>
                                 </div>
-                                <textarea value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="cc-textarea cc-subtitle" placeholder="Brief summary" rows={3} required />
+                                <textarea
+                                    value={subtitle}
+                                    onChange={(e) => setSubtitle(e.target.value)}
+                                    maxLength={MAX_SUBTITLE}
+                                    className="cc-textarea cc-subtitle"
+                                    placeholder="Brief summary"
+                                    rows={3}
+                                    required
+                                />
                             </div>
 
                             <div className="cc-field">
@@ -280,12 +370,16 @@ function CreateContent() {
                                 <div className="cc-actions-right">
                                     <button type="button" className="cc-btn cc-preview-btn" onClick={() => setShowPreview(true)}>Open Preview</button>
                                     {isEditMode ? (
-                                        <button type="button" className="cc-btn cc-publish" disabled={!canSubmit || loading} onClick={() => handleSubmit(null)}>{loading ? 'Saving...' : 'Save Changes'}</button>
+                                        <button type="button" className="cc-btn cc-publish" disabled={!canSubmit || loading} onClick={() => handleSubmit()}>{loading ? 'Saving...' : 'Save Changes'}</button>
                                     ) : (
-                                        <>
-                                            <button type="button" className="cc-btn cc-draft" disabled={!canSubmit || loading} onClick={() => handleSubmit('draft')}>{loading ? 'Saving...' : 'Save as Draft'}</button>
-                                            <button type="button" className="cc-btn cc-publish" disabled={!canSubmit || loading} onClick={() => handleSubmit('published')}>{loading ? 'Publishing...' : 'Publish'}</button>
-                                        </>
+                                        <button
+                                            type="button"
+                                            className="cc-btn cc-publish"
+                                            disabled={loading}
+                                            onClick={() => handleSubmit({ forcePending: true })}
+                                        >
+                                            {loading ? 'Submitting...' : 'Publish'}
+                                        </button>
                                     )}
                                 </div>
                             </div>

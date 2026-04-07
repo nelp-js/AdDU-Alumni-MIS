@@ -477,8 +477,19 @@ class ArticleListCreate(generics.ListCreateAPIView):
     parser_classes = (MultiPartParser, FormParser)
     def get_queryset(self): return Article.objects.all()
     def perform_create(self, serializer):
-        article = serializer.save(created_by=self.request.user)
-        ActivityLog.objects.create(action=f"Article created: {article.title}", module="CMS & News Feed", user=self.request.user, status="Completed")
+        article = serializer.save(
+            created_by=self.request.user,
+            status=Article.STATUS_DRAFT,
+            remarks=None,
+            approved_at=None,
+            is_hidden=False,
+        )
+        ActivityLog.objects.create(
+            action=f"Article submitted for approval: {article.title}",
+            module="CMS & News Feed",
+            user=self.request.user,
+            status="Pending",
+        )
 
 class ArticleDetailView(generics.RetrieveUpdateAPIView):
     serializer_class = ArticleUpdateSerializer
@@ -504,6 +515,7 @@ def deny_article(request, article_id):
     article = get_object_or_404(Article, pk=article_id)
     article.status = 'denied'
     article.remarks = request.data.get('remarks', '')
+    article.approved_at = None
     article.save()
     ActivityLog.objects.create(action=f"Article denied: {article.title}", module="CMS & News Feed", user=request.user, status="Denied")
     return Response({"detail": "Article denied.", "status": article.status})

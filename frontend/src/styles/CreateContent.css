@@ -131,6 +131,13 @@
     resize: vertical;
 }
 
+.cc-title-input {
+    height: 64px;
+    resize: none;
+    overflow-y: auto;
+    line-height: 1.35;
+}
+
 .cc-file-wrap {
     display: inline-flex;
     align-items: center;

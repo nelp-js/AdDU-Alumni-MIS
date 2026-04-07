@@ -245,6 +245,26 @@
     text-decoration: underline;
 }
 
+.user-details-modal-close-deny {
+    padding: 8px 14px;
+    min-width: 72px;
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    background: transparent;
+    color: #b91c1c;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+}
+
+.user-details-modal-close-deny:hover {
+    background: #fee2e2;
+    border-color: #f87171;
+    color: #991b1b;
+}
+
 /* ============================================
    EDIT MODAL
    ============================================ */

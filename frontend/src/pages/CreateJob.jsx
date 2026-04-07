@@ -13,6 +13,7 @@ const threeYearsLater = new Date();
 threeYearsLater.setFullYear(currentDate.getFullYear() + 3);
 const DEFAULT_START = currentDate.toISOString().split('T')[0];
 const DEFAULT_END   = threeYearsLater.toISOString().split('T')[0];
+const MAX_POSITION = 140;
 
 const JOB_FIELDS = {
     company:        '',
@@ -185,6 +186,7 @@ function CreateJob() {
                                 <label className="ce-label-large">Position Title <span className="ce-required">*</span></label>
                                 <input type="text" name="position" value={formData.position}
                                     onChange={handleChange} className="ce-input"
+                                    maxLength={MAX_POSITION}
                                     placeholder={type === 'job' ? 'e.g. Senior Software Engineer' : 'e.g. UI/UX Intern'} required />
                             </div>
                         </div>

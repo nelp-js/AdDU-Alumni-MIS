@@ -65,12 +65,6 @@ function SplitDropdown({ item, onEdit, onToggleHide, onDelete, togglingId, delet
     );
 }
 
-function truncateText(value, max = 65) {
-    const text = typeof value === 'string' ? value : '';
-    if (text.length <= max) return text;
-    return `${text.slice(0, max).trimEnd()}...`;
-}
-
 function JobManagement() {
     useTitle('Job & Internship Management');
 
@@ -316,9 +310,7 @@ function JobManagement() {
                                 <tbody>
                                     {items.map((item) => (
                                         <tr key={item.id} className={item.is_hidden ? 'jm-row-hidden' : ''}>
-                                            <td className="jm-cell-wrap-2" title={item.position || ''}>
-                                                {truncateText(item.position || '—')}
-                                            </td>
+                                            <td className="jm-cell-wrap-2">{item.position || '—'}</td>
                                             <td className="jm-cell-wrap-2">{item.company || '—'}</td>
                                             <td className="jm-cell-nowrap">{item.location || '—'}</td>
                                             <td className="jm-cell-nowrap">{item.modality || '—'}</td>
@@ -341,38 +333,42 @@ function JobManagement() {
                                                 <span className="jm-actions">
                                                     {item.status === 'pending' && (
                                                         <>
-                                                            <button
-                                                                type="button"
-                                                                className="jm-approve-btn"
-                                                                onClick={() => handleApprove(item.id, itemType)}
-                                                                disabled={approvingId === item.id}
-                                                            >
-                                                                {approvingId === item.id ? '...' : 'Approve'}
-                                                            </button>
+                                                            {showDenyInput !== item.id && (
+                                                                <button
+                                                                    type="button"
+                                                                    className="jm-approve-btn"
+                                                                    onClick={() => handleApprove(item.id, itemType)}
+                                                                    disabled={approvingId === item.id}
+                                                                >
+                                                                    {approvingId === item.id ? '...' : 'Approve'}
+                                                                </button>
+                                                            )}
                                                             {showDenyInput === item.id ? (
-                                                                <div className="jm-deny-inline">
-                                                                    <input
-                                                                        type="text"
-                                                                        placeholder="Reason for denial..."
+                                                                <div className="jm-deny-block">
+                                                                    <textarea
+                                                                        placeholder="Reason for denial... (max 140 chars)"
                                                                         value={denyRemarks}
                                                                         onChange={(e) => setDenyRemarks(e.target.value)}
-                                                                        className="jm-deny-input"
+                                                                        maxLength={140}
+                                                                        className="jm-deny-textarea"
                                                                     />
-                                                                    <button
-                                                                        type="button"
-                                                                        className="jm-confirm-btn"
-                                                                        onClick={() => handleDeny(item.id, itemType)}
-                                                                        disabled={denyingId === item.id}
-                                                                    >
-                                                                        {denyingId === item.id ? '...' : 'Confirm'}
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        className="jm-cancel-deny-btn btn btn-deactivate"
-                                                                        onClick={() => { setShowDenyInput(null); setDenyRemarks(''); }}
-                                                                    >
-                                                                        Cancel
-                                                                    </button>
+                                                                    <div className="jm-deny-actions">
+                                                                        <button
+                                                                            type="button"
+                                                                            className="jm-confirm-btn"
+                                                                            onClick={() => handleDeny(item.id, itemType)}
+                                                                            disabled={denyingId === item.id}
+                                                                        >
+                                                                            {denyingId === item.id ? '...' : 'Confirm'}
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            className="jm-reject-btn"
+                                                                            onClick={() => { setShowDenyInput(null); setDenyRemarks(''); }}
+                                                                        >
+                                                                            Cancel
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                             ) : (
                                                                 <button
@@ -477,7 +473,7 @@ function JobManagement() {
                                     {(detailsItem.status === 'pending') && (
                                         <button
                                             type="button"
-                                            className="jm-approve-btn btn btn-edit"
+                                            className="jm-modal-details-neutral-btn"
                                             onClick={() => {
                                                 setDetailsItem(null);
                                                 openEdit(detailsItem, detailsType);
@@ -488,7 +484,7 @@ function JobManagement() {
                                     )}
                                     <button
                                         type="button"
-                                        className="jm-modal-close btn btn-close"
+                                        className="jm-modal-details-neutral-btn jm-modal-details-close-deny"
                                         onClick={() => setDetailsItem(null)}
                                     >
                                         Close
@@ -505,7 +501,7 @@ function JobManagement() {
                             <h2 className="jm-modal-title">Edit {editingType === 'job' ? 'Job' : 'Internship'}</h2>
                             {editError && <div className="jm-state jm-error">{editError}</div>}
                             <div className="jm-details-content" style={{ display: 'grid', gap: '10px' }}>
-                                <input className="jm-deny-input" placeholder="Position" value={editForm.position || ''} onChange={(e) => setEditForm((f) => ({ ...f, position: e.target.value }))} />
+                                <input className="jm-deny-input" maxLength={140} placeholder="Position" value={editForm.position || ''} onChange={(e) => setEditForm((f) => ({ ...f, position: e.target.value }))} />
                                 <input className="jm-deny-input" placeholder="Company" value={editForm.company || ''} onChange={(e) => setEditForm((f) => ({ ...f, company: e.target.value }))} />
                                 <input className="jm-deny-input" placeholder="Location" value={editForm.location || ''} onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value }))} />
                                 <select className="jm-deny-input" value={editForm.modality || ''} onChange={(e) => setEditForm((f) => ({ ...f, modality: e.target.value }))}>

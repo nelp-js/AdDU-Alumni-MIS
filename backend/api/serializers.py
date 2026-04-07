@@ -273,6 +273,11 @@ class JobSerializer(serializers.ModelSerializer):
     def get_posted_by_name(self, obj):
         return f"{obj.posted_by.first_name} {obj.posted_by.last_name}".strip() or obj.posted_by.username
 
+    def validate_position(self, value):
+        if value and len(value) > 140:
+            raise serializers.ValidationError("Position must be 140 characters or less.")
+        return value
+
 
 class InternshipSerializer(serializers.ModelSerializer):
     posted_by_name = serializers.SerializerMethodField()
@@ -288,6 +293,11 @@ class InternshipSerializer(serializers.ModelSerializer):
 
     def get_posted_by_name(self, obj):
         return f"{obj.posted_by.first_name} {obj.posted_by.last_name}".strip() or obj.posted_by.username
+
+    def validate_position(self, value):
+        if value and len(value) > 140:
+            raise serializers.ValidationError("Position must be 140 characters or less.")
+        return value
 
 
 class CampaignDonationSerializer(serializers.ModelSerializer):
@@ -328,6 +338,11 @@ def _strip_html(text):
     if not text or not isinstance(text, str): return text or ""
     return " ".join(re.sub(r"<[^>]+>", "", text).split()).strip()
 
+def _validate_max_len(value, max_len, field_label):
+    if value and len(value) > max_len:
+        raise serializers.ValidationError(f"{field_label} must be {max_len} characters or less.")
+    return value
+
 _FONT_STYLE_PROPS = frozenset(("font-family", "font-size", "font-weight", "font-style", "font", "color"))
 
 def _strip_font_styles_from_html(html):
@@ -356,7 +371,12 @@ class ArticleSerializer(serializers.ModelSerializer):
             "subtitle": {"required": True}, "cover_image": {"required": True}, "category": {"required": True},
         }
 
-    def validate_title(self, v):    return _strip_html(v)
+    def validate_title(self, v):
+        v = _strip_html(v)
+        return _validate_max_len(v, 140, "Title")
+    def validate_author_name(self, v):
+        v = _strip_html(v)
+        return _validate_max_len(v, 70, "Author name")
     def validate_subtitle(self, v): return _strip_html(v)
     def validate_content(self, v):  return _strip_font_styles_from_html(v) if v else v
 
@@ -373,7 +393,12 @@ class ArticleUpdateSerializer(serializers.ModelSerializer):
         read_only_fields = ["created_by", "created_at", "updated_at", "content_created_time", "approved_at"]
         extra_kwargs = {"title": {"required": True}, "author_name": {"required": True}, "subtitle": {"required": True}}
 
-    def validate_title(self, v):    return _strip_html(v)
+    def validate_title(self, v):
+        v = _strip_html(v)
+        return _validate_max_len(v, 140, "Title")
+    def validate_author_name(self, v):
+        v = _strip_html(v)
+        return _validate_max_len(v, 70, "Author name")
     def validate_subtitle(self, v): return _strip_html(v)
     def validate_content(self, v):  return _strip_font_styles_from_html(v) if v else v
 
