@@ -1,0 +1,111 @@
+.btn {
+  border-radius: 3px !important;
+  border: 1px solid !important;
+  box-shadow: rgba(255, 255, 255, .7) 0 1px 0 0 inset !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+  display: inline-block !important;
+  font-family: -apple-system, system-ui, "Segoe UI", "Liberation Sans", sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1.15385 !important;
+  margin: 0 !important;
+  outline: none !important;
+  padding: 8px .8em !important;
+  text-align: center !important;
+  text-decoration: none !important;
+  user-select: none !important;
+  white-space: nowrap !important;
+  background-image: none !important;
+}
+
+.btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+.btn-edit {
+  background-color: #e1ecf4 !important;
+  border-color: #7aa7c7 !important;
+  color: #39739d !important;
+}
+.btn-edit:hover,
+.btn-edit:focus {
+  background-color: #b3d3ea !important;
+  color: #2c5777 !important;
+}
+.btn-edit:focus {
+  box-shadow: 0 0 0 4px rgba(0, 149, 255, .15) !important;
+}
+.btn-edit:active {
+  background-color: #a0c7e4 !important;
+  box-shadow: none !important;
+  color: #2c5777 !important;
+}
+
+.btn-approve {
+  background-color: #e6f4ea !important;
+  border-color: #7ac78f !important;
+  color: #2f7a4a !important;
+}
+.btn-approve:hover,
+.btn-approve:focus {
+  background-color: #b7e1c1 !important;
+  color: #1e5c35 !important;
+}
+.btn-approve:focus {
+  box-shadow: 0 0 0 4px rgba(0, 200, 83, .15) !important;
+}
+.btn-approve:active {
+  background-color: #a3d9b0 !important;
+  box-shadow: none !important;
+  color: #1e5c35 !important;
+}
+
+.btn-deny,
+.btn-delete {
+  background-color: #f4e1e1 !important;
+  border-color: #c77a7a !important;
+  color: #9d3939 !important;
+}
+.btn-deny:hover,
+.btn-deny:focus,
+.btn-delete:hover,
+.btn-delete:focus {
+  background-color: #eab3b3 !important;
+  color: #772c2c !important;
+}
+.btn-deny:focus,
+.btn-delete:focus {
+  box-shadow: 0 0 0 4px rgba(255, 0, 0, .15) !important;
+}
+.btn-deny:active,
+.btn-delete:active {
+  background-color: #e4a0a0 !important;
+  box-shadow: none !important;
+  color: #772c2c !important;
+}
+
+.btn-deactivate,
+.btn-close {
+  background-color: #f1f2f3 !important;
+  border-color: #bfc2c4 !important;
+  color: #6a737c !important;
+}
+.btn-deactivate:hover,
+.btn-deactivate:focus,
+.btn-close:hover,
+.btn-close:focus {
+  background-color: #d6d9dc !important;
+  color: #3b4045 !important;
+}
+.btn-deactivate:focus,
+.btn-close:focus {
+  box-shadow: 0 0 0 4px rgba(128, 128, 128, .15) !important;
+}
+.btn-deactivate:active,
+.btn-close:active {
+  background-color: #c8ccd0 !important;
+  box-shadow: none !important;
+  color: #3b4045 !important;
+}

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ACCESS_TOKEN } from '../constants';
 
-const TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes of inactivity
+const TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes of inactivity
 
 function AutoLogout() {
     const navigate = useNavigate();

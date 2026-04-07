@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/ContentManagement.css';
+import '../styles/AdminButtons.css';
 import { useTitle } from '../Hooks/useTitle';
 
 /* Split dropdown used for published articles */
@@ -68,6 +69,12 @@ function SplitDropdown({ article, onEdit, onToggleHide, onDelete, togglingId, de
             )}
         </div>
     );
+}
+
+function truncateText(value, max = 65) {
+    const text = typeof value === 'string' ? value : '';
+    if (text.length <= max) return text;
+    return `${text.slice(0, max).trimEnd()}...`;
 }
 
 function ContentManagement() {
@@ -187,7 +194,9 @@ function ContentManagement() {
                                 <tbody>
                                     {articles.map((a) => (
                                         <tr key={a.id}>
-                                            <td className="content-mgmt-cell-title">{a.title || '—'}</td>
+                                            <td className="content-mgmt-cell-title" title={a.title || ''}>
+                                                {truncateText(a.title || '—')}
+                                            </td>
                                             <td>{a.author_name || '—'}</td>
                                             <td>{formatDate(a.updated_at)}</td>
                                             <td>{formatDate(a.date_published || a.approved_at)}</td>
@@ -211,26 +220,19 @@ function ContentManagement() {
                                                     {/* ── Draft / Pending ── */}
                                                     {a.status === 'draft' && (
                                                         <>
-                                                            <button
-                                                                type="button"
-                                                                className="content-mgmt-publish-btn"
-                                                                onClick={() => handlePublish(a.id)}
-                                                                disabled={publishingId === a.id}
-                                                            >
-                                                                {publishingId === a.id ? '…' : 'Publish'}
-                                                            </button>
                                                             {showDenyInput === a.id ? (
                                                                 <>
                                                                     <input
                                                                         type="text"
                                                                         value={denyRemarks}
                                                                         onChange={(e) => setDenyRemarks(e.target.value)}
+                                                                        maxLength={140}
                                                                         placeholder="Reason for denial..."
                                                                         style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, width: 180 }}
                                                                     />
                                                                     <button
                                                                         type="button"
-                                                                        className="content-mgmt-deny-confirm-btn"
+                                                                        className="content-mgmt-confirm-btn"
                                                                         onClick={() => handleDeny(a.id)}
                                                                         disabled={denyingId === a.id}
                                                                     >
@@ -238,20 +240,30 @@ function ContentManagement() {
                                                                     </button>
                                                                     <button
                                                                         type="button"
-                                                                        className="content-mgmt-cancel-btn"
+                                                                        className="content-mgmt-deny-confirm-btn"
                                                                         onClick={() => { setShowDenyInput(null); setDenyRemarks(''); }}
                                                                     >
                                                                         Cancel
                                                                     </button>
                                                                 </>
                                                             ) : (
-                                                                <button
-                                                                    type="button"
-                                                                    className="content-mgmt-deny-confirm-btn"
-                                                                    onClick={() => setShowDenyInput(a.id)}
-                                                                >
-                                                                    Deny
-                                                                </button>
+                                                                <>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="content-mgmt-publish-btn"
+                                                                        onClick={() => handlePublish(a.id)}
+                                                                        disabled={publishingId === a.id}
+                                                                    >
+                                                                        {publishingId === a.id ? '…' : 'Publish'}
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="content-mgmt-deny-confirm-btn"
+                                                                        onClick={() => setShowDenyInput(a.id)}
+                                                                    >
+                                                                        Deny
+                                                                    </button>
+                                                                </>
                                                             )}
                                                         </>
                                                     )}
@@ -368,7 +380,7 @@ function ContentManagement() {
                                 {detailsArticle.status === 'draft' && (
                                     <button
                                         type="button"
-                                        className="content-mgmt-edit-btn"
+                                        className="content-mgmt-edit-btn btn btn-edit"
                                         onClick={() => {
                                             setDetailsArticle(null);
                                             navigate(`/dashboard/content/edit/${detailsArticle.id}`);
@@ -377,7 +389,7 @@ function ContentManagement() {
                                         Edit
                                     </button>
                                 )}
-                                <button type="button" className="content-mgmt-modal-close" onClick={() => setDetailsArticle(null)}>
+                                <button type="button" className="content-mgmt-modal-close btn btn-close" onClick={() => setDetailsArticle(null)}>
                                     Close
                                 </button>
                             </div>

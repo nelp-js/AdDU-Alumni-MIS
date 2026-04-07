@@ -1,10 +1,75 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/JobManagement.css';
+import '../styles/AdminButtons.css';
 import { useTitle } from '../Hooks/useTitle';
+
+function SplitDropdown({ item, onEdit, onToggleHide, onDelete, togglingId, deletingId }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [open]);
+
+    return (
+        <div className="jm-btn-group" ref={ref}>
+            <button
+                type="button"
+                className="jm-split-main"
+                onClick={() => { setOpen(false); onEdit(); }}
+            >
+                Edit
+            </button>
+            <button
+                type="button"
+                className="jm-split-toggle"
+                onClick={() => setOpen((v) => !v)}
+                aria-expanded={open}
+            >
+                ▾
+            </button>
+            {open && (
+                <ul className="jm-dropdown-menu" role="menu">
+                    <li>
+                        <button
+                            type="button"
+                            className={`jm-dropdown-item ${item.is_hidden ? 'item-activate' : 'item-deactivate'}`}
+                            onClick={() => { setOpen(false); onToggleHide(); }}
+                            disabled={togglingId === item.id}
+                        >
+                            {togglingId === item.id ? '…' : (item.is_hidden ? 'Activate' : 'Deactivate')}
+                        </button>
+                    </li>
+                    <li>
+                        <button
+                            type="button"
+                            className="jm-dropdown-item item-delete"
+                            onClick={() => { setOpen(false); onDelete(); }}
+                            disabled={deletingId === item.id}
+                        >
+                            {deletingId === item.id ? '…' : 'Delete'}
+                        </button>
+                    </li>
+                </ul>
+            )}
+        </div>
+    );
+}
+
+function truncateText(value, max = 65) {
+    const text = typeof value === 'string' ? value : '';
+    if (text.length <= max) return text;
+    return `${text.slice(0, max).trimEnd()}...`;
+}
 
 function JobManagement() {
     useTitle('Job & Internship Management');
@@ -17,6 +82,7 @@ function JobManagement() {
     const [approvingId, setApprovingId]   = useState(null);
     const [denyingId, setDenyingId]       = useState(null);
     const [deletingId, setDeletingId]     = useState(null);
+    const [togglingId, setTogglingId]     = useState(null);
     const [detailsItem, setDetailsItem]   = useState(null);
     const [detailsType, setDetailsType]   = useState(null); // 'job' | 'internship'
     const [denyRemarks, setDenyRemarks]   = useState('');
@@ -74,6 +140,7 @@ function JobManagement() {
     };
 
     const handleToggleHide = (id, type, currentHidden) => {
+        setTogglingId(id);
         const endpoint = type === 'job' ? `/api/jobs/${id}/toggle-hide/` : `/api/internships/${id}/toggle-hide/`;
         api.patch(endpoint)
             .then(() => {
@@ -83,7 +150,8 @@ function JobManagement() {
                     setInternships((prev) => prev.map((i) => i.id === id ? { ...i, is_hidden: !currentHidden } : i));
                 }
             })
-            .catch(() => {});
+            .catch(() => {})
+            .finally(() => setTogglingId(null));
     };
 
     const handleDelete = (id, type) => {
@@ -248,11 +316,13 @@ function JobManagement() {
                                 <tbody>
                                     {items.map((item) => (
                                         <tr key={item.id} className={item.is_hidden ? 'jm-row-hidden' : ''}>
-                                            <td>{item.position || '—'}</td>
-                                            <td>{item.company || '—'}</td>
-                                            <td>{item.location || '—'}</td>
-                                            <td>{item.modality || '—'}</td>
-                                            <td>{item.posted_by_name || '—'}</td>
+                                            <td className="jm-cell-wrap-2" title={item.position || ''}>
+                                                {truncateText(item.position || '—')}
+                                            </td>
+                                            <td className="jm-cell-wrap-2">{item.company || '—'}</td>
+                                            <td className="jm-cell-nowrap">{item.location || '—'}</td>
+                                            <td className="jm-cell-nowrap">{item.modality || '—'}</td>
+                                            <td className="jm-cell-nowrap">{item.posted_by_name || '—'}</td>
                                             <td>
                                                 <button
                                                     type="button"
@@ -290,7 +360,7 @@ function JobManagement() {
                                                                     />
                                                                     <button
                                                                         type="button"
-                                                                        className="jm-reject-btn"
+                                                                        className="jm-confirm-btn"
                                                                         onClick={() => handleDeny(item.id, itemType)}
                                                                         disabled={denyingId === item.id}
                                                                     >
@@ -298,7 +368,7 @@ function JobManagement() {
                                                                     </button>
                                                                     <button
                                                                         type="button"
-                                                                        className="jm-cancel-deny-btn"
+                                                                        className="jm-cancel-deny-btn btn btn-deactivate"
                                                                         onClick={() => { setShowDenyInput(null); setDenyRemarks(''); }}
                                                                     >
                                                                         Cancel
@@ -318,30 +388,14 @@ function JobManagement() {
                                                     {item.status !== 'pending' && (
                                                         <>
                                                             {item.status === 'approved' && (
-                                                                <>
-                                                                    <button
-                                                                        type="button"
-                                                                        className="jm-approve-btn"
-                                                                        onClick={() => openEdit(item, itemType)}
-                                                                    >
-                                                                        Edit
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        className="jm-hide-btn"
-                                                                        onClick={() => handleToggleHide(item.id, itemType, item.is_hidden)}
-                                                                    >
-                                                                        {item.is_hidden ? 'Activate' : 'Deactivate'}
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        className="jm-delete-btn"
-                                                                        onClick={() => handleDelete(item.id, itemType)}
-                                                                        disabled={deletingId === item.id}
-                                                                    >
-                                                                        {deletingId === item.id ? '...' : 'Delete'}
-                                                                    </button>
-                                                                </>
+                                                                <SplitDropdown
+                                                                    item={item}
+                                                                    onEdit={() => openEdit(item, itemType)}
+                                                                    onToggleHide={() => handleToggleHide(item.id, itemType, item.is_hidden)}
+                                                                    onDelete={() => handleDelete(item.id, itemType)}
+                                                                    togglingId={togglingId}
+                                                                    deletingId={deletingId}
+                                                                />
                                                             )}
                                                             {item.status === 'denied' && (
                                                                 <button
@@ -423,7 +477,7 @@ function JobManagement() {
                                     {(detailsItem.status === 'pending') && (
                                         <button
                                             type="button"
-                                            className="jm-approve-btn"
+                                            className="jm-approve-btn btn btn-edit"
                                             onClick={() => {
                                                 setDetailsItem(null);
                                                 openEdit(detailsItem, detailsType);
@@ -434,7 +488,7 @@ function JobManagement() {
                                     )}
                                     <button
                                         type="button"
-                                        className="jm-modal-close"
+                                        className="jm-modal-close btn btn-close"
                                         onClick={() => setDetailsItem(null)}
                                     >
                                         Close
@@ -482,8 +536,8 @@ function JobManagement() {
                                 <textarea className="jm-deny-input" rows={4} placeholder="Description" value={editForm.description || ''} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} />
                             </div>
                             <div className="jm-modal-actions">
-                                <button type="button" className="jm-modal-close" onClick={closeEdit}>Cancel</button>
-                                <button type="button" className="jm-approve-btn" onClick={handleEditSave} disabled={savingEdit}>
+                                <button type="button" className="jm-modal-close btn btn-close" onClick={closeEdit}>Cancel</button>
+                                <button type="button" className="jm-approve-btn btn btn-edit" onClick={handleEditSave} disabled={savingEdit}>
                                     {savingEdit ? 'Saving...' : 'Save'}
                                 </button>
                             </div>

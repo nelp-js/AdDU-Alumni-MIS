@@ -1,12 +1,71 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/JobManagement.css';
+import '../styles/AdminButtons.css';
 import { useTitle } from '../Hooks/useTitle';
 
 const CATEGORIES = ['Student Aid', 'Infrastructure', 'Research', 'Faculty'];
+
+function SplitDropdown({ campaign, onEdit, onToggleActive, onDelete, togglingId, deletingId }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [open]);
+
+    return (
+        <div className="jm-btn-group" ref={ref}>
+            <button
+                type="button"
+                className="jm-split-main"
+                onClick={() => { setOpen(false); onEdit(); }}
+            >
+                Edit
+            </button>
+            <button
+                type="button"
+                className="jm-split-toggle"
+                onClick={() => setOpen((v) => !v)}
+                aria-expanded={open}
+            >
+                ▾
+            </button>
+            {open && (
+                <ul className="jm-dropdown-menu" role="menu">
+                    <li>
+                        <button
+                            type="button"
+                            className={`jm-dropdown-item ${campaign.is_active ? 'item-deactivate' : 'item-activate'}`}
+                            onClick={() => { setOpen(false); onToggleActive(); }}
+                            disabled={togglingId === campaign.id}
+                        >
+                            {togglingId === campaign.id ? '…' : (campaign.is_active ? 'Deactivate' : 'Activate')}
+                        </button>
+                    </li>
+                    <li>
+                        <button
+                            type="button"
+                            className="jm-dropdown-item item-delete"
+                            onClick={() => { setOpen(false); onDelete(); }}
+                            disabled={deletingId === campaign.id}
+                        >
+                            {deletingId === campaign.id ? '…' : 'Delete'}
+                        </button>
+                    </li>
+                </ul>
+            )}
+        </div>
+    );
+}
 
 function formatMoney(n) {
     if (n == null || n === '') return '—';
@@ -33,6 +92,12 @@ function getStatusLabel(campaign) {
     if (status === 'approved') return campaign.is_active ? 'Approved' : 'Hidden';
     if (status === 'denied') return 'Denied';
     return 'Pending';
+}
+
+function truncateText(value, max = 65) {
+    const text = typeof value === 'string' ? value : '';
+    if (text.length <= max) return text;
+    return `${text.slice(0, max).trimEnd()}...`;
 }
 
 function CampaignManagement() {
@@ -217,8 +282,10 @@ function CampaignManagement() {
                                 <tbody>
                                     {campaigns.map((c) => (
                                         <tr key={c.id} className={!c.is_active ? 'jm-row-hidden' : ''}>
-                                            <td>{c.title || '—'}</td>
-                                            <td>{c.category || '—'}</td>
+                                            <td className="jm-cell-wrap-2" title={c.title || ''}>
+                                                {truncateText(c.title || '—')}
+                                            </td>
+                                            <td className="jm-cell-nowrap">{c.category || '—'}</td>
                                             <td>{formatMoney(c.goal_amount)}</td>
                                             <td>{formatMoney(c.raised_amount)}</td>
                                             <td>{formatDate(c.end_date)}</td>
@@ -261,7 +328,7 @@ function CampaignManagement() {
                                                                     />
                                                                     <button
                                                                         type="button"
-                                                                        className="jm-reject-btn"
+                                                                        className="jm-confirm-btn"
                                                                         onClick={() => handleDeny(c.id)}
                                                                         disabled={denyingId === c.id}
                                                                     >
@@ -269,7 +336,7 @@ function CampaignManagement() {
                                                                     </button>
                                                                     <button
                                                                         type="button"
-                                                                        className="jm-cancel-deny-btn"
+                                                                        className="jm-cancel-deny-btn btn btn-deactivate"
                                                                         onClick={() => { setShowDenyInput(null); setDenyRemarks(''); }}
                                                                     >
                                                                         Cancel
@@ -289,35 +356,14 @@ function CampaignManagement() {
                                                     {c.status !== 'pending' && (
                                                         <>
                                                             {c.status === 'approved' && (
-                                                                <>
-                                                                    <button
-                                                                        type="button"
-                                                                        className="jm-approve-btn"
-                                                                        onClick={() => openEdit(c)}
-                                                                    >
-                                                                        Edit
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        className="jm-hide-btn"
-                                                                        onClick={() => handleToggleActive(c.id)}
-                                                                        disabled={togglingId === c.id}
-                                                                    >
-                                                                        {togglingId === c.id
-                                                                            ? '...'
-                                                                            : c.is_active
-                                                                              ? 'Deactivate'
-                                                                              : 'Activate'}
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        className="jm-delete-btn"
-                                                                        onClick={() => handleDelete(c.id)}
-                                                                        disabled={deletingId === c.id}
-                                                                    >
-                                                                        {deletingId === c.id ? '...' : 'Delete'}
-                                                                    </button>
-                                                                </>
+                                                                <SplitDropdown
+                                                                    campaign={c}
+                                                                    onEdit={() => openEdit(c)}
+                                                                    onToggleActive={() => handleToggleActive(c.id)}
+                                                                    onDelete={() => handleDelete(c.id)}
+                                                                    togglingId={togglingId}
+                                                                    deletingId={deletingId}
+                                                                />
                                                             )}
                                                             {c.status === 'denied' && (
                                                                 <button
@@ -398,7 +444,7 @@ function CampaignManagement() {
                                     {(!detailsItem.status || detailsItem.status === 'pending') && (
                                         <button
                                             type="button"
-                                            className="jm-approve-btn"
+                                            className="jm-approve-btn btn btn-edit"
                                             onClick={() => {
                                                 setDetailsItem(null);
                                                 openEdit(detailsItem);
@@ -409,7 +455,7 @@ function CampaignManagement() {
                                     )}
                                     <button
                                         type="button"
-                                        className="jm-modal-close"
+                                        className="jm-modal-close btn btn-close"
                                         onClick={() => setDetailsItem(null)}
                                     >
                                         Close
@@ -529,12 +575,12 @@ function CampaignManagement() {
                                 </label>
                             </div>
                             <div className="jm-modal-actions">
-                                <button type="button" className="jm-modal-close" onClick={closeEdit}>
+                                <button type="button" className="jm-modal-close btn btn-close" onClick={closeEdit}>
                                     Cancel
                                 </button>
                                 <button
                                     type="button"
-                                    className="jm-approve-btn"
+                                    className="jm-approve-btn btn btn-edit"
                                     onClick={handleEditSave}
                                     disabled={savingEdit}
                                 >

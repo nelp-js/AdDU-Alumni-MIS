@@ -4,30 +4,18 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/EventManagement.css';
+import '../styles/AdminButtons.css';
 import { useTitle } from '../Hooks/useTitle';
 
-function SplitDropdown({
-    eventId,
-    onEdit,
-    onDelete,
-    onToggle,
-    deletingId,
-    togglingId,
-    isHidden,
-    openUp = false,
-}) {
+function SplitDropdown({ eventItem, onEdit, onToggleHide, onDelete, togglingId, deletingId }) {
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
 
     useEffect(() => {
         if (!open) return;
-
         const handler = (e) => {
-            if (ref.current && !ref.current.contains(e.target)) {
-                setOpen(false);
-            }
+            if (ref.current && !ref.current.contains(e.target)) setOpen(false);
         };
-
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, [open]);
@@ -37,56 +25,38 @@ function SplitDropdown({
             <button
                 type="button"
                 className="event-mgmt-split-main"
-                onClick={() => {
-                    setOpen(false);
-                    onEdit();
-                }}
+                onClick={() => { setOpen(false); onEdit(); }}
             >
                 Edit
             </button>
-
             <button
                 type="button"
                 className="event-mgmt-split-toggle"
                 onClick={() => setOpen((v) => !v)}
                 aria-expanded={open}
-                aria-haspopup="menu"
             >
                 ▾
             </button>
-
             {open && (
-                <ul
-                    className={`event-mgmt-dropdown-menu ${openUp ? 'open-up' : ''}`}
-                    role="menu"
-                >
+                <ul className="event-mgmt-dropdown-menu" role="menu">
                     <li>
                         <button
                             type="button"
-                            className={`event-mgmt-dropdown-item ${
-                                isHidden ? 'item-activate' : 'item-deactivate'
-                            }`}
-                            onClick={() => {
-                                setOpen(false);
-                                onToggle();
-                            }}
-                            disabled={togglingId === eventId}
+                            className={`event-mgmt-dropdown-item ${eventItem.is_hidden ? 'item-activate' : 'item-deactivate'}`}
+                            onClick={() => { setOpen(false); onToggleHide(); }}
+                            disabled={togglingId === eventItem.id}
                         >
-                            {togglingId === eventId ? '...' : isHidden ? 'Activate' : 'Deactivate'}
+                            {togglingId === eventItem.id ? '…' : (eventItem.is_hidden ? 'Activate' : 'Deactivate')}
                         </button>
                     </li>
-
                     <li>
                         <button
                             type="button"
                             className="event-mgmt-dropdown-item item-delete"
-                            onClick={() => {
-                                setOpen(false);
-                                onDelete();
-                            }}
-                            disabled={deletingId === eventId}
+                            onClick={() => { setOpen(false); onDelete(); }}
+                            disabled={deletingId === eventItem.id}
                         >
-                            {deletingId === eventId ? '...' : 'Delete'}
+                            {deletingId === eventItem.id ? '…' : 'Delete'}
                         </button>
                     </li>
                 </ul>
@@ -272,7 +242,7 @@ function EventManagement() {
                                 </thead>
 
                                 <tbody>
-                                    {events.map((ev, index) => (
+                                    {events.map((ev) => (
                                         <tr key={ev.id}>
                                             <td>{ev.event_name || '—'}</td>
                                             <td>{ev.venue || '—'}</td>
@@ -316,7 +286,7 @@ function EventManagement() {
                                                                 />
                                                                 <button
                                                                     type="button"
-                                                                    className="event-mgmt-reject-btn"
+                                                                    className="event-mgmt-confirm-btn"
                                                                     onClick={() => handleDeny(ev.id)}
                                                                     disabled={denyingId === ev.id}
                                                                 >
@@ -324,7 +294,7 @@ function EventManagement() {
                                                                 </button>
                                                                 <button
                                                                     type="button"
-                                                                    className="event-mgmt-reject-btn"
+                                                                    className="event-mgmt-reject-btn btn btn-deactivate"
                                                                     onClick={() => {
                                                                         setShowDenyInput(null);
                                                                         setDenyRemarks('');
@@ -345,19 +315,12 @@ function EventManagement() {
                                                     </span>
                                                 ) : ev.status === 'approved' || ev.is_approved ? (
                                                     <SplitDropdown
-                                                        eventId={ev.id}
-                                                        onEdit={() =>
-                                                            navigate(`/dashboard/events/edit/${ev.id}`)
-                                                        }
+                                                        eventItem={ev}
+                                                        onEdit={() => navigate(`/dashboard/events/edit/${ev.id}`)}
+                                                        onToggleHide={() => handleToggleHide(ev.id)}
                                                         onDelete={() => handleDelete(ev.id)}
-                                                        onToggle={() => handleToggleHide(ev.id)}
-                                                        deletingId={deletingId}
                                                         togglingId={togglingId}
-                                                        isHidden={ev.is_hidden}
-                                                        openUp={
-                                                            events.length > 2 &&
-                                                            index >= events.length - 2
-                                                        }
+                                                        deletingId={deletingId}
                                                     />
                                                 ) : (
                                                     <span className="event-mgmt-actions">
@@ -543,7 +506,7 @@ function EventManagement() {
                                 <div />
                                 <button
                                     type="button"
-                                    className="event-mgmt-modal-cancel"
+                                    className="event-mgmt-modal-cancel btn btn-close"
                                     onClick={() => setDetailsEvent(null)}
                                 >
                                     Close
