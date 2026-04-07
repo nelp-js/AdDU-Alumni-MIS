@@ -176,8 +176,8 @@
 .content-mgmt-dropdown-menu {
     position: absolute;
     top: calc(100% + 4px);
-    left: 0;
-    min-width: 150px;
+    right: 0; /* <--- CHANGE THIS FROM left: 0 */
+    min-width: 100px;
     background: #fff;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
