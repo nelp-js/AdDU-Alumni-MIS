@@ -338,13 +338,20 @@ function CreateContent() {
                             </div>
 
                             <div className="cc-field">
-                                <label className="cc-label">Cover Image <span className="cc-required">*</span></label>
-                                <label className="cc-file-wrap">
-                                    <span className="cc-file-label">{coverImage ? coverImage.name : (existingCoverUrl ? 'Change cover photo' : 'Choose JPG or PNG')}</span>
+                                <label className="cc-label">Cover Photo <span className="cc-required">*</span></label>
+                                {coverPreviewUrl && (
+                                    <div className="cc-upload-preview">
+                                        <img src={coverPreviewUrl} alt="Preview" className="cc-upload-preview-img" />
+                                        {coverImage && <p className="cc-upload-preview-name">{coverImage.name}</p>}
+                                    </div>
+                                )}
+                                <label className="cc-file-upload">
+                                    <span className="cc-file-placeholder">
+                                        {coverImage ? coverImage.name : (existingCoverUrl ? 'Change cover photo' : 'Upload Image (Required)')}
+                                    </span>
                                     <input type="file" accept="image/*" onChange={(e) => setCoverImage(e.target.files[0] || null)} className="cc-file-input" />
-                                    <span className="cc-browse">Browse</span>
+                                    <span className="cc-upload-btn">Browse</span>
                                 </label>
-                                {coverPreviewUrl && <div className="cc-preview-wrap"><img src={coverPreviewUrl} alt="Preview" className="cc-cover-preview" /></div>}
                             </div>
 
                             <div className="cc-field">

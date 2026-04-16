@@ -75,6 +75,7 @@ function App() {
         <Route path="/dashboard/jobs" element={<AdminProtectedRoute><JobManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/donations/create" element={<AdminProtectedRoute><CreateCampaign /></AdminProtectedRoute>} />
         <Route path="/dashboard/campaigns" element={<AdminProtectedRoute><CampaignManagement /></AdminProtectedRoute>} />
+        <Route path="/dashboard/campaigns/edit/:id" element={<AdminProtectedRoute><CreateCampaign /></AdminProtectedRoute>} />
         <Route path="/dashboard/content" element={<AdminProtectedRoute><ContentManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/content/create" element={<AdminProtectedRoute><CreateContent /></AdminProtectedRoute>} />
         <Route path="/dashboard/content/edit/:id" element={<AdminProtectedRoute><CreateContent /></AdminProtectedRoute>} />

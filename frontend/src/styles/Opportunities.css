@@ -327,10 +327,11 @@
 .campaign-public-title {
     margin: 0;
     padding: 0 14px;
-    font-size: 20px;
-    font-weight: 700;
+    font-size: 18px;
+    font-weight: 300;
+    font-family: 'Avenir LT Pro Light', 'Avenir LT Std', 'Avenir', system-ui, sans-serif;
     color: #111827;
-    line-height: 1.25;
+    line-height: 1.35;
     min-height: 50px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -348,10 +349,10 @@
 .campaign-public-meta {
     margin: 0;
     padding: 0 14px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #111827;
-    line-height: 1.25;
+    font-size: 13px;
+    font-weight: 400;
+    color: #4b5563;
+    line-height: 1.45;
     min-height: 40px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -561,16 +562,29 @@
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, color 0.18s ease;
 }
 
 .campaign-detail-donate-now {
-    background: #040354;
-    color: #fff;
+    background: #bfdbfe;
+    color: #040354;
 }
 
 .campaign-detail-share-btn {
-    background: #1b1f6b;
-    color: #fff;
+    background: #040354;
+    color: #bfdbfe;
+}
+
+.campaign-detail-donate-now:hover {
+    background: #93c5fd;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(30, 64, 175, 0.25);
+}
+
+.campaign-detail-share-btn:hover {
+    background: #1e3a8a;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(4, 3, 84, 0.28);
 }
 
 .campaign-donate-modal {
@@ -789,6 +803,14 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+}
+
+.opp-card-clickable {
+    cursor: pointer;
+}
+
+.opp-card-clickable:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .opp-card-title {

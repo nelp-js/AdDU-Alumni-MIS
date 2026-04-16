@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -7,31 +7,29 @@ import '../styles/CampaignManagement.css';
 import '../styles/AdminButtons.css';
 import { useTitle } from '../Hooks/useTitle';
 
-const CATEGORIES = ['Student Aid', 'Infrastructure', 'Research', 'Faculty'];
-const MAX_CAMPAIGN_TITLE = 60;
+function SplitDropdown({ campaign, onToggleActive, onDelete, togglingId, deletingId }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+    const nav = useNavigate();
 
-function SplitDropdown({ campaign, onEdit, onToggleActive, onDelete, togglingId, deletingId }) {
-    const [open, setOpen] = useState(false);
-    const ref = useRef(null);
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [open]);
 
-    useEffect(() => {
-        if (!open) return;
-        const handler = (e) => {
-            if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-        };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, [open]);
-
-    return (
-        <div className="campaign-mgmt-btn-group" ref={ref}>
-            <button
-                type="button"
-                className="campaign-mgmt-split-main"
-                onClick={() => { setOpen(false); onEdit(); }}
-            >
-                Edit
-            </button>
+    return (
+        <div className="campaign-mgmt-btn-group" ref={ref}>
+            <button
+                type="button"
+                className="campaign-mgmt-split-main"
+                onClick={() => { setOpen(false); nav(`/dashboard/campaigns/edit/${campaign.id}`); }}
+            >
+                Edit
+            </button>
             <button
                 type="button"
                 className="campaign-mgmt-split-toggle"
@@ -75,12 +73,6 @@ function formatMoney(n) {
     return `₱${num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
 
-function CampaignEditLabel({ children }) {
-    return (
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>{children}</div>
-    );
-}
-
 function getStatusClass(campaign) {
     const status = campaign.status || 'pending';
     if (status === 'approved') return campaign.is_active ? 'approved' : 'denied';
@@ -108,10 +100,6 @@ function CampaignManagement() {
     const [denyingId, setDenyingId] = useState(null);
     const [denyRemarks, setDenyRemarks] = useState('');
     const [showDenyInput, setShowDenyInput] = useState(null);
-    const [editing, setEditing] = useState(null);
-    const [editForm, setEditForm] = useState({});
-    const [savingEdit, setSavingEdit] = useState(false);
-    const [editError, setEditError] = useState('');
 
     const load = () => {
         setLoading(true);
@@ -185,66 +173,13 @@ function CampaignManagement() {
         api.delete(`/api/campaigns/${id}/`)
             .then(() => {
                 setCampaigns((prev) => prev.filter((c) => c.id !== id));
-                if (detailsItem?.id === id) setDetailsItem(null);
-                if (editing === id) {
-                    setEditing(null);
-                    setEditError('');
-                }
+                if (detailsItem?.id === id) setDetailsItem(null);
             })
             .catch(() => alert('Failed to delete campaign.'))
-            .finally(() => setDeletingId(null));
-    };
+            .finally(() => setDeletingId(null));
+    };
 
-    const openEdit = (c) => {
-        setEditing(c.id);
-        setEditForm({
-            title: c.title || '',
-            description: c.description || '',
-            category: c.category || 'Student Aid',
-            goal_amount: c.goal_amount != null ? String(c.goal_amount) : '',
-            end_date: c.end_date ? c.end_date.slice(0, 10) : '',
-        });
-        setEditError('');
-    };
-
-    const closeEdit = () => {
-        setEditing(null);
-        setEditError('');
-    };
-
-    const handleEditSave = () => {
-        if (!editing) return;
-        setSavingEdit(true);
-        setEditError('');
-        const payload = {
-            title: editForm.title,
-            description: editForm.description,
-            category: editForm.category,
-            goal_amount: editForm.goal_amount,
-            end_date: editForm.end_date || null,
-        };
-        api.patch(`/api/campaigns/${editing}/`, payload)
-            .then((res) => {
-                setCampaigns((prev) => prev.map((c) => (c.id === editing ? { ...c, ...res.data } : c)));
-                if (detailsItem?.id === editing) setDetailsItem((d) => (d ? { ...d, ...res.data } : null));
-                closeEdit();
-            })
-            .catch((err) => {
-                const d = err.response?.data;
-                setEditError(
-                    typeof d?.detail === 'string'
-                        ? d.detail
-                        : d && typeof d === 'object'
-                          ? Object.entries(d)
-                                .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
-                                .join(' ')
-                          : 'Failed to save.'
-                );
-            })
-            .finally(() => setSavingEdit(false));
-    };
-
-    return (
+    return (
         <div className="campaign-mgmt-page">
             <Header />
             <main className="campaign-mgmt-main">
@@ -353,14 +288,13 @@ function CampaignManagement() {
                                                     {c.status !== 'pending' && (
                                                         <>
                                                             {c.status === 'approved' && (
-                                                                <SplitDropdown
-                                                                    campaign={c}
-                                                                    onEdit={() => openEdit(c)}
-                                                                    onToggleActive={() => handleToggleActive(c.id)}
-                                                                    onDelete={() => handleDelete(c.id)}
-                                                                    togglingId={togglingId}
-                                                                    deletingId={deletingId}
-                                                                />
+                                                                <SplitDropdown
+                                                                    campaign={c}
+                                                                    onToggleActive={() => handleToggleActive(c.id)}
+                                                                    onDelete={() => handleDelete(c.id)}
+                                                                    togglingId={togglingId}
+                                                                    deletingId={deletingId}
+                                                                />
                                                             )}
                                                             {c.status === 'denied' && (
                                                                 <button
@@ -437,18 +371,15 @@ function CampaignManagement() {
                                 )}
                             </div>
                             <div className="campaign-mgmt-modal-actions">
-                                {(!detailsItem.status || detailsItem.status === 'pending') && (
-                                    <button
-                                        type="button"
+                                {(!detailsItem.status || detailsItem.status === 'pending') && (
+                                    <Link
+                                        to={`/dashboard/campaigns/edit/${detailsItem.id}`}
                                         className="campaign-mgmt-modal-details-neutral-btn"
-                                        onClick={() => {
-                                            setDetailsItem(null);
-                                            openEdit(detailsItem);
-                                        }}
-                                    >
-                                        Edit
-                                    </button>
-                                )}
+                                        style={{ textDecoration: 'none' }}
+                                    >
+                                        Edit
+                                    </Link>
+                                )}
                                 <button
                                     type="button"
                                     className="campaign-mgmt-modal-details-neutral-btn campaign-mgmt-modal-details-close-deny"
@@ -461,83 +392,6 @@ function CampaignManagement() {
                     </div>
                 )}
 
-                {editing != null && (
-                    <div className="campaign-mgmt-modal-overlay" onClick={closeEdit}>
-                        <div className="campaign-mgmt-modal" onClick={(e) => e.stopPropagation()}>
-                            <h2 className="campaign-mgmt-modal-title">Edit Campaign</h2>
-                            {editError && (
-                                <div className="campaign-mgmt-error" style={{ marginBottom: 12 }}>
-                                    {editError}
-                                </div>
-                            )}
-                            <div className="campaign-mgmt-details-content" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                <label style={{ display: 'block' }}>
-                                    <CampaignEditLabel>Title</CampaignEditLabel>
-                                    <input
-                                        type="text"
-                                        maxLength={MAX_CAMPAIGN_TITLE}
-                                        style={{ width: '100%', marginTop: 4, padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 15 }}
-                                        value={editForm.title}
-                                        onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
-                                    />
-                                </label>
-                                <label style={{ display: 'block' }}>
-                                    <CampaignEditLabel>Description</CampaignEditLabel>
-                                    <textarea
-                                        style={{ width: '100%', marginTop: 4, minHeight: 80, padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 15 }}
-                                        value={editForm.description}
-                                        onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
-                                    />
-                                </label>
-                                <label style={{ display: 'block' }}>
-                                    <CampaignEditLabel>Category</CampaignEditLabel>
-                                    <select
-                                        style={{ width: '100%', marginTop: 4, padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 15 }}
-                                        value={editForm.category}
-                                        onChange={(e) => setEditForm((f) => ({ ...f, category: e.target.value }))}
-                                    >
-                                        {CATEGORIES.map((cat) => (
-                                            <option key={cat} value={cat}>{cat}</option>
-                                        ))}
-                                    </select>
-                                </label>
-                                <label style={{ display: 'block' }}>
-                                    <CampaignEditLabel>Goal amount (₱)</CampaignEditLabel>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        style={{ width: '100%', marginTop: 4, padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 15 }}
-                                        value={editForm.goal_amount}
-                                        onChange={(e) => setEditForm((f) => ({ ...f, goal_amount: e.target.value }))}
-                                    />
-                                </label>
-                                <label style={{ display: 'block' }}>
-                                    <CampaignEditLabel>End date</CampaignEditLabel>
-                                    <input
-                                        type="date"
-                                        style={{ width: '100%', marginTop: 4, padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 15 }}
-                                        value={editForm.end_date}
-                                        onChange={(e) => setEditForm((f) => ({ ...f, end_date: e.target.value }))}
-                                    />
-                                </label>
-                            </div>
-                            <div className="campaign-mgmt-modal-actions">
-                                <button type="button" className="campaign-mgmt-modal-close" onClick={closeEdit}>
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    className="campaign-mgmt-modal-save"
-                                    onClick={handleEditSave}
-                                    disabled={savingEdit}
-                                >
-                                    {savingEdit ? 'Saving…' : 'Save'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </main>
             <Footer />
         </div>

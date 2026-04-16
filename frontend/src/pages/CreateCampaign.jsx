@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/CreateEvent.css';
 import '../styles/CreateCampaign.css';
 import { useTitle } from '../Hooks/useTitle';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const CATEGORIES = ['Student Aid', 'Infrastructure', 'Research', 'Faculty'];
 const MAX_CAMPAIGN_TITLE = 60;
@@ -23,10 +23,15 @@ function trimToWordLimit(text, maxWords) {
 }
 
 function CreateCampaign() {
-    useTitle('Create Campaign');
+    const { id } = useParams();
+    const isEditMode = Boolean(id);
+    useTitle(isEditMode ? 'Edit Campaign' : 'Create Campaign');
     const navigate = useNavigate();
+
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [fetchLoading, setFetchLoading] = useState(false);
+    const [loadError, setLoadError] = useState(null);
     const [submitError, setSubmitError] = useState('');
 
     const [formData, setFormData] = useState({
@@ -39,8 +44,29 @@ function CreateCampaign() {
     });
 
     const [coverPhoto, setCoverPhoto] = useState(null);
+    const [existingCoverUrl, setExistingCoverUrl] = useState(null);
     const titleCount = formData.title.length;
     const descriptionWords = countWords(formData.description);
+
+    useEffect(() => {
+        if (!isEditMode || !id) return;
+        setFetchLoading(true);
+        api.get(`/api/campaigns/${id}/`)
+            .then((res) => {
+                const c = res.data;
+                setFormData({
+                    title:       c.title || '',
+                    description: c.description || '',
+                    category:    c.category || 'Student Aid',
+                    image_url:   '',
+                    goal_amount: c.goal_amount != null ? String(c.goal_amount) : '',
+                    end_date:    c.end_date ? c.end_date.slice(0, 10) : '',
+                });
+                if (c.cover_image) setExistingCoverUrl(c.cover_image);
+            })
+            .catch(() => setLoadError('Failed to load campaign.'))
+            .finally(() => setFetchLoading(false));
+    }, [isEditMode, id]);
 
     const handleChange = (e) => {
         const { name, value, type, files } = e.target;
@@ -62,7 +88,7 @@ function CreateCampaign() {
         const issues = [];
         if (!formData.title.trim()) issues.push('Campaign title is required.');
         if (!formData.description.trim()) issues.push('Description is required.');
-        if (!coverPhoto) issues.push('Cover image is required.');
+        if (!coverPhoto && !existingCoverUrl) issues.push('Cover image is required.');
         if (!formData.goal_amount) issues.push('Goal amount is required.');
         if (!formData.end_date) issues.push('End date is required.');
         if (titleCount > MAX_CAMPAIGN_TITLE) issues.push(`Campaign title must be ${MAX_CAMPAIGN_TITLE} characters or less.`);
@@ -81,10 +107,14 @@ function CreateCampaign() {
             data.append('category',    formData.category);
             data.append('goal_amount', formData.goal_amount);
             data.append('end_date',    formData.end_date);
-            data.append('is_active',   true);
-            data.append('cover_image', coverPhoto);
+            if (!isEditMode) data.append('is_active', true);
+            if (coverPhoto) data.append('cover_image', coverPhoto);
 
-            await api.post('/api/campaigns/', data);
+            if (isEditMode) {
+                await api.patch(`/api/campaigns/${id}/`, data);
+            } else {
+                await api.post('/api/campaigns/', data);
+            }
             setSuccess(true);
             setTimeout(() => navigate('/dashboard/campaigns'), 3000);
         } catch (err) {
@@ -100,6 +130,10 @@ function CreateCampaign() {
         }
     };
 
+    const coverPreviewUrl = coverPhoto
+        ? URL.createObjectURL(coverPhoto)
+        : existingCoverUrl;
+
     if (success) {
         return (
             <div className="create-event-page">
@@ -107,7 +141,7 @@ function CreateCampaign() {
                 <main className="create-event-main">
                     <div className="create-event-form-box">
                         <div className="ce-success-message">
-                            <p>✓ Campaign submitted and pending approval.</p>
+                            <p>✓ {isEditMode ? 'Campaign updated successfully!' : 'Campaign submitted and pending approval.'}</p>
                             <p>Redirecting to dashboard...</p>
                         </div>
                     </div>
@@ -121,8 +155,12 @@ function CreateCampaign() {
         <div className="create-event-page">
             <Header />
             <main className="create-event-main">
-                <h1 className="create-event-title">Create Campaign</h1>
+                <h1 className="create-event-title">{isEditMode ? 'Edit Campaign' : 'Create Campaign'}</h1>
                 <div className="create-event-form-box">
+                    {fetchLoading && <div className="ce-loading-msg">Loading campaign data...</div>}
+                    {loadError && <div className="ce-submit-error">{loadError}</div>}
+
+                    {!fetchLoading && !loadError && (
                     <form className="create-event-form" onSubmit={handleSubmit}>
                         {submitError && <div className="ce-submit-error">{submitError}</div>}
 
@@ -138,6 +176,26 @@ function CreateCampaign() {
                                 onChange={handleChange} className="ce-input"
                                 maxLength={MAX_CAMPAIGN_TITLE}
                                 placeholder="e.g. Scholar Excellence Fund 2026" required />
+                        </div>
+
+                        {/* Cover Image Upload */}
+                        <div className="ce-field-group">
+                            <label className="ce-label-large">Cover Photo <span className="ce-required">*</span></label>
+                            {coverPreviewUrl && (
+                                <div className="cc-preview">
+                                    <img src={coverPreviewUrl} alt="Preview" className="cc-preview-img" />
+                                    {coverPhoto && <p className="cc-preview-name">{coverPhoto.name}</p>}
+                                </div>
+                            )}
+                            <label className="ce-file-input">
+                                <span className="ce-file-placeholder">
+                                    {coverPhoto ? coverPhoto.name : (existingCoverUrl ? 'Change cover photo' : 'Upload Image (required)')}
+                                </span>
+                                <input type="file" name="cover_image" accept="image/*"
+                                    onChange={handleChange} style={{ display: 'none' }}
+                                    {...(!isEditMode && !coverPhoto ? { required: true } : {})} />
+                                <span className="ce-upload-btn">Browse</span>
+                            </label>
                         </div>
 
                         {/* Description */}
@@ -184,35 +242,20 @@ function CreateCampaign() {
                                 style={{ maxWidth: '280px' }} required />
                         </div>
 
-                        {/* Cover Image Upload */}
-                        <div className="ce-field-group">
-                            <label className="ce-label-large">Cover Image <span className="ce-required">*</span></label>
-                            {coverPhoto && (
-                                <div className="cc-preview">
-                                    <img src={URL.createObjectURL(coverPhoto)} alt="Preview" className="cc-preview-img" />
-                                    <p className="cc-preview-name">{coverPhoto.name}</p>
-                                </div>
-                            )}
-                            <label className="ce-file-input">
-                                <span className="ce-file-placeholder">
-                                    {coverPhoto ? coverPhoto.name : 'Upload Image (required)'}
-                                </span>
-                                <input type="file" name="cover_image" accept="image/*"
-                                    onChange={handleChange} style={{ display: 'none' }} required />
-                                <span className="ce-upload-btn">Browse</span>
-                            </label>
-                        </div>
-
                         <div className="ce-actions">
-                            <button type="button" className="ce-cancel-btn" onClick={() => navigate(-1)}>
+                            <button type="button" className="ce-cancel-btn" onClick={() => navigate('/dashboard/campaigns')}>
                                 Cancel
                             </button>
                             <button type="submit" className="ce-submit-btn" disabled={loading}>
-                                <span>{loading ? 'Creating...' : 'Create Campaign'}</span>
+                                <span>{loading
+                                    ? (isEditMode ? 'Saving...' : 'Creating...')
+                                    : (isEditMode ? 'Save Changes' : 'Create Campaign')
+                                }</span>
                             </button>
                         </div>
 
                     </form>
+                    )}
                 </div>
             </main>
             <Footer />

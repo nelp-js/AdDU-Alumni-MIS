@@ -8,11 +8,12 @@
 
 .create-content-main {
     flex: 1;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 60px 24px 80px;
-    width: 100%;
-    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 20px 40px;
+    position: relative;
+    z-index: 1;
 }
 
 .create-content-title {
@@ -20,7 +21,7 @@
     font-weight: 400;
     color: #333;
     text-align: center;
-    margin: 0 0 8px 0;
+    margin: 0 0 40px 0;
     font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
 }
 
@@ -35,7 +36,9 @@
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-    padding: 40px;
+    padding: 50px 40px;
+    width: 100%;
+    max-width: 900px;
     box-sizing: border-box;
 }
 
@@ -138,42 +141,69 @@
     line-height: 1.35;
 }
 
-.cc-file-wrap {
-    display: inline-flex;
+.cc-file-upload {
+    position: relative;
+    display: flex;
     align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    background-color: #ffffff;
+    padding: 12px 15px;
+    box-sizing: border-box;
+    cursor: pointer;
+    font-size: 15px;
+    color: #333;
+    transition: all 0.3s ease;
 }
 
-.cc-file-label {
-    font-size: 14px;
-    color: #6d7280;
+.cc-file-upload:hover {
+    border-color: #040354;
+    background: #f9f9f9;
 }
 
 .cc-file-input {
-    display: none;
-}
-
-.cc-browse {
-    display: inline-block;
-    padding: 8px 16px;
-    background: #040354;
-    color: #fff;
-    border-radius: 8px;
-    font-size: 14px;
+    position: absolute;
+    inset: 0;
+    opacity: 0;
     cursor: pointer;
 }
 
-.cc-preview-wrap {
-    margin-top: 12px;
+.cc-file-placeholder {
+    color: #9199a3;
+    font-size: 15px;
 }
 
-.cc-cover-preview {
-    max-width: 100%;
-    max-height: 280px;
-    object-fit: contain;
+.cc-upload-btn {
+    color: #333;
+}
+
+.cc-upload-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    background: #f3f4f6;
     border-radius: 8px;
-    border: 1px solid #e5e7eb;
+}
+
+.cc-upload-preview-img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.cc-upload-preview-name {
+    font-size: 13px;
+    color: #374151;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Tiptap editor */
@@ -366,8 +396,9 @@
 }
 
 .cc-preview-btn {
-    background: #f3f4f6;
-    color: #374151;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    color: #333;
 }
 
 /* Buttons */
@@ -388,13 +419,17 @@
 }
 
 .cc-btn {
-    padding: 12px 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 40px;
     border-radius: 8px;
-    font-size: 15px;
-    font-weight: 500;
+    border: 1px solid #e0e0e0;
+    font-size: 16px;
+    font-weight: 400;
     cursor: pointer;
-    border: none;
-    transition: opacity 0.2s;
+    transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
 .cc-btn:disabled {
@@ -403,8 +438,8 @@
 }
 
 .cc-cancel {
-    background: #f3f4f6;
-    color: #374151;
+    background-color: #ffffff;
+    color: #333;
 }
 
 .cc-draft {
@@ -413,21 +448,34 @@
 }
 
 .cc-publish {
-    background: #040354;
+    background-color: #040354;
+    border: none;
     color: #fff;
 }
 
 .cc-btn:hover:not(:disabled) {
-    opacity: 0.9;
+    border-color: #040354;
+    background-color: #f9f9f9;
+}
+
+.cc-publish:hover:not(:disabled) {
+    background: #050465;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(4, 3, 84, 0.3);
 }
 
 @media (max-width: 768px) {
     .create-content-main {
-        padding: 40px 16px 60px;
+        padding: 40px 15px 30px;
+    }
+
+    .create-content-title {
+        font-size: 28px;
+        margin-bottom: 30px;
     }
 
     .create-content-form-box {
-        padding: 24px;
+        padding: 40px 30px;
     }
 
     .cc-actions {
@@ -437,6 +485,21 @@
 
     .cc-actions-right {
         justify-content: stretch;
+    }
+}
+
+@media (max-width: 480px) {
+    .create-content-main {
+        padding: 30px 10px 20px;
+    }
+
+    .create-content-title {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    .create-content-form-box {
+        padding: 30px 20px;
     }
 }
 

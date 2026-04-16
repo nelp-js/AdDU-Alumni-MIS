@@ -178,6 +178,33 @@
     color: #6c6969;
 }
 
+.ce-upload-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    background: #f3f4f6;
+    border-radius: 8px;
+}
+
+.ce-upload-preview-img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.ce-upload-preview-name {
+    font-size: 13px;
+    color: #374151;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 /* Toggle section */
 .ce-section {
     display: flex;
@@ -299,9 +326,13 @@
 /* Actions */
 .ce-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
     margin-top: 8px;
     gap: 16px;
+    padding-top: 24px;
+    border-top: 1px solid #e5e7eb;
 }
 
 /* Buttons: match Register .submit-btn and .upload-btn */

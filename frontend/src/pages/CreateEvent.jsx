@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -6,11 +6,28 @@ import '../styles/CreateEvent.css';
 import { useTitle } from '../Hooks/useTitle';
 import { useNavigate } from 'react-router-dom';
 
+const MAX_EVENT_NAME = 60;
+const MAX_VENUE = 140;
+const MAX_ORGANIZER_NAME = 60;
+const MAX_DESCRIPTION_WORDS = 1200;
+
+function countWords(text) {
+    if (!text || typeof text !== 'string') return 0;
+    return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function trimToWordLimit(text, maxWords) {
+    const words = (text || '').trim().split(/\s+/).filter(Boolean);
+    if (words.length <= maxWords) return text;
+    return words.slice(0, maxWords).join(' ');
+}
+
 function CreateEvent() {
     useTitle('Create Event');
     const navigate = useNavigate();
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [coverPreviewUrl, setCoverPreviewUrl] = useState(null);
     
     const [formData, setFormData] = useState({
         eventName: '',
@@ -31,14 +48,26 @@ function CreateEvent() {
         organizer2: '',
         organizer3: '',
     });
+    const descriptionWords = countWords(formData.description);
 
     const handleChange = (e) => {
         const { name, value, type, checked, files } = e.target;
         let val = value;
         if (type === 'checkbox') val = checked;
         if (type === 'file') val = files[0] || null;
+        if (name === 'description') val = trimToWordLimit(value, MAX_DESCRIPTION_WORDS);
         setFormData((prev) => ({ ...prev, [name]: val }));
     };
+
+    useEffect(() => {
+        if (!formData.coverPhoto) {
+            setCoverPreviewUrl(null);
+            return;
+        }
+        const url = URL.createObjectURL(formData.coverPhoto);
+        setCoverPreviewUrl(url);
+        return () => URL.revokeObjectURL(url);
+    }, [formData.coverPhoto]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -112,9 +141,14 @@ function CreateEvent() {
                         <form className="create-event-form" onSubmit={handleSubmit}>
 
                             <div className="ce-field-group">
-                                <label className="ce-label-large">Event Name <span className="ce-required">*</span></label>
+                                <div className="ce-label-row">
+                                    <label className="ce-label-large">Event Name <span className="ce-required">*</span></label>
+                                    <span className="ce-char-count">{formData.eventName.length}/{MAX_EVENT_NAME}</span>
+                                </div>
                                 <input type="text" name="eventName" value={formData.eventName}
-                                    onChange={handleChange} className="ce-input" placeholder="Enter event name" required />
+                                    onChange={handleChange} className="ce-input"
+                                    maxLength={MAX_EVENT_NAME}
+                                    placeholder="Enter event name" required />
                             </div>
 
                             <div className="ce-field-group">
@@ -142,9 +176,15 @@ function CreateEvent() {
 
                             <div className="ce-field-group">
                                 <label className="ce-label-large">Cover Photo <span className="ce-required">*</span></label>
+                                {coverPreviewUrl && (
+                                    <div className="ce-upload-preview">
+                                        <img src={coverPreviewUrl} alt="Preview" className="ce-upload-preview-img" />
+                                        <p className="ce-upload-preview-name">{formData.coverPhoto?.name}</p>
+                                    </div>
+                                )}
                                 <label className="ce-file-input">
                                     <span className="ce-file-placeholder">
-                                        {formData.coverPhoto ? formData.coverPhoto.name : 'Upload Image'}
+                                        {formData.coverPhoto ? formData.coverPhoto.name : 'Upload Image (Required)'}
                                     </span>
                                     <input type="file" name="coverPhoto" accept="image/*"
                                         onChange={handleChange} style={{ display: 'none' }} />
@@ -153,7 +193,10 @@ function CreateEvent() {
                             </div>
 
                             <div className="ce-field-group">
-                                <label className="ce-label-large">Full Description <span className="ce-required">*</span></label>
+                                <div className="ce-label-row">
+                                    <label className="ce-label-large">Full Description <span className="ce-required">*</span></label>
+                                    <span className="ce-char-count">{descriptionWords} / {MAX_DESCRIPTION_WORDS} words</span>
+                                </div>
                                 <textarea name="description" value={formData.description} onChange={handleChange}
                                     className="ce-textarea ce-textarea-large"
                                     placeholder="Provide a detailed description of the event" required />
@@ -189,12 +232,16 @@ function CreateEvent() {
                                 <div className="ce-field-group ce-field-half">
                                     <label className="ce-label-small">Cost</label>
                                     <input type="text" name="cost" value={formData.cost}
-                                        onChange={handleChange} className="ce-input" placeholder="Free or 3000 PHP" />
+                                        onChange={handleChange} className="ce-input" placeholder="Free or ₱3000" />
                                 </div>
                                 <div className="ce-field-group ce-field-half">
-                                    <label className="ce-label-small">Venue <span className="ce-required">*</span></label>
+                                    <div className="ce-label-row">
+                                        <label className="ce-label-small">Venue <span className="ce-required">*</span></label>
+                                        <span className="ce-char-count">{formData.venue.length}/{MAX_VENUE}</span>
+                                    </div>
                                     <input type="text" name="venue" value={formData.venue}
                                         onChange={handleChange} className="ce-input ce-venue-input"
+                                        maxLength={MAX_VENUE}
                                         placeholder="Enter event location" required />
                                 </div>
                             </div>
@@ -204,15 +251,21 @@ function CreateEvent() {
                                 <div className="ce-row ce-organizers-row">
                                     <div className="ce-field-half">
                                         <input type="text" name="organizer1" value={formData.organizer1}
-                                            onChange={handleChange} className="ce-input" placeholder="Organizer Name 1" />
+                                            onChange={handleChange} className="ce-input"
+                                            maxLength={MAX_ORGANIZER_NAME}
+                                            placeholder="Organizer Name 1" />
                                     </div>
                                     <div className="ce-field-half">
                                         <input type="text" name="organizer2" value={formData.organizer2}
-                                            onChange={handleChange} className="ce-input" placeholder="Organizer Name 2" />
+                                            onChange={handleChange} className="ce-input"
+                                            maxLength={MAX_ORGANIZER_NAME}
+                                            placeholder="Organizer Name 2" />
                                     </div>
                                     <div className="ce-field-half">
                                         <input type="text" name="organizer3" value={formData.organizer3}
-                                            onChange={handleChange} className="ce-input" placeholder="Organizer Name 3" />
+                                            onChange={handleChange} className="ce-input"
+                                            maxLength={MAX_ORGANIZER_NAME}
+                                            placeholder="Organizer Name 3" />
                                     </div>
                                 </div>
                             </div>

@@ -8,12 +8,8 @@ import '../styles/CreateJob.css';
 import '../styles/ContentManagement.css';
 import { useTitle } from '../Hooks/useTitle';
 
-const currentDate = new Date();
-const threeYearsLater = new Date();
-threeYearsLater.setFullYear(currentDate.getFullYear() + 3);
-const DEFAULT_START = currentDate.toISOString().split('T')[0];
-const DEFAULT_END   = threeYearsLater.toISOString().split('T')[0];
-const MAX_POSITION = 140;
+const MAX_TEXT_60 = 60;
+const MAX_DESCRIPTION_WORDS = 1200;
 
 const JOB_FIELDS = {
     company:        '',
@@ -23,8 +19,8 @@ const JOB_FIELDS = {
     employmentType: '',
     salary:         '',
     email:          '',
-    startDate:      DEFAULT_START,
-    endDate:        DEFAULT_END,
+    startDate:      '',
+    endDate:        '',
     description:    '',
 };
 
@@ -35,10 +31,21 @@ const INTERNSHIP_FIELDS = {
     modality:    '',
     allowance:   '',
     email:       '',
-    startDate:   DEFAULT_START,
-    endDate:     DEFAULT_END,
+    startDate:   '',
+    endDate:     '',
     description: '',
 };
+
+function countWords(text) {
+    if (!text || typeof text !== 'string') return 0;
+    return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function trimToWordLimit(text, maxWords) {
+    const words = (text || '').trim().split(/\s+/).filter(Boolean);
+    if (words.length <= maxWords) return text;
+    return words.slice(0, maxWords).join(' ');
+}
 
 function CreateJob() {
     useTitle('Create Job & Internship');
@@ -47,6 +54,13 @@ function CreateJob() {
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({});
+    const descriptionWords = countWords(formData.description);
+    const companyCount = (formData.company || '').length;
+    const positionCount = (formData.position || '').length;
+    const locationCount = (formData.location || '').length;
+    const salaryCount = (formData.salary || '').length;
+    const allowanceCount = (formData.allowance || '').length;
+    const emailCount = (formData.email || '').length;
 
     const handleSelectType = (t) => {
         setType(t);
@@ -55,6 +69,11 @@ function CreateJob() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+        if (name === 'description') {
+            const next = trimToWordLimit(value, MAX_DESCRIPTION_WORDS);
+            setFormData((prev) => ({ ...prev, description: next }));
+            return;
+        }
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
@@ -177,16 +196,23 @@ function CreateJob() {
                         {/* Company & Position */}
                         <div className="ce-row">
                             <div className="ce-field-group ce-field-half">
-                                <label className="ce-label-large">Company Name <span className="ce-required">*</span></label>
+                                <div className="ce-label-row">
+                                    <label className="ce-label-large">Company Name <span className="ce-required">*</span></label>
+                                    <span className="ce-char-count">{companyCount}/{MAX_TEXT_60}</span>
+                                </div>
                                 <input type="text" name="company" value={formData.company}
                                     onChange={handleChange} className="ce-input"
+                                    maxLength={MAX_TEXT_60}
                                     placeholder="e.g. Ateneo de Davao University" required />
                             </div>
                             <div className="ce-field-group ce-field-half">
-                                <label className="ce-label-large">Position Title <span className="ce-required">*</span></label>
+                                <div className="ce-label-row">
+                                    <label className="ce-label-large">Position Title <span className="ce-required">*</span></label>
+                                    <span className="ce-char-count">{positionCount}/{MAX_TEXT_60}</span>
+                                </div>
                                 <input type="text" name="position" value={formData.position}
                                     onChange={handleChange} className="ce-input"
-                                    maxLength={MAX_POSITION}
+                                    maxLength={MAX_TEXT_60}
                                     placeholder={type === 'job' ? 'e.g. Senior Software Engineer' : 'e.g. UI/UX Intern'} required />
                             </div>
                         </div>
@@ -194,10 +220,14 @@ function CreateJob() {
                         {/* Location & Modality */}
                         <div className="ce-row">
                             <div className="ce-field-group ce-field-half">
-                                <label className="ce-label-large">Location <span className="ce-required">*</span></label>
+                                <div className="ce-label-row">
+                                    <label className="ce-label-large">Location <span className="ce-required">*</span></label>
+                                    <span className="ce-char-count">{locationCount}/{MAX_TEXT_60}</span>
+                                </div>
                                 <input type="text" name="location" value={formData.location}
                                     onChange={handleChange} className="ce-input"
-                                    placeholder="e.g. Davao City or Remote" required />
+                                    maxLength={MAX_TEXT_60}
+                                    placeholder="e.g. Davao City" required />
                             </div>
                             <div className="ce-field-group ce-field-half">
                                 <label className="ce-label-large">Work Modality <span className="ce-required">*</span></label>
@@ -224,9 +254,13 @@ function CreateJob() {
                                     </select>
                                 </div>
                                 <div className="ce-field-group ce-field-half">
-                                    <label className="ce-label-large">Salary Range (optional)</label>
+                                    <div className="ce-label-row">
+                                        <label className="ce-label-large">Salary Range (optional)</label>
+                                        <span className="ce-char-count">{salaryCount}/{MAX_TEXT_60}</span>
+                                    </div>
                                     <input type="text" name="salary" value={formData.salary}
                                         onChange={handleChange} className="ce-input"
+                                        maxLength={MAX_TEXT_60}
                                         placeholder="e.g. ₱50,000 - ₱80,000" />
                                 </div>
                             </div>
@@ -235,9 +269,13 @@ function CreateJob() {
                         {/* Allowance (internship only) */}
                         {type === 'internship' && (
                             <div className="ce-field-group">
-                                <label className="ce-label-large">Allowance (optional)</label>
+                                <div className="ce-label-row">
+                                    <label className="ce-label-large">Allowance (optional)</label>
+                                    <span className="ce-char-count">{allowanceCount}/{MAX_TEXT_60}</span>
+                                </div>
                                 <input type="text" name="allowance" value={formData.allowance}
                                     onChange={handleChange} className="ce-input"
+                                    maxLength={MAX_TEXT_60}
                                     placeholder="e.g. ₱5,000/month or Unpaid" />
                             </div>
                         )}
@@ -248,31 +286,52 @@ function CreateJob() {
                                 <label className="ce-label-small">
                                     {type === 'job' ? 'Start Date' : 'Internship Start'} <span className="ce-required">*</span>
                                 </label>
-                                <input type="date" name="startDate" value={formData.startDate}
-                                    onChange={handleChange} className="ce-input" required />
+                                <input
+                                    type="date"
+                                    name="startDate"
+                                    value={formData.startDate}
+                                    onChange={handleChange}
+                                    className="ce-input"
+                                    placeholder={type === 'internship' ? 'mm / dd / yyyy' : 'mm/dd/yyyy'}
+                                    required
+                                />
                             </div>
                             <div className="ce-field-group ce-field-half">
                                 <label className="ce-label-small">
                                     {type === 'job' ? 'End Date' : 'Internship End'} <span className="ce-required">*</span>
                                 </label>
-                                <input type="date" name="endDate" value={formData.endDate}
-                                    onChange={handleChange} className="ce-input" required />
+                                <input
+                                    type="date"
+                                    name="endDate"
+                                    value={formData.endDate}
+                                    onChange={handleChange}
+                                    className="ce-input"
+                                    placeholder={type === 'internship' ? 'mm / dd / yyyy' : 'mm/dd/yyyy'}
+                                    required
+                                />
                             </div>
                         </div>
 
                         {/* Contact Email */}
                         <div className="ce-field-group">
-                            <label className="ce-label-large">Contact / Application Email <span className="ce-required">*</span></label>
+                            <div className="ce-label-row">
+                                <label className="ce-label-large">Contact / Application Email <span className="ce-required">*</span></label>
+                                <span className="ce-char-count">{emailCount}/{MAX_TEXT_60}</span>
+                            </div>
                             <input type="email" name="email" value={formData.email}
                                 onChange={handleChange} className="ce-input"
+                                maxLength={MAX_TEXT_60}
                                 placeholder="careers@company.com" required />
                         </div>
 
                         {/* Description */}
                         <div className="ce-field-group">
-                            <label className="ce-label-large">
-                                {type === 'job' ? 'Job Description' : 'Internship Description'} <span className="ce-required">*</span>
-                            </label>
+                            <div className="ce-label-row">
+                                <label className="ce-label-large">
+                                    {type === 'job' ? 'Job Description' : 'Internship Description'} <span className="ce-required">*</span>
+                                </label>
+                                <span className="ce-char-count">{descriptionWords} / {MAX_DESCRIPTION_WORDS} words</span>
+                            </div>
                             <textarea name="description" value={formData.description}
                                 onChange={handleChange}
                                 className="ce-textarea ce-textarea-large"

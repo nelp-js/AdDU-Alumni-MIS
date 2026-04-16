@@ -33,3 +33,10 @@
     padding: 10px 12px;
     font-size: 14px;
 }
+
+.ce-loading-msg {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+    font-size: 15px;
+}

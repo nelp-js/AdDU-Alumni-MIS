@@ -178,7 +178,19 @@ function JobsInternships() {
                 {!loading && !error && items.length > 0 && (
                     <div className="opp-grid">
                         {items.map((item) => (
-                            <article key={`${tab}-${item.id}`} className="opp-card">
+                            <article
+                                key={`${tab}-${item.id}`}
+                                className="opp-card opp-card-clickable"
+                                role="link"
+                                tabIndex={0}
+                                onClick={() => navigate(`/jobs/${tab}/${item.id}`)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        navigate(`/jobs/${tab}/${item.id}`);
+                                    }
+                                }}
+                            >
                                 <h2 className="opp-card-title" title={item.position || ''}>{item.position || '—'}</h2>
                                 <p className="opp-card-company">{item.company || '—'}</p>
                                 <p className="opp-card-meta">{item.location || '—'} • {item.modality || '—'}</p>
