@@ -145,12 +145,12 @@ def public_alumni_list(request):
     contact = (request.GET.get('contact') or '').strip()
     website = (request.GET.get('website') or '').strip()
     location = (request.GET.get('location') or '').strip()
-    role = (request.GET.get('role') or '').strip().lower()
 
     qs = User.objects.filter(
         is_active=True,
-    ).filter(
-        Q(is_approved=True) | Q(is_staff=True) | Q(is_superuser=True)
+        is_approved=True,
+        is_staff=False,
+        is_superuser=False,
     ).select_related('profile').prefetch_related('experiences').order_by('first_name', 'last_name', 'username')
 
     if q:
@@ -192,11 +192,6 @@ def public_alumni_list(request):
             | Q(province__icontains=location)
             | Q(region__icontains=location)
         )
-    if role == 'admin':
-        qs = qs.filter(Q(is_staff=True) | Q(is_superuser=True))
-    elif role == 'alumni':
-        qs = qs.filter(is_staff=False, is_superuser=False)
-
     qs = qs.distinct()
 
     return Response(PublicAlumniListSerializer(qs, many=True).data)
@@ -210,7 +205,7 @@ def public_alumni_detail(request, user_id):
         pk=user_id,
         is_active=True,
     )
-    if not (user.is_approved or user.is_staff or user.is_superuser):
+    if not user.is_approved or user.is_staff or user.is_superuser:
         return Response({'detail': 'Not found.'}, status=404)
     return Response(PublicAlumniDetailSerializer(user).data)
 
@@ -566,11 +561,12 @@ def internship_toggle_hide(request, internship_id):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def campaign_list_create(request):
     if request.method == 'GET':
-        # Admins see all campaigns in the listing endpoint.
-        # Public listings (including authenticated non-admin users) show only approved + active.
-        # Optional escape hatch: include_mine=1 lets non-admin users also see their own campaigns.
+        # Public listing defaults to approved + active only.
+        # Admin dashboard can request all campaigns with admin=1.
+        # Optional include_mine=1 lets non-admin users include their own entries.
+        admin_mode = str(request.GET.get('admin', '')).strip().lower() in ('1', 'true', 'yes')
         include_mine = str(request.GET.get('include_mine', '')).strip().lower() in ('1', 'true', 'yes')
-        if request.user.is_authenticated and request.user.is_staff:
+        if request.user.is_authenticated and request.user.is_staff and admin_mode:
             campaigns = Campaign.objects.all()
         elif request.user.is_authenticated and include_mine:
             campaigns = Campaign.objects.filter(

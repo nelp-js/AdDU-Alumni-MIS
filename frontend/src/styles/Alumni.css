@@ -148,6 +148,17 @@
     font-size: 14px;
 }
 
+.alumni-card-bio {
+    margin: 8px 0 0;
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 .alumni-state {
     text-align: center;
     color: #6b7280;
@@ -234,6 +245,10 @@
 .alumni-list {
     display: grid;
     gap: 10px;
+}
+
+.alumni-profile-rich-list {
+    gap: 0;
 }
 
 .alumni-list-item h3 {

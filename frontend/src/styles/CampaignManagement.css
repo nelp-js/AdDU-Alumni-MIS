@@ -96,9 +96,9 @@
     background: #fafafa;
 }
 
-/* Dim hidden/inactive campaigns */
-.campaign-mgmt-table tbody tr.campaign-mgmt-row-hidden { 
-    opacity: 0.6; 
+/* Dim hidden/inactive campaigns except the Action column for legibility */
+.campaign-mgmt-table tbody tr.campaign-mgmt-row-hidden td:not(:last-child) {
+    opacity: 0.6;
 }
 
 .campaign-mgmt-table td {
@@ -385,6 +385,13 @@
     top: auto;
     bottom: calc(100% + 6px);
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.10);
+}
+
+/* Single row should behave like first row: open downward */
+.campaign-mgmt-table tbody tr:only-child .campaign-mgmt-dropdown-menu {
+    top: calc(100% + 6px);
+    bottom: auto;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
 }
 
 .campaign-mgmt-dropdown-item {

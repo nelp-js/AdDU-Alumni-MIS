@@ -214,6 +214,7 @@ class UserListSerializer(serializers.ModelSerializer):
 class PublicAlumniListSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
     profile_picture = serializers.ImageField(source='profile.profile_picture', read_only=True)
+    bio = serializers.CharField(source='profile.bio', read_only=True)
     location = serializers.CharField(source='profile.location', read_only=True)
     website = serializers.CharField(source='profile.website', read_only=True)
     current_company = serializers.SerializerMethodField()
@@ -224,8 +225,8 @@ class PublicAlumniListSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             "id", "username", "full_name", "profile_picture",
-            "location", "program", "batch_year",
-            "email", "phone_number", "telephone_number", "website",
+            "bio", "location", "country", "program", "batch_year",
+            "email", "website",
             "current_company", "current_job_title", "role_label",
         ]
         read_only_fields = fields
@@ -262,8 +263,8 @@ class PublicAlumniDetailSerializer(serializers.ModelSerializer):
         fields = [
             "id", "username", "full_name",
             "first_name", "middle_name", "last_name",
-            "program", "batch_year",
-            "email", "phone_number", "telephone_number", "current_address",
+            "program", "batch_year", "country",
+            "email", "current_address",
             "profile_picture", "cover_photo", "bio", "location", "website",
             "experiences", "educations",
         ]

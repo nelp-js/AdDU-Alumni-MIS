@@ -48,7 +48,7 @@ function AlumniDirectory() {
             <Header />
             <main className="alumni-main">
                 <h1 className="alumni-title">Find Alumni</h1>
-                <p className="alumni-subtitle">Search by name, graduation year, program, company, job title, contact, website, or location.</p>
+                <p className="alumni-subtitle">Search alumni by name, program, graduation year, company, location, or email.</p>
 
                 <section className="alumni-search-section">
                     <form className="alumni-search-pill" onSubmit={handleSearchSubmit}>
@@ -91,20 +91,15 @@ function AlumniDirectory() {
                                     </div>
                                 )}
                                 <h2 className="alumni-name">{alumni.full_name || alumni.username}</h2>
-                                <p className="alumni-role">{alumni.role_label || 'Alumni'}</p>
                                 <p className="alumni-meta">
                                     {(alumni.program || 'Program N/A')} {alumni.batch_year ? `· Batch ${alumni.batch_year}` : ''}
                                 </p>
                                 {alumni.current_job_title && (
                                     <p className="alumni-meta">{alumni.current_job_title}{alumni.current_company ? ` · ${alumni.current_company}` : ''}</p>
                                 )}
-                                <p className="alumni-meta">{alumni.location || 'Location not specified'}</p>
-                                {(alumni.email || alumni.phone_number || alumni.telephone_number) && (
-                                    <p className="alumni-meta">
-                                        {alumni.email || alumni.phone_number || alumni.telephone_number}
-                                    </p>
-                                )}
-                                {alumni.website && <p className="alumni-meta">{alumni.website}</p>}
+                                <p className="alumni-meta">{alumni.country || 'Country not specified'}</p>
+                                {alumni.email && <p className="alumni-meta">{alumni.email}</p>}
+                                {alumni.bio && <p className="alumni-card-bio">{alumni.bio}</p>}
                             </Link>
                         ))}
                     </div>

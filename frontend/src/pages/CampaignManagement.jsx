@@ -115,7 +115,7 @@ function CampaignManagement() {
 
     const load = () => {
         setLoading(true);
-        api.get('/api/campaigns/')
+        api.get('/api/campaigns/', { params: { admin: 1 } })
             .then((res) => setCampaigns(Array.isArray(res.data) ? res.data : []))
             .catch(() => setError('Failed to load campaigns.'))
             .finally(() => setLoading(false));
