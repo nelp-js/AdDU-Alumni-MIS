@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import (
     User, Event, EventRegistration, Job, Internship,
-    Campaign, CampaignDonation,
+    VolunteerOpportunity, Campaign, CampaignDonation,
     Article, UserProfile, Experience, Education, ActivityLog
 )
 
@@ -363,6 +363,63 @@ class InternshipSerializer(serializers.ModelSerializer):
         if value and len(value) > 140:
             raise serializers.ValidationError("Position must be 140 characters or less.")
         return value
+
+
+class VolunteerOpportunitySerializer(serializers.ModelSerializer):
+    created_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = VolunteerOpportunity
+        fields = [
+            'id', 'title', 'category', 'description',
+            'start_date', 'end_date', 'cover_photo',
+            'summary', 'location', 'organizer',
+            'status', 'remarks', 'is_hidden',
+            'created_by', 'created_by_name', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'status', 'remarks', 'is_hidden', 'created_by', 'created_by_name', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'title': {'required': True},
+            'category': {'required': True},
+            'description': {'required': True},
+            'start_date': {'required': True},
+            'end_date': {'required': True},
+            'cover_photo': {'required': True},
+            'summary': {'required': True},
+            'location': {'required': True},
+            'organizer': {'required': True},
+        }
+
+    def get_created_by_name(self, obj):
+        if not obj.created_by:
+            return '—'
+        return f"{obj.created_by.first_name} {obj.created_by.last_name}".strip() or obj.created_by.username
+
+    def validate_title(self, value):
+        return _validate_max_len((value or '').strip(), 60, "Title")
+
+    def validate_summary(self, value):
+        return _validate_max_len((value or '').strip(), 240, "Summary")
+
+    def validate_location(self, value):
+        return _validate_max_len((value or '').strip(), 60, "Location")
+
+    def validate_organizer(self, value):
+        return _validate_max_len((value or '').strip(), 60, "Organizer")
+
+    def validate_description(self, value):
+        text = (value or '').strip()
+        words = [w for w in re.split(r"\s+", text) if w]
+        if len(words) > 1200:
+            raise serializers.ValidationError("Description must be 1200 words or less.")
+        return text
+
+    def validate(self, attrs):
+        start_date = attrs.get('start_date')
+        end_date = attrs.get('end_date')
+        if start_date and end_date and end_date < start_date:
+            raise serializers.ValidationError({'end_date': 'End date cannot be earlier than start date.'})
+        return attrs
 
 
 class CampaignDonationSerializer(serializers.ModelSerializer):

@@ -230,6 +230,39 @@ class Internship(models.Model):
         return f"{self.position} at {self.company} (Internship)"
 
 
+class VolunteerOpportunity(models.Model):
+    CATEGORY_CHOICES = [
+        ('Alumni teaching', 'Alumni teaching'),
+        ('Mentorship', 'Mentorship'),
+        ('Projects', 'Projects'),
+        ('Community Engagement', 'Community Engagement'),
+        ('Volunteer Activities', 'Volunteer Activities'),
+    ]
+    STATUS_CHOICES = [('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied')]
+
+    title       = models.CharField(max_length=60)
+    category    = models.CharField(max_length=100, choices=CATEGORY_CHOICES)
+    description = models.TextField()
+    start_date  = models.DateField()
+    end_date    = models.DateField()
+    cover_photo = models.ImageField(upload_to='volunteers/')
+    summary     = models.CharField(max_length=240)
+    location    = models.CharField(max_length=60)
+    organizer   = models.CharField(max_length=60)
+    status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    remarks     = models.TextField(blank=True, null=True)
+    is_hidden   = models.BooleanField(default=False)
+    created_by  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='volunteer_opportunities')
+    created_at  = models.DateTimeField(auto_now_add=True)
+    updated_at  = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+
 class Campaign(models.Model):
     CATEGORY_CHOICES = [
         ('Student Aid',    'Student Aid'),
@@ -329,7 +362,7 @@ class ActivityLog(models.Model):
     MODULE_CHOICES = [
         ('User Management', 'User Management'), ('Event Management', 'Event Management'),
         ('Job & Internship', 'Job & Internship'), ('CMS & News Feed', 'CMS & News Feed'),
-        ('Fundraising', 'Fundraising'), ('Feedback & Surveys', 'Feedback & Surveys'),
+        ('Fundraising', 'Fundraising'), ('Feedback & Surveys', 'Feedback & Surveys'), ('Volunteer', 'Volunteer'),
     ]
 
     action    = models.CharField(max_length=255)

@@ -49,6 +49,14 @@ urlpatterns = [
     path("internships/<int:internship_id>/deny/",           views.internship_deny,           name="internship-deny"),
     path("internships/<int:internship_id>/toggle-hide/",    views.internship_toggle_hide,    name="internship-toggle-hide"),
 
+    # --- VOLUNTEER VIEWS ---
+    path("volunteers/",                                  views.volunteer_list_create,   name="volunteer-list"),
+    path("volunteers/admin/",                            views.volunteer_admin_list,    name="volunteer-admin-list"),
+    path("volunteers/<int:volunteer_id>/",               views.volunteer_detail,        name="volunteer-detail"),
+    path("volunteers/<int:volunteer_id>/approve/",       views.volunteer_approve,       name="volunteer-approve"),
+    path("volunteers/<int:volunteer_id>/deny/",          views.volunteer_deny,          name="volunteer-deny"),
+    path("volunteers/<int:volunteer_id>/toggle-hide/",   views.volunteer_toggle_hide,   name="volunteer-toggle-hide"),
+
     # --- CAMPAIGN VIEWS ---
     path("campaigns/",                                  views.campaign_list_create,    name="campaign-list"),
     path("campaigns/<int:campaign_id>/",                views.campaign_detail,         name="campaign-detail"),

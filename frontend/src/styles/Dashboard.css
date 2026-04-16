@@ -296,6 +296,7 @@
 
 .dashboard-status { color: #059669; font-weight: 500; }
 .dashboard-status-rejected { color: #dc2626 !important; }
+.dashboard-status-pending { color: #ca8a04 !important; }
 
 /* Responsive */
 @media (max-width: 1024px) {

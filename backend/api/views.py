@@ -15,13 +15,13 @@ import random
 from django.core.mail import send_mail, EmailMultiAlternatives
 from .models import (
     User, Event, EventRegistration, Job, Internship,
-    Campaign, CampaignDonation,
+    VolunteerOpportunity, Campaign, CampaignDonation,
     Article, ActivityLog, PasswordReset, UserProfile, Experience, Education
 )
 from .serializers import (
     UserSerializer, CurrentUserSerializer, UserListSerializer, UserUpdateSerializer,
     EventSerializer, EventUpdateSerializer, EventRegistrationSerializer,
-    JobSerializer, InternshipSerializer,
+    JobSerializer, InternshipSerializer, VolunteerOpportunitySerializer,
     CampaignSerializer, CampaignDonationSerializer,
     CustomTokenObtainPairSerializer, ActivityLogSerializer,
     ArticleSerializer, ArticleUpdateSerializer,
@@ -40,8 +40,9 @@ def dashboard_stats(request):
     pending_articles    = Article.objects.filter(status='draft').count()
     pending_jobs        = Job.objects.filter(status='pending').count()
     pending_internships = Internship.objects.filter(status='pending').count()
+    pending_volunteers  = VolunteerOpportunity.objects.filter(status='pending').count()
     pending_campaigns   = Campaign.objects.filter(status='pending').count()
-    total = pending_users + pending_events + pending_articles + pending_jobs + pending_internships + pending_campaigns
+    total = pending_users + pending_events + pending_articles + pending_jobs + pending_internships + pending_volunteers + pending_campaigns
     return Response({
         'total':        total,
         'users':        pending_users,
@@ -49,6 +50,7 @@ def dashboard_stats(request):
         'articles':     pending_articles,
         'jobs':         pending_jobs,
         'internships':  pending_internships,
+        'volunteers':   pending_volunteers,
         'campaigns':    pending_campaigns,
     })
 
@@ -606,6 +608,86 @@ def internship_toggle_hide(request, internship_id):
     internship = get_object_or_404(Internship, pk=internship_id)
     internship.is_hidden = not internship.is_hidden; internship.save()
     return Response({'detail': 'Updated.', 'is_hidden': internship.is_hidden})
+
+
+# --- VOLUNTEER VIEWS ---
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def volunteer_list_create(request):
+    if request.method == 'GET':
+        admin_mode = str(request.GET.get('admin', '')).strip().lower() in ('1', 'true', 'yes')
+        if request.user.is_authenticated and request.user.is_staff and admin_mode:
+            volunteers = VolunteerOpportunity.objects.all()
+        else:
+            volunteers = VolunteerOpportunity.objects.filter(status='approved', is_hidden=False)
+        return Response(VolunteerOpportunitySerializer(volunteers, many=True).data)
+
+    if not request.user.is_staff:
+        return Response({'detail': 'Admin access required.'}, status=403)
+
+    serializer = VolunteerOpportunitySerializer(data=request.data)
+    if serializer.is_valid():
+        volunteer = serializer.save(created_by=request.user, status='pending', remarks=None, is_hidden=False)
+        ActivityLog.objects.create(
+            action=f"Volunteer opportunity submitted: {volunteer.title}",
+            module="Volunteer",
+            user=request.user,
+            status="Pending",
+        )
+        return Response(VolunteerOpportunitySerializer(volunteer).data, status=201)
+    return Response(serializer.errors, status=400)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def volunteer_admin_list(request):
+    return Response(VolunteerOpportunitySerializer(VolunteerOpportunity.objects.all(), many=True).data)
+
+@api_view(['GET', 'PATCH', 'DELETE'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def volunteer_detail(request, volunteer_id):
+    volunteer = get_object_or_404(VolunteerOpportunity, pk=volunteer_id)
+    if request.method == 'GET':
+        return Response(VolunteerOpportunitySerializer(volunteer).data)
+    if request.method == 'PATCH':
+        serializer = VolunteerOpportunitySerializer(volunteer, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            ActivityLog.objects.create(action=f"Volunteer opportunity updated: {volunteer.title}", module="Volunteer", user=request.user, status="Completed")
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+    title = volunteer.title
+    volunteer.delete()
+    ActivityLog.objects.create(action=f"Volunteer opportunity deleted: {title}", module="Volunteer", user=request.user, status="Completed")
+    return Response(status=204)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def volunteer_approve(request, volunteer_id):
+    volunteer = get_object_or_404(VolunteerOpportunity, pk=volunteer_id)
+    volunteer.status = 'approved'
+    volunteer.remarks = None
+    volunteer.save()
+    ActivityLog.objects.create(action=f"Volunteer opportunity approved: {volunteer.title}", module="Volunteer", user=request.user, status="Completed")
+    return Response({'detail': 'Volunteer opportunity approved.', 'status': 'approved'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def volunteer_deny(request, volunteer_id):
+    volunteer = get_object_or_404(VolunteerOpportunity, pk=volunteer_id)
+    volunteer.status = 'denied'
+    volunteer.remarks = request.data.get('remarks', '')
+    volunteer.save()
+    ActivityLog.objects.create(action=f"Volunteer opportunity denied: {volunteer.title}", module="Volunteer", user=request.user, status="Denied")
+    return Response({'detail': 'Volunteer opportunity denied.', 'status': 'denied'})
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def volunteer_toggle_hide(request, volunteer_id):
+    volunteer = get_object_or_404(VolunteerOpportunity, pk=volunteer_id)
+    volunteer.is_hidden = not volunteer.is_hidden
+    volunteer.save()
+    return Response({'detail': 'Updated.', 'is_hidden': volunteer.is_hidden})
 
 
 # --- CAMPAIGN VIEWS ---

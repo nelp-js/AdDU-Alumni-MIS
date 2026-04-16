@@ -4,8 +4,9 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
 import {
-    FiUsers, FiCalendar, FiBriefcase, FiDollarSign, FiFileText, FiBarChart2
+    FiUsers, FiCalendar, FiBriefcase, FiDollarSign, FiFileText
 } from 'react-icons/fi';
+import { FaHandHoldingHeart } from 'react-icons/fa';
 import '../styles/Dashboard.css';
 import { useTitle } from '../Hooks/useTitle';
 import { useNotifications } from '../Hooks/NotificationContext';
@@ -18,12 +19,12 @@ const MODULE_CARDS = [
     { icon: 'document',    title: 'CMS & News Feed',         description: 'Manage website content, news articles, and information dissemination.',             button: 'Manage Content',   to: '/dashboard/content',  secondaryButton: 'Create Content',    secondaryTo: '/dashboard/content/create' },
     { icon: 'calendar',    title: 'Event Management',        description: 'Create, manage, and track alumni events and attendance.',                           button: 'Manage Events',    to: '/dashboard/events',   secondaryButton: 'Create Event',      secondaryTo: '/create-event' },
     { icon: 'briefcase',   title: 'Job & Internship',        description: 'Job postings, applications, and career tracking.',                                  button: 'Manage Jobs & Internships',      to: '/dashboard/jobs',     secondaryButton: 'Create Job or Internship',        secondaryTo: '/dashboard/jobs/create' },
-    { icon: 'survey',      title: 'Feedback & Surveys',      description: 'Create surveys, collect feedback, and analyze tracer studies.',                     button: 'Manage Surveys',   to: '#' },
+    { icon: 'survey',      title: 'Volunteer',               description: 'Manage volunteer opportunities and community engagement activities.',                button: 'Manage Volunteer', to: '/dashboard/volunteers', secondaryButton: 'Create Volunteer Opportunity', secondaryTo: '/dashboard/volunteer/create' },
     { icon: 'fundraising', title: 'Fundraising & Donations', description: 'Campaign management, donations, and financial support.',                            button: 'Manage Campaigns', to: '/dashboard/campaigns', secondaryButton: 'Create Campaign',   secondaryTo: '/dashboard/donations/create' },
 ];
 
-const STAT_ICON_MAP   = { people: FiUsers, calendar: FiCalendar, briefcase: FiBriefcase, donation: FiDollarSign, document: FiFileText };
-const MODULE_ICON_MAP = { users: FiUsers, document: FiFileText, calendar: FiCalendar, briefcase: FiBriefcase, survey: FiBarChart2, fundraising: FiDollarSign };
+const STAT_ICON_MAP   = { people: FiUsers, calendar: FiCalendar, briefcase: FiBriefcase, donation: FiDollarSign, document: FiFileText, volunteer: FaHandHoldingHeart };
+const MODULE_ICON_MAP = { users: FiUsers, document: FiFileText, calendar: FiCalendar, briefcase: FiBriefcase, survey: FaHandHoldingHeart, fundraising: FiDollarSign };
 
 function StatIcon({ type, color }) {
     const Icon = STAT_ICON_MAP[type];
@@ -46,6 +47,7 @@ function Dashboard() {
     const [articlesCount,    setArticlesCount]     = useState(0);
     const [jobsCount,        setJobsCount]         = useState(0);
     const [internshipsCount, setInternshipsCount]  = useState(0);
+    const [volunteerCount,   setVolunteerCount]    = useState(0);
     const [campaignsCount,   setCampaignsCount]    = useState(0);
     const [statsLoading,     setStatsLoading]      = useState(true);
     const [activities,       setActivities]        = useState([]);
@@ -79,6 +81,9 @@ function Dashboard() {
             api.get('/api/internships/admin/').then((res) => {
                 setInternshipsCount((res.data || []).filter(i => i.status === 'approved').length);
             }).catch(() => {}),
+            api.get('/api/volunteers/admin/').then((res) => {
+                setVolunteerCount((res.data || []).filter(v => v.status === 'approved' && v.is_hidden !== true).length);
+            }).catch(() => {}),
             api.get('/api/campaigns/').then((res) => {
                 setCampaignsCount((res.data || []).filter(c => c.is_active && c.status === 'approved').length);
             }).catch(() => {}),
@@ -98,6 +103,7 @@ function Dashboard() {
         { icon: 'document',  value: statsLoading ? '...' : articlesCount.toLocaleString(),    label: 'News and Stories Posted' },
         { icon: 'briefcase', value: statsLoading ? '...' : jobsCount.toLocaleString(),        label: 'Total Jobs' },
         { icon: 'briefcase', value: statsLoading ? '...' : internshipsCount.toLocaleString(), label: 'Total Internships' },
+        { icon: 'volunteer', value: statsLoading ? '...' : volunteerCount.toLocaleString(),   label: 'Volunteer Opportunities' },
         { icon: 'donation',  value: statsLoading ? '...' : campaignsCount.toLocaleString(),   label: 'Active Campaigns' },
     ];
 
@@ -136,6 +142,7 @@ function Dashboard() {
                         if (card.title === 'Event Management')        badgeValue = notifications.events;
                         if (card.title === 'CMS & News Feed')         badgeValue = notifications.articles;
                         if (card.title === 'Job & Internship')        badgeValue = (notifications.jobs || 0) + (notifications.internships || 0);
+                        if (card.title === 'Volunteer')               badgeValue = notifications.volunteers || 0;
                         if (card.title === 'Fundraising & Donations') badgeValue = (notifications.campaigns || 0);
 
                         return (
@@ -179,6 +186,8 @@ function Dashboard() {
                                             <td>
                                                 {row.status === 'Rejected' || row.status === 'Denied' ? (
                                                     <span className="dashboard-status dashboard-status-rejected">✕ {row.status}</span>
+                                                ) : row.status === 'Pending' ? (
+                                                    <span className="dashboard-status dashboard-status-pending">{row.status}</span>
                                                 ) : (
                                                     <span className="dashboard-status">✓ {row.status}</span>
                                                 )}
