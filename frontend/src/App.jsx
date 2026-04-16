@@ -13,7 +13,12 @@ import JobManagement from "./pages/JobManagement"
 import CreateCampaign from "./pages/CreateCampaign"
 import CampaignManagement from "./pages/CampaignManagement"
 import JobsInternships from "./pages/JobsInternships"
+import JobOpportunityView from "./pages/JobOpportunityView"
 import Campaigns from "./pages/Campaigns"
+import CampaignView from "./pages/CampaignView"
+import CampaignDonate from "./pages/CampaignDonate"
+import AlumniDirectory from "./pages/AlumniDirectory"
+import AlumniProfilePublic from "./pages/AlumniProfilePublic"
 import Dashboard from "./pages/Dashboard"
 import UserManagement from "./pages/UserManagement"
 import EventManagement from "./pages/EventManagement"
@@ -26,7 +31,6 @@ import Profile from "./pages/Profile"
 import AdminProtectedRoute from "./components/AdminProtectedRoute"
 import ProtectedRoute from "./components/ProtectedRoute"
 import ScrollToTop from "./components/ScrollToTop"
-import AutoLogout from "./components/AutoLogout"
 import { NotificationProvider } from './Hooks/NotificationContext';
 
 function Logout() {
@@ -44,14 +48,18 @@ function App() {
     <NotificationProvider>
     <BrowserRouter>
       <ScrollToTop />
-      <AutoLogout />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/stories" element={<Stories />} />
         <Route path="/stories/:id" element={<ArticleView />} />
         <Route path="/events" element={<Events />} />
         <Route path="/jobs" element={<JobsInternships />} />
+        <Route path="/jobs/:kind/:id" element={<JobOpportunityView />} />
         <Route path="/campaigns" element={<Campaigns />} />
+        <Route path="/campaigns/:id" element={<CampaignView />} />
+        <Route path="/campaigns/:id/donate" element={<CampaignDonate />} />
+        <Route path="/alumni" element={<ProtectedRoute><AlumniDirectory /></ProtectedRoute>} />
+        <Route path="/alumni/:id" element={<ProtectedRoute><AlumniProfilePublic /></ProtectedRoute>} />
         <Route path="/events/:id" element={<EventView />} />
         <Route path="/create-event" element={<CreateEvent />} />
         <Route path="/login" element={<Login />} />

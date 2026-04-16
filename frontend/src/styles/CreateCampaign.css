@@ -24,3 +24,12 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+.ce-submit-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+}

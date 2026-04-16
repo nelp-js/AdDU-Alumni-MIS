@@ -1,0 +1,234 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import api from '../api';
+import '../styles/Opportunities.css';
+import { useTitle } from '../Hooks/useTitle';
+
+const METHOD_OPTIONS = [
+    { id: 'GCash', label: 'GCash', logo: 'G' },
+    { id: 'Maya', label: 'Maya', logo: 'M' },
+    { id: 'QRPH', label: 'QRPH', logo: 'QR' },
+    { id: 'Credit/Debit', label: 'Credit or debit', logo: '💳' },
+    { id: 'Cash (University Cashier)', label: 'Cash (University Cashier)', logo: '₱' },
+];
+
+function formatMoney(n) {
+    if (n == null || n === '') return '—';
+    const num = Number(n);
+    if (Number.isNaN(num)) return '—';
+    return `₱${num.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+}
+
+function clampPercent(raised, goal) {
+    if (!goal || goal <= 0) return 0;
+    return Math.max(0, Math.min(100, Math.round((raised / goal) * 100)));
+}
+
+function CampaignDonate() {
+    useTitle('Donate to Campaign');
+    const navigate = useNavigate();
+    const { id } = useParams();
+    const [campaigns, setCampaigns] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    const [donationAmount, setDonationAmount] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('GCash');
+    const [showNotice, setShowNotice] = useState(false);
+
+    const [cardFields, setCardFields] = useState({
+        email: '',
+        firstName: '',
+        lastName: '',
+        cardNumber: '',
+        expiry: '',
+        cvv: '',
+        cardName: '',
+        country: 'Philippines',
+        postalCode: '',
+    });
+
+    useEffect(() => {
+        setLoading(true);
+        api.get('/api/campaigns/')
+            .then((res) => setCampaigns(Array.isArray(res.data) ? res.data : []))
+            .catch(() => setError('Failed to load campaign.'))
+            .finally(() => setLoading(false));
+    }, []);
+
+    const campaign = useMemo(
+        () => campaigns.find((c) => String(c.id) === String(id)) || null,
+        [campaigns, id]
+    );
+
+    const donationValue = Number(donationAmount || 0);
+    const safeDonation = Number.isFinite(donationValue) && donationValue > 0 ? donationValue : 0;
+    const raised = Number(campaign?.raised_amount || 0);
+    const goal = Number(campaign?.goal_amount || 0);
+    const pct = clampPercent(raised, goal);
+
+    return (
+        <div className="opp-page">
+            <Header />
+            <main className="opp-main">
+                <div className="campaign-route-head">
+                    <Link to={`/campaigns/${id}`} className="campaign-route-back">← Back to Campaign</Link>
+                </div>
+
+                {loading && <div className="opp-state">Loading...</div>}
+                {error && <div className="opp-state opp-error">{error}</div>}
+                {!loading && !error && !campaign && <div className="opp-state">Campaign not found.</div>}
+
+                {!loading && !error && campaign && (
+                    <div className="campaign-donate-page">
+                        <div className="campaign-donate-hero">
+                            <div className="campaign-detail-percent-ring" style={{ '--pct': `${pct}%` }}>
+                                <span>{pct}%</span>
+                            </div>
+                            <div>
+                                <h1 className="campaign-donate-page-title">{campaign.title || 'Campaign'}</h1>
+                                <p className="campaign-donate-page-meta">
+                                    {formatMoney(campaign.raised_amount)} raised of {formatMoney(campaign.goal_amount)}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="campaign-donate-modal campaign-donate-modal-page">
+                            <label className="campaign-donate-label" htmlFor="campaign-donate-amount">
+                                Enter your donation
+                            </label>
+                            <div className="campaign-donate-input-wrap">
+                                <span className="campaign-donate-currency">₱</span>
+                                <input
+                                    id="campaign-donate-amount"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={donationAmount}
+                                    onChange={(e) => {
+                                        setDonationAmount(e.target.value);
+                                        setShowNotice(false);
+                                    }}
+                                    className="campaign-donate-input"
+                                    placeholder="0.00"
+                                />
+                            </div>
+
+                            <div className="campaign-donate-methods">
+                                <p className="campaign-donate-label">Payment method</p>
+                                {METHOD_OPTIONS.map((method) => (
+                                    <label key={method.id} className="campaign-donate-method-row">
+                                        <input
+                                            type="radio"
+                                            name="payment-method"
+                                            checked={paymentMethod === method.id}
+                                            onChange={() => setPaymentMethod(method.id)}
+                                        />
+                                        <span className="campaign-donate-method-logo">{method.logo}</span>
+                                        <span>{method.label}</span>
+                                    </label>
+                                ))}
+                            </div>
+
+                            {paymentMethod === 'Credit/Debit' && (
+                                <div className="campaign-card-fields">
+                                    <input
+                                        type="email"
+                                        placeholder="Email address"
+                                        value={cardFields.email}
+                                        onChange={(e) => setCardFields((p) => ({ ...p, email: e.target.value }))}
+                                    />
+                                    <div className="campaign-card-fields-two">
+                                        <input
+                                            type="text"
+                                            placeholder="First name"
+                                            value={cardFields.firstName}
+                                            onChange={(e) => setCardFields((p) => ({ ...p, firstName: e.target.value }))}
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="Last name"
+                                            value={cardFields.lastName}
+                                            onChange={(e) => setCardFields((p) => ({ ...p, lastName: e.target.value }))}
+                                        />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        placeholder="Card number"
+                                        value={cardFields.cardNumber}
+                                        onChange={(e) => setCardFields((p) => ({ ...p, cardNumber: e.target.value }))}
+                                    />
+                                    <div className="campaign-card-fields-two">
+                                        <input
+                                            type="text"
+                                            placeholder="MM/YY"
+                                            value={cardFields.expiry}
+                                            onChange={(e) => setCardFields((p) => ({ ...p, expiry: e.target.value }))}
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="CVV"
+                                            value={cardFields.cvv}
+                                            onChange={(e) => setCardFields((p) => ({ ...p, cvv: e.target.value }))}
+                                        />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        placeholder="Name on card"
+                                        value={cardFields.cardName}
+                                        onChange={(e) => setCardFields((p) => ({ ...p, cardName: e.target.value }))}
+                                    />
+                                    <div className="campaign-card-fields-two">
+                                        <select
+                                            value={cardFields.country}
+                                            onChange={(e) => setCardFields((p) => ({ ...p, country: e.target.value }))}
+                                        >
+                                            <option value="Philippines">Philippines</option>
+                                        </select>
+                                        <input
+                                            type="text"
+                                            placeholder="Postal code"
+                                            value={cardFields.postalCode}
+                                            onChange={(e) => setCardFields((p) => ({ ...p, postalCode: e.target.value }))}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="campaign-donate-summary">
+                                <p><span>Your donation</span><strong>{formatMoney(safeDonation)}</strong></p>
+                                <p className="total"><span>Total due today</span><strong>{formatMoney(safeDonation)}</strong></p>
+                            </div>
+
+                            <button
+                                type="button"
+                                className="campaign-donate-submit"
+                                disabled={safeDonation <= 0}
+                                onClick={() => setShowNotice(true)}
+                            >
+                                Continue
+                            </button>
+
+                            {showNotice && (
+                                <p className="campaign-donate-note">
+                                    This page is for UI testing only. Final payment processing will use Dragonpay integration.
+                                </p>
+                            )}
+
+                            <div className="campaign-donate-actions">
+                                <button type="button" className="campaign-donate-close" onClick={() => navigate(`/campaigns/${id}`)}>
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </main>
+            <Footer />
+        </div>
+    );
+}
+
+export default CampaignDonate;

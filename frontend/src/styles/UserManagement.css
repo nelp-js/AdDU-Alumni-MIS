@@ -135,6 +135,104 @@
     align-items: center;
 }
 
+/* Split dropdown (approved users): Edit + chevron + Delete menu */
+.user-mgmt-btn-group {
+    position: relative;
+    display: inline-flex;
+    align-items: stretch;
+    min-width: 96px;
+}
+
+.user-mgmt-split-main {
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    background: transparent;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    transition: all 0.15s;
+}
+
+.user-mgmt-split-main:hover {
+    background: #f3f4f6;
+}
+
+.user-mgmt-split-toggle {
+    padding: 8px 0;
+    width: 30px;
+    border: 1px solid #d1d5db;
+    border-radius: 0 8px 8px 0;
+    background: transparent;
+    color: #374151;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+}
+
+.user-mgmt-split-toggle:hover {
+    background: #f3f4f6;
+}
+
+.user-mgmt-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 100px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+    z-index: 100;
+    overflow: hidden;
+    padding: 4px 0;
+}
+
+.user-mgmt-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 9px 16px;
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.12s;
+    box-sizing: border-box;
+}
+
+.user-mgmt-dropdown-item.item-delete {
+    color: #b91c1c;
+}
+
+.user-mgmt-dropdown-item.item-delete:hover:not(:disabled) {
+    background: #fee2e2;
+}
+
+.user-mgmt-dropdown-item:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.user-mgmt-table tbody tr:last-child .user-mgmt-dropdown-menu {
+    top: auto;
+    bottom: calc(100% + 4px);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.10);
+}
+
 /* Approve */
 .user-mgmt-approve-btn {
     padding: 6px 12px;

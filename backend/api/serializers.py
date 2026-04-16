@@ -211,6 +211,70 @@ class UserListSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class PublicAlumniListSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    profile_picture = serializers.ImageField(source='profile.profile_picture', read_only=True)
+    location = serializers.CharField(source='profile.location', read_only=True)
+    website = serializers.CharField(source='profile.website', read_only=True)
+    current_company = serializers.SerializerMethodField()
+    current_job_title = serializers.SerializerMethodField()
+    role_label = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            "id", "username", "full_name", "profile_picture",
+            "location", "program", "batch_year",
+            "email", "phone_number", "telephone_number", "website",
+            "current_company", "current_job_title", "role_label",
+        ]
+        read_only_fields = fields
+
+    def get_full_name(self, obj):
+        parts = [obj.first_name, obj.middle_name, obj.last_name]
+        name = " ".join([p.strip() for p in parts if p and p.strip()])
+        return name or obj.username
+
+    def get_current_company(self, obj):
+        exp = obj.experiences.order_by('-is_current', '-start_date').first()
+        return exp.company_name if exp else ''
+
+    def get_current_job_title(self, obj):
+        exp = obj.experiences.order_by('-is_current', '-start_date').first()
+        return exp.job_title if exp else ''
+
+    def get_role_label(self, obj):
+        return 'Administrator' if (obj.is_superuser or obj.is_staff) else 'Alumni'
+
+
+class PublicAlumniDetailSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    profile_picture = serializers.ImageField(source='profile.profile_picture', read_only=True)
+    cover_photo = serializers.ImageField(source='profile.cover_photo', read_only=True)
+    bio = serializers.CharField(source='profile.bio', read_only=True)
+    location = serializers.CharField(source='profile.location', read_only=True)
+    website = serializers.CharField(source='profile.website', read_only=True)
+    experiences = ExperienceSerializer(many=True, read_only=True)
+    educations = EducationSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            "id", "username", "full_name",
+            "first_name", "middle_name", "last_name",
+            "program", "batch_year",
+            "email", "phone_number", "telephone_number", "current_address",
+            "profile_picture", "cover_photo", "bio", "location", "website",
+            "experiences", "educations",
+        ]
+        read_only_fields = fields
+
+    def get_full_name(self, obj):
+        parts = [obj.first_name, obj.middle_name, obj.last_name]
+        name = " ".join([p.strip() for p in parts if p and p.strip()])
+        return name or obj.username
+
+
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
@@ -325,6 +389,11 @@ class CampaignSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'raised_amount', 'donors_count', 'created_by',
                             'created_by_name', 'created_at', 'updated_at', 'donations_count']
+        extra_kwargs = {
+            'title': {'required': True},
+            'description': {'required': True},
+            'cover_image': {'required': True},
+        }
 
     def get_created_by_name(self, obj):
         if not obj.created_by: return '—'
@@ -332,6 +401,18 @@ class CampaignSerializer(serializers.ModelSerializer):
 
     def get_donations_count(self, obj):
         return obj.donations.count()
+
+    def validate_title(self, value):
+        return _validate_max_len((value or '').strip(), 60, "Campaign title")
+
+    def validate_description(self, value):
+        text = (value or '').strip()
+        if not text:
+            raise serializers.ValidationError("Description is required.")
+        words = [w for w in re.split(r"\s+", text) if w]
+        if len(words) > 1200:
+            raise serializers.ValidationError("Description must be 1200 words or less.")
+        return text
 
 
 def _strip_html(text):

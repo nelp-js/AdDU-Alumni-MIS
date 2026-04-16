@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.conf import settings
+from django.db.models import Q
+from django.core.paginator import Paginator
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -22,6 +24,7 @@ from .serializers import (
     CustomTokenObtainPairSerializer, ActivityLogSerializer,
     ArticleSerializer, ArticleUpdateSerializer,
     UserProfileSerializer, ExperienceSerializer, EducationSerializer,
+    PublicAlumniListSerializer, PublicAlumniDetailSerializer,
 )
 
 
@@ -129,6 +132,87 @@ class UserDetailView(generics.RetrieveUpdateAPIView):
     serializer_class = UserUpdateSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
     queryset = User.objects.all()
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def public_alumni_list(request):
+    q = (request.GET.get('q') or '').strip()
+    batch_year = (request.GET.get('batch_year') or '').strip()
+    program = (request.GET.get('program') or '').strip()
+    company = (request.GET.get('company') or '').strip()
+    job_title = (request.GET.get('job_title') or '').strip()
+    contact = (request.GET.get('contact') or '').strip()
+    website = (request.GET.get('website') or '').strip()
+    location = (request.GET.get('location') or '').strip()
+    role = (request.GET.get('role') or '').strip().lower()
+
+    qs = User.objects.filter(
+        is_active=True,
+    ).filter(
+        Q(is_approved=True) | Q(is_staff=True) | Q(is_superuser=True)
+    ).select_related('profile').prefetch_related('experiences').order_by('first_name', 'last_name', 'username')
+
+    if q:
+        qs = qs.filter(
+            Q(first_name__icontains=q)
+            | Q(middle_name__icontains=q)
+            | Q(last_name__icontains=q)
+            | Q(username__icontains=q)
+            | Q(program__icontains=q)
+            | Q(batch_year__icontains=q)
+            | Q(email__icontains=q)
+            | Q(phone_number__icontains=q)
+            | Q(telephone_number__icontains=q)
+            | Q(profile__website__icontains=q)
+            | Q(experiences__company_name__icontains=q)
+            | Q(experiences__job_title__icontains=q)
+        )
+
+    if batch_year:
+        qs = qs.filter(batch_year__icontains=batch_year)
+    if program:
+        qs = qs.filter(program__icontains=program)
+    if company:
+        qs = qs.filter(experiences__company_name__icontains=company)
+    if job_title:
+        qs = qs.filter(experiences__job_title__icontains=job_title)
+    if contact:
+        qs = qs.filter(
+            Q(email__icontains=contact)
+            | Q(phone_number__icontains=contact)
+            | Q(telephone_number__icontains=contact)
+        )
+    if website:
+        qs = qs.filter(profile__website__icontains=website)
+    if location:
+        qs = qs.filter(
+            Q(profile__location__icontains=location)
+            | Q(city__icontains=location)
+            | Q(province__icontains=location)
+            | Q(region__icontains=location)
+        )
+    if role == 'admin':
+        qs = qs.filter(Q(is_staff=True) | Q(is_superuser=True))
+    elif role == 'alumni':
+        qs = qs.filter(is_staff=False, is_superuser=False)
+
+    qs = qs.distinct()
+
+    return Response(PublicAlumniListSerializer(qs, many=True).data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def public_alumni_detail(request, user_id):
+    user = get_object_or_404(
+        User.objects.select_related('profile').prefetch_related('experiences', 'educations'),
+        pk=user_id,
+        is_active=True,
+    )
+    if not (user.is_approved or user.is_staff or user.is_superuser):
+        return Response({'detail': 'Not found.'}, status=404)
+    return Response(PublicAlumniDetailSerializer(user).data)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsAdminUser])
@@ -265,11 +349,109 @@ def my_registrations(request):
 
 # --- JOB VIEWS ---
 
+def _safe_int(value, default):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _serialize_public_postings(request, queryset, serializer_class):
+    query = (request.GET.get('q') or '').strip()
+    location = (request.GET.get('location') or '').strip()
+    modality = (request.GET.get('modality') or '').strip()
+    ordering_key = (request.GET.get('ordering') or 'newest').strip().lower()
+
+    if query:
+        queryset = queryset.filter(
+            Q(position__icontains=query)
+            | Q(company__icontains=query)
+            | Q(description__icontains=query)
+            | Q(location__icontains=query)
+        )
+    if location:
+        queryset = queryset.filter(location__icontains=location)
+    if modality:
+        queryset = queryset.filter(modality__iexact=modality)
+
+    ordering_map = {
+        'newest': '-created_at',
+        'oldest': 'created_at',
+        'position_asc': 'position',
+        'company_asc': 'company',
+    }
+    queryset = queryset.order_by(ordering_map.get(ordering_key, '-created_at'))
+
+    # Keep backward compatibility: plain list unless paging/filtering/sorting params are present.
+    wants_paginated = any(
+        key in request.GET for key in ('page', 'page_size', 'q', 'location', 'modality', 'ordering')
+    )
+    if not wants_paginated:
+        return Response(serializer_class(queryset, many=True).data)
+
+    page_size = max(1, min(50, _safe_int(request.GET.get('page_size'), 20)))
+    page_num = max(1, _safe_int(request.GET.get('page'), 1))
+    paginator = Paginator(queryset, page_size)
+    page_obj = paginator.get_page(page_num)
+
+    return Response({
+        'count': paginator.count,
+        'total_pages': paginator.num_pages,
+        'current_page': page_obj.number,
+        'page_size': page_size,
+        'results': serializer_class(page_obj.object_list, many=True).data,
+    })
+
+
+def _serialize_campaign_listing(request, queryset):
+    query = (request.GET.get('q') or '').strip()
+    category = (request.GET.get('category') or '').strip()
+    ordering_key = (request.GET.get('ordering') or 'newest').strip().lower()
+
+    if query:
+        queryset = queryset.filter(
+            Q(title__icontains=query)
+            | Q(description__icontains=query)
+            | Q(category__icontains=query)
+        )
+    if category:
+        queryset = queryset.filter(category__iexact=category)
+
+    ordering_map = {
+        'newest': '-created_at',
+        'oldest': 'created_at',
+        'goal_desc': '-goal_amount',
+        'raised_desc': '-raised_amount',
+        'title_asc': 'title',
+    }
+    queryset = queryset.order_by(ordering_map.get(ordering_key, '-created_at'))
+
+    # Backward compatibility for existing admin pages expecting plain arrays.
+    wants_paginated = any(
+        key in request.GET for key in ('page', 'page_size', 'q', 'category', 'ordering')
+    )
+    if not wants_paginated:
+        return Response(CampaignSerializer(queryset, many=True).data)
+
+    page_size = max(1, min(50, _safe_int(request.GET.get('page_size'), 12)))
+    page_num = max(1, _safe_int(request.GET.get('page'), 1))
+    paginator = Paginator(queryset, page_size)
+    page_obj = paginator.get_page(page_num)
+
+    return Response({
+        'count': paginator.count,
+        'total_pages': paginator.num_pages,
+        'current_page': page_obj.number,
+        'page_size': page_size,
+        'results': CampaignSerializer(page_obj.object_list, many=True).data,
+    })
+
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def job_list_create(request):
     if request.method == 'GET':
-        return Response(JobSerializer(Job.objects.filter(status='approved', is_hidden=False), many=True).data)
+        queryset = Job.objects.filter(status='approved', is_hidden=False)
+        return _serialize_public_postings(request, queryset, JobSerializer)
     serializer = JobSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save(posted_by=request.user, status='pending')
@@ -326,7 +508,8 @@ def job_toggle_hide(request, job_id):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def internship_list_create(request):
     if request.method == 'GET':
-        return Response(InternshipSerializer(Internship.objects.filter(status='approved', is_hidden=False), many=True).data)
+        queryset = Internship.objects.filter(status='approved', is_hidden=False)
+        return _serialize_public_postings(request, queryset, InternshipSerializer)
     serializer = InternshipSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save(posted_by=request.user, status='pending')
@@ -383,12 +566,19 @@ def internship_toggle_hide(request, internship_id):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def campaign_list_create(request):
     if request.method == 'GET':
-        # Admins see all, public sees only approved + active
+        # Admins see all campaigns in the listing endpoint.
+        # Public listings (including authenticated non-admin users) show only approved + active.
+        # Optional escape hatch: include_mine=1 lets non-admin users also see their own campaigns.
+        include_mine = str(request.GET.get('include_mine', '')).strip().lower() in ('1', 'true', 'yes')
         if request.user.is_authenticated and request.user.is_staff:
             campaigns = Campaign.objects.all()
+        elif request.user.is_authenticated and include_mine:
+            campaigns = Campaign.objects.filter(
+                Q(is_active=True, status='approved') | Q(created_by=request.user)
+            ).distinct()
         else:
             campaigns = Campaign.objects.filter(is_active=True, status='approved')
-        return Response(CampaignSerializer(campaigns, many=True).data)
+        return _serialize_campaign_listing(request, campaigns)
 
     # POST — admin only
     if not request.user.is_staff:

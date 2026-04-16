@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -107,6 +107,56 @@ const SelectInput = ({ name, value, onChange, placeholder, options }) => (
         )}
     </select>
 );
+
+function UserSplitDropdown({ onEdit, onDelete, deleting }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [open]);
+
+    return (
+        <div className="user-mgmt-btn-group" ref={ref}>
+            <button
+                type="button"
+                className="user-mgmt-split-main"
+                onClick={() => { setOpen(false); onEdit(); }}
+            >
+                Edit
+            </button>
+            <button
+                type="button"
+                className="user-mgmt-split-toggle"
+                onClick={() => setOpen((v) => !v)}
+                aria-expanded={open}
+            >
+                ▾
+            </button>
+            {open && (
+                <ul className="user-mgmt-dropdown-menu" role="menu">
+                    <li>
+                        <button
+                            type="button"
+                            className="user-mgmt-dropdown-item item-delete"
+                            onClick={() => { setOpen(false); onDelete(); }}
+                            disabled={deleting}
+                        >
+                            {deleting ? '…' : 'Delete'}
+                        </button>
+                    </li>
+                </ul>
+            )}
+        </div>
+    );
+}
 
 // ─── Main component ──────────────────────────────────────────────────────────
 
@@ -290,9 +340,11 @@ function UserManagement() {
                                                         </button>
                                                     </span>
                                                 ) : (
-                                                    <button type="button" className="user-mgmt-edit-btn" onClick={() => openEdit(u)}>
-                                                        Edit
-                                                    </button>
+                                                    <UserSplitDropdown
+                                                        onEdit={() => openEdit(u)}
+                                                        onDelete={() => handleDelete(u.id)}
+                                                        deleting={deletingId === u.id}
+                                                    />
                                                 )}
                                             </td>
                                         </tr>

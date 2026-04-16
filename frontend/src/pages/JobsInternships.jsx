@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -14,26 +15,60 @@ function formatDate(dateStr) {
     }
 }
 
+const PAGE_SIZE = 20;
+
 function JobsInternships() {
     useTitle('Jobs & Internships');
+    const navigate = useNavigate();
     const [tab, setTab] = useState('jobs');
-    const [jobs, setJobs] = useState([]);
-    const [internships, setInternships] = useState([]);
+    const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [searchInput, setSearchInput] = useState('');
+    const [search, setSearch] = useState('');
+    const [modality, setModality] = useState('');
+    const [ordering, setOrdering] = useState('newest');
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearch(searchInput.trim());
+            setPage(1);
+        }, 350);
+        return () => clearTimeout(timer);
+    }, [searchInput]);
 
     useEffect(() => {
         setLoading(true);
-        Promise.all([api.get('/api/jobs/'), api.get('/api/internships/')])
-            .then(([jRes, iRes]) => {
-                setJobs(Array.isArray(jRes.data) ? jRes.data : []);
-                setInternships(Array.isArray(iRes.data) ? iRes.data : []);
+        setError('');
+        const endpoint = tab === 'jobs' ? '/api/jobs/' : '/api/internships/';
+
+        api.get(endpoint, {
+            params: {
+                page,
+                page_size: PAGE_SIZE,
+                q: search || undefined,
+                modality: modality || undefined,
+                ordering,
+            },
+        })
+            .then((res) => {
+                if (Array.isArray(res.data)) {
+                    setItems(res.data);
+                    setTotalCount(res.data.length);
+                    setTotalPages(1);
+                    return;
+                }
+                const payload = res.data || {};
+                setItems(Array.isArray(payload.results) ? payload.results : []);
+                setTotalCount(Number(payload.count) || 0);
+                setTotalPages(Math.max(1, Number(payload.total_pages) || 1));
             })
             .catch(() => setError('Failed to load opportunities.'))
             .finally(() => setLoading(false));
-    }, []);
-
-    const list = useMemo(() => (tab === 'jobs' ? jobs : internships), [tab, jobs, internships]);
+    }, [tab, page, search, modality, ordering]);
 
     return (
         <div className="opp-page">
@@ -43,37 +78,145 @@ function JobsInternships() {
                 <p className="opp-subtitle">Browse approved opportunities from alumni and partners.</p>
 
                 <div className="opp-tabs">
-                    <button type="button" className={`opp-tab ${tab === 'jobs' ? 'active' : ''}`} onClick={() => setTab('jobs')}>
+                    <button
+                        type="button"
+                        className={`opp-tab ${tab === 'jobs' ? 'active' : ''}`}
+                        onClick={() => {
+                            setTab('jobs');
+                            setPage(1);
+                        }}
+                    >
                         Jobs
                     </button>
-                    <button type="button" className={`opp-tab ${tab === 'internships' ? 'active' : ''}`} onClick={() => setTab('internships')}>
+                    <button
+                        type="button"
+                        className={`opp-tab ${tab === 'internships' ? 'active' : ''}`}
+                        onClick={() => {
+                            setTab('internships');
+                            setPage(1);
+                        }}
+                    >
                         Internships
                     </button>
                 </div>
 
+                <div className="opp-toolbar">
+                    <div className="opp-search-pill">
+                        <input
+                            type="text"
+                            className="opp-search-input"
+                            placeholder="Search position, company, location, keyword..."
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                        />
+                        <button
+                            type="button"
+                            className="opp-search-button"
+                            onClick={() => {
+                                setSearch(searchInput.trim());
+                                setPage(1);
+                            }}
+                            aria-label="Search jobs and internships"
+                        >
+                            <span className="opp-search-icon" aria-hidden="true">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z"
+                                        stroke="currentColor"
+                                        strokeWidth="1.8"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+
+                    <div className="opp-sort-wrap">
+                        <select
+                            className="opp-sort-select"
+                            value={modality}
+                            onChange={(e) => {
+                                setModality(e.target.value);
+                                setPage(1);
+                            }}
+                        >
+                            <option value="">All modalities</option>
+                            <option value="On-site">On-site</option>
+                            <option value="Remote">Remote</option>
+                            <option value="Hybrid">Hybrid</option>
+                        </select>
+                    </div>
+
+                    <div className="opp-sort-wrap">
+                        <select
+                            className="opp-sort-select"
+                            value={ordering}
+                            onChange={(e) => {
+                                setOrdering(e.target.value);
+                                setPage(1);
+                            }}
+                        >
+                        <option value="newest">Newest first</option>
+                        <option value="oldest">Oldest first</option>
+                        <option value="position_asc">Position A-Z</option>
+                        <option value="company_asc">Company A-Z</option>
+                        </select>
+                    </div>
+                </div>
+
+                {!loading && !error && (
+                    <p className="opp-results-count">{totalCount} result{totalCount === 1 ? '' : 's'}</p>
+                )}
+
                 {loading && <div className="opp-state">Loading...</div>}
                 {error && <div className="opp-state opp-error">{error}</div>}
-                {!loading && !error && list.length === 0 && (
+                {!loading && !error && items.length === 0 && (
                     <div className="opp-state">No {tab} available right now.</div>
                 )}
 
-                {!loading && !error && list.length > 0 && (
+                {!loading && !error && items.length > 0 && (
                     <div className="opp-grid">
-                        {list.map((item) => (
+                        {items.map((item) => (
                             <article key={`${tab}-${item.id}`} className="opp-card">
-                                <h2 className="opp-card-title">{item.position || '—'}</h2>
+                                <h2 className="opp-card-title" title={item.position || ''}>{item.position || '—'}</h2>
                                 <p className="opp-card-company">{item.company || '—'}</p>
-                                <p className="opp-card-meta">{item.location || '—'} · {item.modality || '—'}</p>
+                                <p className="opp-card-meta">{item.location || '—'} • {item.modality || '—'}</p>
                                 <p className="opp-card-meta">
-                                    {tab === 'jobs' ? (item.employment_type || '—') : (item.allowance || 'Allowance not specified')}
+                                    {tab === 'jobs' ? (item.employment_type || 'Not specified') : (item.allowance || 'Not specified')}
                                 </p>
                                 <p className="opp-card-dates">From {formatDate(item.start_date)} to {formatDate(item.end_date)}</p>
-                                <p className="opp-card-desc">{item.description || '—'}</p>
-                                <a className="opp-card-apply" href={`mailto:${item.email}`}>
-                                    Apply via email
-                                </a>
+                                <button
+                                    type="button"
+                                    className="opp-card-view"
+                                    onClick={() => navigate(`/jobs/${tab}/${item.id}`)}
+                                >
+                                    View details
+                                </button>
                             </article>
                         ))}
+                    </div>
+                )}
+
+                {!loading && !error && totalPages > 1 && (
+                    <div className="opp-pagination">
+                        <button
+                            type="button"
+                            className="opp-page-btn"
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            disabled={page <= 1}
+                        >
+                            Previous
+                        </button>
+                        <span className="opp-page-label">Page {page} of {totalPages}</span>
+                        <button
+                            type="button"
+                            className="opp-page-btn"
+                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={page >= totalPages}
+                        >
+                            Next
+                        </button>
                     </div>
                 )}
             </main>

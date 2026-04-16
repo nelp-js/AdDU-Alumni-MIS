@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import '../styles/Layout.css';
 import { ACCESS_TOKEN, USER_IS_ADMIN } from '../constants';
@@ -10,10 +10,23 @@ function Header() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [user, setUser] = useState(null);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [showMoreDropdown, setShowMoreDropdown] = useState(false);
+    const moreDropdownRef = useRef(null);
     
     const { notifications } = useNotifications();
     
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!showMoreDropdown) return;
+        const handleOutside = (e) => {
+            if (moreDropdownRef.current && !moreDropdownRef.current.contains(e.target)) {
+                setShowMoreDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleOutside);
+        return () => document.removeEventListener('mousedown', handleOutside);
+    }, [showMoreDropdown]);
 
     useEffect(() => {
         const token = localStorage.getItem(ACCESS_TOKEN);
@@ -78,9 +91,26 @@ function Header() {
                     <Link to="/">Home</Link>
                     <Link to="/stories">News &amp; Stories</Link>
                     <Link to="/events">Events</Link>
-                    <Link to="/jobs">Jobs & Interships</Link>
-                    <Link to="/Campaigns">Support</Link>
-                    <Link to="/">Volunteer</Link>
+                    <Link to="/campaigns">Support</Link>
+                    <div className="header-more" ref={moreDropdownRef}>
+                        <button
+                            type="button"
+                            className="header-more-btn header-nav-link"
+                            onClick={() => setShowMoreDropdown((v) => !v)}
+                            aria-expanded={showMoreDropdown}
+                        >
+                            More
+                            <FiChevronDown className={`header-more-chevron ${showMoreDropdown ? 'open' : ''}`} />
+                        </button>
+                        {showMoreDropdown && (
+                            <div className="header-more-menu">
+                                <Link to="/jobs" onClick={() => setShowMoreDropdown(false)}>Jobs & Interships</Link>
+                                <Link to="/" onClick={() => setShowMoreDropdown(false)}>Volunteer</Link>
+                                <Link to="/alumni" onClick={() => setShowMoreDropdown(false)}>Find an Alumni</Link>
+                                <Link to="/" onClick={() => setShowMoreDropdown(false)}>Feedback & Surveys</Link>
+                            </div>
+                        )}
+                    </div>
 
                     {isAdmin && (
                         <NavLink 

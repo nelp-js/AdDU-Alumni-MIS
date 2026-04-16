@@ -8,6 +8,7 @@ import '../styles/AdminButtons.css';
 import { useTitle } from '../Hooks/useTitle';
 
 const CATEGORIES = ['Student Aid', 'Infrastructure', 'Research', 'Faculty'];
+const MAX_CAMPAIGN_TITLE = 60;
 
 function SplitDropdown({ campaign, onEdit, onToggleActive, onDelete, togglingId, deletingId }) {
     const [open, setOpen] = useState(false);
@@ -474,6 +475,7 @@ function CampaignManagement() {
                                     <CampaignEditLabel>Title</CampaignEditLabel>
                                     <input
                                         type="text"
+                                        maxLength={MAX_CAMPAIGN_TITLE}
                                         style={{ width: '100%', marginTop: 4, padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 15 }}
                                         value={editForm.title}
                                         onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}

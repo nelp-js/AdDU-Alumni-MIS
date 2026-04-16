@@ -60,9 +60,10 @@
     align-items: center;
     background: #ffffff;
     border-radius: 999px;
-    padding: 4px 6px 4px 18px;
+    min-height: 58px;
+    padding: 0 0 0 18px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    border: none;
+    border: 1px solid #eceff4;
 }
 
 .stories-search-input {
@@ -73,39 +74,38 @@
     background: transparent;
     font-size: 15px;
     font-family: 'Avenir LT Std', system-ui, sans-serif;
-    color: #1a1a1a;
-    padding: 10px 12px 10px 0;
+    color: #4b5563;
+    padding: 10px 14px 10px 0;
 }
 
 .stories-search-input::placeholder {
-    color: #9ca3af;
+    color: #aab2c5;
 }
 
 .stories-search-button {
     flex-shrink: 0;
-    width: 56px;
-    height: 40px;
-    border-radius: 999px;
+    width: 78px;
+    align-self: stretch;
+    border-radius: 0 999px 999px 0;
     border: none;
-    background: #000000;
+    border-left: 2px solid #bcc4d6;
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ffffff;
+    color: #b0b8ca;
     cursor: pointer;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.45);
-    transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.15s ease;
+    box-shadow: none;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
 .stories-search-button:hover {
-    background: #020617;
-    transform: translateY(-1px);
-    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.55);
+    background: #f5f7fb;
+    color: #8c96ad;
 }
 
 .stories-search-button:active {
-    transform: translateY(0);
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.5);
+    background: #eef1f7;
 }
 
 .stories-search-icon svg {
@@ -262,12 +262,12 @@
     }
 
     .stories-search-pill {
-        padding: 4px 4px 4px 14px;
+        min-height: 54px;
+        padding: 0 0 0 14px;
     }
 
     .stories-search-button {
-        width: 48px;
-        height: 38px;
+        width: 64px;
     }
 
     .stories-search-input {
