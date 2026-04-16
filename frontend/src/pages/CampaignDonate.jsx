@@ -7,11 +7,11 @@ import '../styles/Opportunities.css';
 import { useTitle } from '../Hooks/useTitle';
 
 const METHOD_OPTIONS = [
-    { id: 'GCash', label: 'GCash', logo: 'G' },
-    { id: 'Maya', label: 'Maya', logo: 'M' },
-    { id: 'QRPH', label: 'QRPH', logo: 'QR' },
-    { id: 'Credit/Debit', label: 'Credit or debit', logo: '💳' },
-    { id: 'Cash (University Cashier)', label: 'Cash (University Cashier)', logo: '₱' },
+    { id: 'gcash', label: 'GCash', logo: 'G' },
+    { id: 'maya', label: 'Maya', logo: 'M' },
+    { id: 'qrph', label: 'QRPH', logo: 'QR' },
+    { id: 'credit_debit', label: 'Credit or debit', logo: '💳' },
+    { id: 'cash', label: 'Cash (University Cashier)', logo: '₱' },
 ];
 
 function formatMoney(n) {
@@ -35,8 +35,9 @@ function CampaignDonate() {
     const [error, setError] = useState('');
 
     const [donationAmount, setDonationAmount] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState('GCash');
-    const [showNotice, setShowNotice] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState('gcash');
+    const [submitting, setSubmitting] = useState(false);
+    const [donationFeedback, setDonationFeedback] = useState('');
 
     const [cardFields, setCardFields] = useState({
         email: '',
@@ -109,7 +110,7 @@ function CampaignDonate() {
                                     value={donationAmount}
                                     onChange={(e) => {
                                         setDonationAmount(e.target.value);
-                                        setShowNotice(false);
+                                        setDonationFeedback('');
                                     }}
                                     className="campaign-donate-input"
                                     placeholder="0.00"
@@ -132,7 +133,7 @@ function CampaignDonate() {
                                 ))}
                             </div>
 
-                            {paymentMethod === 'Credit/Debit' && (
+                            {paymentMethod === 'credit_debit' && (
                                 <div className="campaign-card-fields">
                                     <input
                                         type="email"
@@ -205,15 +206,54 @@ function CampaignDonate() {
                             <button
                                 type="button"
                                 className="campaign-donate-submit"
-                                disabled={safeDonation <= 0}
-                                onClick={() => setShowNotice(true)}
+                                disabled={safeDonation <= 0 || submitting}
+                                onClick={async () => {
+                                    if (safeDonation <= 0 || submitting) return;
+                                    setSubmitting(true);
+                                    setDonationFeedback('');
+                                    try {
+                                        const res = await api.post(`/api/campaigns/${id}/donate/`, {
+                                            amount: safeDonation,
+                                            payment_method: paymentMethod,
+                                            first_name: cardFields.firstName || undefined,
+                                            last_name: cardFields.lastName || undefined,
+                                            email: cardFields.email || undefined,
+                                        });
+
+                                        setCampaigns((prev) =>
+                                            prev.map((c) =>
+                                                String(c.id) === String(id)
+                                                    ? {
+                                                        ...c,
+                                                        raised_amount: res.data.campaign_raised_amount ?? c.raised_amount,
+                                                        donors_count: res.data.campaign_donors_count ?? c.donors_count,
+                                                    }
+                                                    : c
+                                            )
+                                        );
+
+                                        const statusLabel = (res.data.payment_status || '').toLowerCase();
+                                        if (statusLabel === 'success') {
+                                            setDonationFeedback('Payment successful. Thank you for your donation!');
+                                        } else if (statusLabel === 'pending') {
+                                            setDonationFeedback('Payment is pending. Campaign progress updates after success.');
+                                        } else {
+                                            setDonationFeedback('Payment failed. Campaign progress was not updated.');
+                                        }
+                                    } catch (err) {
+                                        const message = err.response?.data?.detail || 'Donation failed. Please try again.';
+                                        setDonationFeedback(message);
+                                    } finally {
+                                        setSubmitting(false);
+                                    }
+                                }}
                             >
-                                Continue
+                                {submitting ? 'Processing...' : 'Continue'}
                             </button>
 
-                            {showNotice && (
+                            {donationFeedback && (
                                 <p className="campaign-donate-note">
-                                    This page is for UI testing only. Final payment processing will use Dragonpay integration.
+                                    {donationFeedback}
                                 </p>
                             )}
 

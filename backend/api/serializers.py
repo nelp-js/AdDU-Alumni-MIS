@@ -366,11 +366,43 @@ class InternshipSerializer(serializers.ModelSerializer):
 
 
 class CampaignDonationSerializer(serializers.ModelSerializer):
+    donor_name = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = CampaignDonation
-        fields = ['id', 'campaign', 'first_name', 'last_name', 'email',
-                  'amount', 'payment_method', 'donated_at']
-        read_only_fields = ['id', 'donated_at']
+        fields = [
+            'id', 'campaign', 'user', 'donor_name',
+            'first_name', 'last_name', 'email',
+            'amount', 'payment_method', 'payment_status', 'donated_at',
+        ]
+        read_only_fields = ['id', 'user', 'donor_name', 'payment_status', 'donated_at']
+
+    def get_donor_name(self, obj):
+        if obj.user:
+            return f"{obj.user.first_name} {obj.user.last_name}".strip() or obj.user.username
+        return f"{obj.first_name} {obj.last_name}".strip()
+
+    def validate_amount(self, value):
+        if value is None or value <= 0:
+            raise serializers.ValidationError("Donation amount must be greater than zero.")
+        return value
+
+    def validate_payment_method(self, value):
+        raw = (value or '').strip().lower()
+        aliases = {
+            'gcash': 'gcash',
+            'maya': 'maya',
+            'qrph': 'qrph',
+            'credit/debit': 'credit_debit',
+            'credit_debit': 'credit_debit',
+            'credit or debit': 'credit_debit',
+            'cash': 'cash',
+            'cash (university cashier)': 'cash',
+        }
+        normalized = aliases.get(raw)
+        if not normalized:
+            raise serializers.ValidationError("Unsupported payment method.")
+        return normalized
 
 
 class CampaignSerializer(serializers.ModelSerializer):

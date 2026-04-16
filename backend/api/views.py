@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.conf import settings
-from django.db.models import Q
+from django.db import transaction
+from django.db.models import Q, F
 from django.core.paginator import Paginator
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser
@@ -639,19 +640,75 @@ def campaign_deny(request, campaign_id):
 @permission_classes([AllowAny])
 def campaign_donate(request, campaign_id):
     campaign = get_object_or_404(Campaign, pk=campaign_id, is_active=True, status='approved')
-    serializer = CampaignDonationSerializer(data={**request.data, 'campaign': campaign.id})
+
+    method_raw = str(request.data.get('payment_method', '')).strip().lower()
+    method_aliases = {
+        'gcash': 'gcash',
+        'maya': 'maya',
+        'qrph': 'qrph',
+        'credit/debit': 'credit_debit',
+        'credit_debit': 'credit_debit',
+        'credit or debit': 'credit_debit',
+        'cash': 'cash',
+        'cash (university cashier)': 'cash',
+    }
+    normalized_method = method_aliases.get(method_raw)
+    if not normalized_method:
+        return Response({'payment_method': ['Unsupported payment method.']}, status=400)
+
+    if normalized_method in ('gcash', 'maya', 'cash'):
+        payment_status = 'success'
+    elif normalized_method == 'qrph':
+        payment_status = 'pending'
+    else:
+        payment_status = 'failed'
+
+    if request.user.is_authenticated:
+        first_name = (request.user.first_name or '').strip() or 'User'
+        last_name = (request.user.last_name or '').strip() or request.user.username
+        email = (request.user.email or '').strip() or (request.data.get('email') or '').strip() or 'donor@example.com'
+        donor_user = request.user
+    else:
+        first_name = (request.data.get('first_name') or '').strip() or 'Guest'
+        last_name = (request.data.get('last_name') or '').strip() or 'Donor'
+        email = (request.data.get('email') or '').strip() or 'guest@example.com'
+        donor_user = None
+
+    payload = {
+        **request.data,
+        'campaign': campaign.id,
+        'payment_method': normalized_method,
+        'first_name': first_name,
+        'last_name': last_name,
+        'email': email,
+    }
+    serializer = CampaignDonationSerializer(data=payload)
     if serializer.is_valid():
-        donation = serializer.save()
-        campaign.raised_amount += donation.amount
-        campaign.donors_count  += 1
-        campaign.save()
+        with transaction.atomic():
+            donation = serializer.save(user=donor_user, payment_status=payment_status)
+            if payment_status == 'success':
+                Campaign.objects.filter(pk=campaign.id).update(
+                    raised_amount=F('raised_amount') + donation.amount,
+                    donors_count=F('donors_count') + 1,
+                )
+            campaign.refresh_from_db(fields=['raised_amount', 'donors_count', 'goal_amount'])
+
+        progress = 0
+        if campaign.goal_amount and campaign.goal_amount > 0:
+            progress = max(0, min(100, round((float(campaign.raised_amount) / float(campaign.goal_amount)) * 100)))
+
         ActivityLog.objects.create(
-            action=f"Donation received: ₱{donation.amount} for {campaign.title}",
+            action=f"Donation attempt ({payment_status}): ₱{donation.amount} for {campaign.title}",
             module="Fundraising",
-            user=request.user if request.user.is_authenticated else None,
-            status="Completed"
+            user=donor_user,
+            status="Completed" if payment_status == 'success' else payment_status.title(),
         )
-        return Response(serializer.data, status=201)
+        return Response({
+            **CampaignDonationSerializer(donation).data,
+            'campaign_raised_amount': campaign.raised_amount,
+            'campaign_donors_count': campaign.donors_count,
+            'campaign_progress_percent': progress,
+        }, status=201)
     return Response(serializer.errors, status=400)
 
 
