@@ -795,6 +795,118 @@
     cursor: pointer;
 }
 
+.campaign-receipt-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1500;
+}
+
+.campaign-receipt-modal {
+    width: min(620px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 16px;
+    padding: 18px 20px 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+}
+
+.campaign-receipt-brand {
+    margin: 0 0 16px;
+    color: #22a861;
+    font-size: 46px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
+}
+
+.campaign-receipt-sheet {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+}
+
+.campaign-receipt-title {
+    margin: 0 0 12px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+}
+
+.campaign-receipt-amount {
+    color: #1f2937;
+}
+
+.campaign-receipt-campaign-link {
+    color: #040354;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.campaign-receipt-subtitle {
+    margin: 0 0 12px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #2f343b;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+}
+
+.campaign-receipt-row {
+    margin: 0 0 6px;
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.45;
+}
+
+.campaign-receipt-row strong {
+    color: #3f434a;
+    font-weight: 700;
+}
+
+.campaign-receipt-row-gap {
+    margin-top: 10px;
+}
+
+.campaign-receipt-total {
+    margin-top: 12px;
+    font-size: 20px;
+    line-height: 1.2;
+}
+
+.campaign-receipt-actions {
+    margin-top: 14px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.campaign-receipt-close {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    border-radius: 10px;
+    padding: 9px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.campaign-receipt-close:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
 .opp-card {
     background: #fff;
     border: 1px solid #e5e7eb;
@@ -1057,6 +1169,14 @@
     .campaign-public-meta { font-size: 16px; }
     .campaign-detail-image-fallback { font-size: 28px; }
     .campaign-card-fields-two { grid-template-columns: 1fr; }
+    .campaign-receipt-modal {
+        width: min(560px, 100%);
+        padding: 14px 14px 12px;
+    }
+    .campaign-receipt-title { font-size: 20px; margin-bottom: 10px; }
+    .campaign-receipt-subtitle { font-size: 16px; margin-bottom: 10px; }
+    .campaign-receipt-row { font-size: 13px; }
+    .campaign-receipt-total { font-size: 18px; }
     .opp-toolbar {
         gap: 10px;
     }

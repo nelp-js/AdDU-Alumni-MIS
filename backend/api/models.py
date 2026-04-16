@@ -153,7 +153,7 @@ class Event(models.Model):
 
 class EventRegistration(models.Model):
     PAYMENT_METHOD_CHOICES = [('gcash', 'GCash'), ('maya', 'Maya'), ('card', 'Credit/Debit Card')]
-    STATUS_CHOICES         = [('pending', 'Pending'), ('paid', 'Paid'), ('cancelled', 'Cancelled')]
+    STATUS_CHOICES         = [('pending', 'Pending'), ('success', 'Success'), ('failed', 'Failed')]
 
     event          = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='registrations')
     user           = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_registrations')

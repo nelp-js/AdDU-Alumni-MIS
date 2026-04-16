@@ -26,6 +26,15 @@ function clampPercent(raised, goal) {
     return Math.max(0, Math.min(100, Math.round((raised / goal) * 100)));
 }
 
+function formatReceiptDate(isoDate) {
+    if (!isoDate) return '—';
+    try {
+        return new Date(isoDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+    } catch {
+        return isoDate;
+    }
+}
+
 function CampaignDonate() {
     useTitle('Donate to Campaign');
     const navigate = useNavigate();
@@ -38,6 +47,8 @@ function CampaignDonate() {
     const [paymentMethod, setPaymentMethod] = useState('gcash');
     const [submitting, setSubmitting] = useState(false);
     const [donationFeedback, setDonationFeedback] = useState('');
+    const [showReceipt, setShowReceipt] = useState(false);
+    const [receiptData, setReceiptData] = useState(null);
 
     const [cardFields, setCardFields] = useState({
         email: '',
@@ -235,6 +246,16 @@ function CampaignDonate() {
                                         const statusLabel = (res.data.payment_status || '').toLowerCase();
                                         if (statusLabel === 'success') {
                                             setDonationFeedback('Payment successful. Thank you for your donation!');
+                                            setReceiptData({
+                                                status: statusLabel,
+                                                donorName: res.data.donor_name || `${cardFields.firstName || 'Guest'} ${cardFields.lastName || 'Donor'}`.trim(),
+                                                donationDate: res.data.donated_at || new Date().toISOString(),
+                                                campaignTitle: campaign?.title || 'Campaign',
+                                                receivedBy: campaign?.created_by_name || 'Campaign organizer',
+                                                amount: safeDonation,
+                                                totalAmount: safeDonation,
+                                            });
+                                            setShowReceipt(true);
                                         } else if (statusLabel === 'pending') {
                                             setDonationFeedback('Payment is pending. Campaign progress updates after success.');
                                         } else {
@@ -248,7 +269,7 @@ function CampaignDonate() {
                                     }
                                 }}
                             >
-                                {submitting ? 'Processing...' : 'Continue'}
+                                {submitting ? 'Processing...' : 'Donate'}
                             </button>
 
                             {donationFeedback && (
@@ -267,6 +288,40 @@ function CampaignDonate() {
                 )}
             </main>
             <Footer />
+
+            {showReceipt && receiptData && (
+                <div className="campaign-receipt-overlay" onClick={() => setShowReceipt(false)}>
+                    <div className="campaign-receipt-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="campaign-receipt-sheet">
+                            <h2 className="campaign-receipt-title">
+                                Thank you for your <span className="campaign-receipt-amount">{formatMoney(receiptData.amount)}</span> donation to{' '}
+                                <span className="campaign-receipt-campaign-link">{receiptData.campaignTitle}</span>
+                            </h2>
+
+                            <h3 className="campaign-receipt-subtitle">Here is your donation receipt:</h3>
+
+                            <p className="campaign-receipt-row"><strong>Donor name:</strong> {receiptData.donorName || '—'}</p>
+                            <p className="campaign-receipt-row"><strong>Donation date:</strong> {formatReceiptDate(receiptData.donationDate)}</p>
+                            <p className="campaign-receipt-row"><strong>Donation to:</strong> {receiptData.campaignTitle}</p>
+
+                            <p className="campaign-receipt-row campaign-receipt-row-gap">
+                                <strong>Donation will be received by:</strong> {receiptData.receivedBy}
+                            </p>
+                            <p className="campaign-receipt-row"><strong>Donation amount:</strong> {formatMoney(receiptData.amount)}</p>
+                            <p className="campaign-receipt-row campaign-receipt-total"><strong>Total amount:</strong> {formatMoney(receiptData.totalAmount)}</p>
+                        </div>
+                        <div className="campaign-receipt-actions">
+                            <button
+                                type="button"
+                                className="campaign-receipt-close"
+                                onClick={() => setShowReceipt(false)}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -38,20 +38,26 @@ function EventRegistrations() {
     };
 
     const getInitials = (first, last) => `${(first || '').charAt(0)}${(last || '').charAt(0)}`.toUpperCase() || '?';
+    const normalizeStatus = (status) => {
+        if (status === 'paid') return 'success';
+        if (status === 'cancelled') return 'failed';
+        return status || 'pending';
+    };
 
     // Unique event names for filter dropdown
     const eventNames = [...new Set(registrations.map((r) => r.event_name).filter(Boolean))];
 
     const filtered = registrations.filter((r) => {
         if (filterEvent  && r.event_name !== filterEvent)    return false;
-        if (filterStatus && r.payment_status !== filterStatus) return false;
+        if (filterStatus && normalizeStatus(r.payment_status) !== filterStatus) return false;
         return true;
     });
 
     // Metrics
     const total     = registrations.length;
-    const paid      = registrations.filter((r) => r.payment_status === 'paid').length;
-    const pending   = registrations.filter((r) => r.payment_status === 'pending').length;
+    const success   = registrations.filter((r) => normalizeStatus(r.payment_status) === 'success').length;
+    const pending   = registrations.filter((r) => normalizeStatus(r.payment_status) === 'pending').length;
+    const failed    = registrations.filter((r) => normalizeStatus(r.payment_status) === 'failed').length;
     const totalGuests = registrations.reduce((sum, r) => sum + (r.guest_count || 0), 0);
 
     return (
@@ -68,12 +74,16 @@ function EventRegistrations() {
                         <div className="erg-metric-value">{total}</div>
                     </div>
                     <div className="erg-metric">
-                        <div className="erg-metric-label">Paid</div>
-                        <div className="erg-metric-value erg-green">{paid}</div>
+                        <div className="erg-metric-label">Successful Payments</div>
+                        <div className="erg-metric-value erg-green">{success}</div>
                     </div>
                     <div className="erg-metric">
                         <div className="erg-metric-label">Pending Payment</div>
                         <div className="erg-metric-value erg-amber">{pending}</div>
+                    </div>
+                    <div className="erg-metric">
+                        <div className="erg-metric-label">Failed Payments</div>
+                        <div className="erg-metric-value erg-red">{failed}</div>
                     </div>
                     <div className="erg-metric">
                         <div className="erg-metric-label">Total Guests</div>
@@ -93,8 +103,8 @@ function EventRegistrations() {
                             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="erg-select">
                                 <option value="">All statuses</option>
                                 <option value="pending">Pending</option>
-                                <option value="paid">Paid</option>
-                                <option value="cancelled">Cancelled</option>
+                                <option value="success">Success</option>
+                                <option value="failed">Failed</option>
                             </select>
                         </div>
                     </div>
@@ -121,7 +131,9 @@ function EventRegistrations() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filtered.map((r) => (
+                                    {filtered.map((r) => {
+                                        const status = normalizeStatus(r.payment_status);
+                                        return (
                                         <tr key={r.id}>
                                             <td>
                                                 <div className="erg-name-cell">
@@ -145,33 +157,33 @@ function EventRegistrations() {
                                                 ₱{Number(r.total_amount || 0).toLocaleString()}
                                             </td>
                                             <td>
-                                                <span className={`erg-badge erg-badge-${r.payment_status}`}>
-                                                    {r.payment_status}
+                                                <span className={`erg-badge erg-badge-${status}`}>
+                                                    {status}
                                                 </span>
                                             </td>
                                             <td className="erg-muted">{formatDate(r.registered_at)}</td>
                                             <td>
-                                                {r.payment_status === 'pending' && (
+                                                {status === 'pending' && (
                                                     <button
                                                         type="button"
                                                         className="erg-action-btn"
-                                                        onClick={() => handleStatusChange(r.id, 'paid')}
+                                                        onClick={() => handleStatusChange(r.id, 'success')}
                                                         disabled={updatingId === r.id}
                                                     >
-                                                        {updatingId === r.id ? '...' : 'Mark paid'}
+                                                        {updatingId === r.id ? '...' : 'Mark success'}
                                                     </button>
                                                 )}
-                                                {r.payment_status === 'paid' && (
+                                                {status === 'success' && (
                                                     <button
                                                         type="button"
                                                         className="erg-action-btn"
-                                                        onClick={() => handleStatusChange(r.id, 'cancelled')}
+                                                        onClick={() => handleStatusChange(r.id, 'failed')}
                                                         disabled={updatingId === r.id}
                                                     >
-                                                        {updatingId === r.id ? '...' : 'Cancel'}
+                                                        {updatingId === r.id ? '...' : 'Mark failed'}
                                                     </button>
                                                 )}
-                                                {r.payment_status === 'cancelled' && (
+                                                {status === 'failed' && (
                                                     <button
                                                         type="button"
                                                         className="erg-action-btn"
@@ -183,7 +195,8 @@ function EventRegistrations() {
                                                 )}
                                             </td>
                                         </tr>
-                                    ))}
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>

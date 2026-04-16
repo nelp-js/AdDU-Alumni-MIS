@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, F
 from django.core.paginator import Paginator
+from urllib.parse import quote
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -11,7 +12,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 import random
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMultiAlternatives
 from .models import (
     User, Event, EventRegistration, Job, Internship,
     Campaign, CampaignDonation,
@@ -312,8 +313,59 @@ def register_for_event(request, event_id):
         return Response({'detail': 'You are already registered for this event.'}, status=400)
     serializer = EventRegistrationSerializer(data={**request.data, 'event': event.id})
     if serializer.is_valid():
-        serializer.save(user=request.user, event=event, payment_status='pending')
-        return Response(serializer.data, status=201)
+        payment_method = (serializer.validated_data.get('payment_method') or '').strip().lower()
+        if payment_method == 'gcash':
+            payment_status = 'success'
+        elif payment_method == 'maya':
+            payment_status = 'pending'
+        else:
+            payment_status = 'failed'
+
+        registration = serializer.save(user=request.user, event=event, payment_status=payment_status)
+
+        if payment_status == 'success':
+            qr_payload = (
+                f"event={event.id}|registration={registration.id}|user={request.user.id}|"
+                f"name={registration.first_name} {registration.last_name}|status=success"
+            )
+            qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=260x260&data={quote(qr_payload)}"
+            subject = f"Event Registration Successful - {event.event_name}"
+            text_body = (
+                f"Hi {registration.first_name},\n\n"
+                f"You are successfully registered for {event.event_name}.\n"
+                f"Date: {event.start_date}\n"
+                f"Venue: {event.venue}\n\n"
+                f"Your QR code for entry:\n{qr_url}\n\n"
+                "Please present this QR code at the event registration desk.\n\n"
+                "Thank you."
+            )
+            html_body = f"""
+                <p>Hi {registration.first_name},</p>
+                <p>You are <strong>successfully registered</strong> for <strong>{event.event_name}</strong>.</p>
+                <p><strong>Date:</strong> {event.start_date}<br><strong>Venue:</strong> {event.venue}</p>
+                <p>Your QR code for entry:</p>
+                <p><img src="{qr_url}" alt="Event QR Code" width="220" height="220" /></p>
+                <p>Please present this QR code at the event registration desk.</p>
+                <p>Thank you.</p>
+            """
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=text_body,
+                from_email=settings.EMAIL_HOST_USER,
+                to=[request.user.email],
+            )
+            email.attach_alternative(html_body, "text/html")
+            email.send(fail_silently=True)
+
+        detail_map = {
+            'success': 'Successfully registered. A QR code has been sent to your email.',
+            'pending': 'Registration submitted. Payment is pending.',
+            'failed': 'Registration submitted but payment failed.',
+        }
+        return Response({
+            **EventRegistrationSerializer(registration).data,
+            'detail': detail_map.get(payment_status, 'Registration submitted.'),
+        }, status=201)
     return Response(serializer.errors, status=400)
 
 @api_view(['GET'])
@@ -332,7 +384,7 @@ def all_registrations(request):
 def update_registration_status(request, registration_id):
     registration = get_object_or_404(EventRegistration, pk=registration_id)
     new_status = request.data.get('payment_status')
-    if new_status not in ['pending', 'paid', 'cancelled']:
+    if new_status not in ['pending', 'success', 'failed']:
         return Response({'detail': 'Invalid status.'}, status=400)
     registration.payment_status = new_status; registration.save()
     return Response(EventRegistrationSerializer(registration).data)

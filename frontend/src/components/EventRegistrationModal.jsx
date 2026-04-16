@@ -12,7 +12,7 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
     const [paymentMethod, setPaymentMethod] = useState('gcash');
     const [isProcessing, setIsProcessing]   = useState(false);
     const [error, setError]                 = useState('');
-    const [success, setSuccess]             = useState(false);
+    const [registrationStatus, setRegistrationStatus] = useState('');
 
     const totalPrice = (1 + guestCount) * pricePerGuest;
 
@@ -48,8 +48,9 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
     const handlePayment = async () => {
         setIsProcessing(true);
         setError('');
+        setRegistrationStatus('');
         try {
-            await api.post(`/api/events/${event.id}/register/`, {
+            const res = await api.post(`/api/events/${event.id}/register/`, {
                 first_name:     firstName,
                 last_name:      lastName,
                 guest_count:    guestCount,
@@ -57,7 +58,11 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
                 payment_method: paymentMethod,
                 total_amount:   totalPrice,
             });
-            setSuccess(true);
+            const status = res?.data?.payment_status || '';
+            setRegistrationStatus(status);
+            if (status !== 'success') {
+                setError(res?.data?.detail || 'Registration submitted.');
+            }
         } catch (err) {
             const msg = err.response?.data?.detail || 'Registration failed. Please try again.';
             setError(msg);
@@ -72,18 +77,52 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
         { value: 'card',  label: 'Credit/Debit Card', Icon: CreditCard, description: 'Pay via Visa, Mastercard, or AMEX' },
     ];
 
-    // ── Success screen ────────────────────────────────────────────────────────
-    if (success) {
+    // ── Result screens (success / pending / failed) ─────────────────────────
+    if (registrationStatus) {
+        const resultConfig = {
+            success: {
+                icon: '✓',
+                title: 'Successfully Registered!',
+                message: (
+                    <>
+                        You are confirmed for <strong>{event.event_name}</strong>.
+                        {' '}Your QR code has been sent to your email.
+                    </>
+                ),
+                toneClass: 'erm-result-success',
+            },
+            pending: {
+                icon: '⏳',
+                title: 'Registration Submitted',
+                message: (
+                    <>
+                        Your registration for <strong>{event.event_name}</strong> is recorded.
+                        {' '}Payment is currently pending.
+                    </>
+                ),
+                toneClass: 'erm-result-pending',
+            },
+            failed: {
+                icon: '!',
+                title: 'Registration Submitted',
+                message: (
+                    <>
+                        Your registration for <strong>{event.event_name}</strong> is recorded,
+                        but the payment status is <strong>failed</strong>.
+                    </>
+                ),
+                toneClass: 'erm-result-failed',
+            },
+        };
+        const config = resultConfig[registrationStatus] || resultConfig.pending;
+
         return (
             <div className="erm-overlay" onClick={onClose}>
                 <div className="erm-modal" onClick={(e) => e.stopPropagation()}>
-                    <div className="erm-success">
-                        <div className="erm-success-icon">✓</div>
-                        <h2 className="erm-success-title">Registration Submitted!</h2>
-                        <p className="erm-success-msg">
-                            Your registration for <strong>{event.event_name}</strong> has been received.
-                            Payment is pending — please settle your payment on the day of the event.
-                        </p>
+                    <div className={`erm-success ${config.toneClass}`}>
+                        <div className="erm-success-icon">{config.icon}</div>
+                        <h2 className="erm-success-title">{config.title}</h2>
+                        <p className="erm-success-msg">{config.message}</p>
                         <button type="button" className="erm-btn-pay" onClick={onClose}>Done</button>
                     </div>
                 </div>

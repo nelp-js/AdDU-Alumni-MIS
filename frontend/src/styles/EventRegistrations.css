@@ -37,7 +37,7 @@
 /* ── Metrics ── */
 .erg-metrics {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 12px;
     margin-bottom: 24px;
 }
@@ -63,6 +63,7 @@
 
 .erg-green { color: #065f46; }
 .erg-amber { color: #92400e; }
+.erg-red { color: #991b1b; }
 
 /* ── Card ── */
 .erg-card {
@@ -214,8 +215,8 @@
 }
 
 .erg-badge-pending  { background: #fef3c7; color: #92400e; }
-.erg-badge-paid     { background: #d1fae5; color: #065f46; }
-.erg-badge-cancelled{ background: #fee2e2; color: #991b1b; }
+.erg-badge-success  { background: #d1fae5; color: #065f46; }
+.erg-badge-failed   { background: #fee2e2; color: #991b1b; }
 
 /* ── Action button ── */
 .erg-action-btn {
