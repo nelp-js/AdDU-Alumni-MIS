@@ -16,6 +16,8 @@ import VolunteerManagement from "./pages/VolunteerManagement"
 import CampaignManagement from "./pages/CampaignManagement"
 import JobsInternships from "./pages/JobsInternships"
 import JobOpportunityView from "./pages/JobOpportunityView"
+import Volunteer from "./pages/Volunteer"
+import VolunteerView from "./pages/VolunteerView"
 import Campaigns from "./pages/Campaigns"
 import CampaignView from "./pages/CampaignView"
 import CampaignDonate from "./pages/CampaignDonate"
@@ -56,7 +58,9 @@ function App() {
         <Route path="/stories/:id" element={<ArticleView />} />
         <Route path="/events" element={<Events />} />
         <Route path="/jobs" element={<JobsInternships />} />
+        <Route path="/volunteer" element={<Volunteer />} />
         <Route path="/jobs/:kind/:id" element={<JobOpportunityView />} />
+        <Route path="/volunteer/:id" element={<VolunteerView />} />
         <Route path="/campaigns" element={<Campaigns />} />
         <Route path="/campaigns/:id" element={<CampaignView />} />
         <Route path="/campaigns/:id/donate" element={<CampaignDonate />} />

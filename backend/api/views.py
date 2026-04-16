@@ -15,13 +15,13 @@ import random
 from django.core.mail import send_mail, EmailMultiAlternatives
 from .models import (
     User, Event, EventRegistration, Job, Internship,
-    VolunteerOpportunity, Campaign, CampaignDonation,
+    VolunteerOpportunity, VolunteerRegistration, Campaign, CampaignDonation,
     Article, ActivityLog, PasswordReset, UserProfile, Experience, Education
 )
 from .serializers import (
     UserSerializer, CurrentUserSerializer, UserListSerializer, UserUpdateSerializer,
     EventSerializer, EventUpdateSerializer, EventRegistrationSerializer,
-    JobSerializer, InternshipSerializer, VolunteerOpportunitySerializer,
+    JobSerializer, InternshipSerializer, VolunteerOpportunitySerializer, VolunteerRegistrationSerializer,
     CampaignSerializer, CampaignDonationSerializer,
     CustomTokenObtainPairSerializer, ActivityLogSerializer,
     ArticleSerializer, ArticleUpdateSerializer,
@@ -643,12 +643,36 @@ def volunteer_list_create(request):
 def volunteer_admin_list(request):
     return Response(VolunteerOpportunitySerializer(VolunteerOpportunity.objects.all(), many=True).data)
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def volunteer_public_detail(request, volunteer_id):
+    volunteer = get_object_or_404(
+        VolunteerOpportunity,
+        pk=volunteer_id,
+        status='approved',
+        is_hidden=False,
+    )
+    return Response(VolunteerOpportunitySerializer(volunteer).data)
+
 @api_view(['GET', 'PATCH', 'DELETE'])
-@permission_classes([IsAuthenticated, IsAdminUser])
+@permission_classes([AllowAny])
 def volunteer_detail(request, volunteer_id):
-    volunteer = get_object_or_404(VolunteerOpportunity, pk=volunteer_id)
     if request.method == 'GET':
+        if request.user.is_authenticated and request.user.is_staff:
+            volunteer = get_object_or_404(VolunteerOpportunity, pk=volunteer_id)
+        else:
+            volunteer = get_object_or_404(
+                VolunteerOpportunity,
+                pk=volunteer_id,
+                status='approved',
+                is_hidden=False,
+            )
         return Response(VolunteerOpportunitySerializer(volunteer).data)
+
+    if not (request.user.is_authenticated and request.user.is_staff):
+        return Response({'detail': 'Admin access required.'}, status=403)
+
+    volunteer = get_object_or_404(VolunteerOpportunity, pk=volunteer_id)
     if request.method == 'PATCH':
         serializer = VolunteerOpportunitySerializer(volunteer, data=request.data, partial=True)
         if serializer.is_valid():
@@ -688,6 +712,30 @@ def volunteer_toggle_hide(request, volunteer_id):
     volunteer.is_hidden = not volunteer.is_hidden
     volunteer.save()
     return Response({'detail': 'Updated.', 'is_hidden': volunteer.is_hidden})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def volunteer_register(request, volunteer_id):
+    volunteer = get_object_or_404(
+        VolunteerOpportunity,
+        pk=volunteer_id,
+        status='approved',
+        is_hidden=False,
+    )
+    if VolunteerRegistration.objects.filter(volunteer=volunteer, user=request.user).exists():
+        return Response({'detail': 'You are already registered for this volunteer opportunity.'}, status=400)
+
+    registration = VolunteerRegistration.objects.create(volunteer=volunteer, user=request.user)
+    ActivityLog.objects.create(
+        action=f"Volunteer registration: {volunteer.title}",
+        module="Volunteer",
+        user=request.user,
+        status="Completed",
+    )
+    return Response({
+        **VolunteerRegistrationSerializer(registration).data,
+        'detail': 'Successfully registered.',
+    }, status=201)
 
 
 # --- CAMPAIGN VIEWS ---

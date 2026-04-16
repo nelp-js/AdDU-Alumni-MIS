@@ -3,6 +3,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import (
     User, Event, EventRegistration, Job, Internship,
+    VolunteerRegistration,
     VolunteerOpportunity, Campaign, CampaignDonation,
     Article, UserProfile, Experience, Education, ActivityLog
 )
@@ -420,6 +421,15 @@ class VolunteerOpportunitySerializer(serializers.ModelSerializer):
         if start_date and end_date and end_date < start_date:
             raise serializers.ValidationError({'end_date': 'End date cannot be earlier than start date.'})
         return attrs
+
+
+class VolunteerRegistrationSerializer(serializers.ModelSerializer):
+    volunteer_title = serializers.CharField(source='volunteer.title', read_only=True)
+
+    class Meta:
+        model = VolunteerRegistration
+        fields = ['id', 'volunteer', 'volunteer_title', 'user', 'registered_at']
+        read_only_fields = ['id', 'volunteer_title', 'user', 'registered_at']
 
 
 class CampaignDonationSerializer(serializers.ModelSerializer):

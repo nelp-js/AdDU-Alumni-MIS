@@ -116,11 +116,11 @@
 
 .vm-actions {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     gap: 8px;
-    align-items: center;
-    white-space: nowrap;
-    flex-wrap: wrap;
+    align-items: flex-start;
+    white-space: normal;
+    flex-wrap: nowrap;
 }
 
 .vm-btn-group {

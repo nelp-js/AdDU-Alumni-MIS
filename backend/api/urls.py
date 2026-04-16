@@ -52,7 +52,9 @@ urlpatterns = [
     # --- VOLUNTEER VIEWS ---
     path("volunteers/",                                  views.volunteer_list_create,   name="volunteer-list"),
     path("volunteers/admin/",                            views.volunteer_admin_list,    name="volunteer-admin-list"),
+    path("volunteers/public/<int:volunteer_id>/",        views.volunteer_public_detail, name="volunteer-public-detail"),
     path("volunteers/<int:volunteer_id>/",               views.volunteer_detail,        name="volunteer-detail"),
+    path("volunteers/<int:volunteer_id>/register/",      views.volunteer_register,      name="volunteer-register"),
     path("volunteers/<int:volunteer_id>/approve/",       views.volunteer_approve,       name="volunteer-approve"),
     path("volunteers/<int:volunteer_id>/deny/",          views.volunteer_deny,          name="volunteer-deny"),
     path("volunteers/<int:volunteer_id>/toggle-hide/",   views.volunteer_toggle_hide,   name="volunteer-toggle-hide"),

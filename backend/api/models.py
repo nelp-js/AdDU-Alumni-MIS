@@ -263,6 +263,19 @@ class VolunteerOpportunity(models.Model):
         return self.title
 
 
+class VolunteerRegistration(models.Model):
+    volunteer = models.ForeignKey(VolunteerOpportunity, on_delete=models.CASCADE, related_name='registrations')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='volunteer_registrations')
+    registered_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-registered_at']
+        unique_together = ['volunteer', 'user']
+
+    def __str__(self):
+        return f"{self.user.username} — {self.volunteer.title}"
+
+
 class Campaign(models.Model):
     CATEGORY_CHOICES = [
         ('Student Aid',    'Student Aid'),
