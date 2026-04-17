@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ACCESS_TOKEN, REFRESH_TOKEN, USER_IS_ADMIN } from '../constants';
+import { ACCESS_TOKEN, REFRESH_TOKEN, USER_IS_ADMIN, USER_PROFILE_CACHE } from '../constants';
 
 const TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes of inactivity
 const LAST_ACTIVITY_KEY = 'last_activity_at';
@@ -18,6 +18,7 @@ function AutoLogout() {
             localStorage.removeItem(ACCESS_TOKEN);
             localStorage.removeItem(REFRESH_TOKEN);
             localStorage.removeItem(USER_IS_ADMIN);
+            localStorage.removeItem(USER_PROFILE_CACHE);
             localStorage.removeItem(LAST_ACTIVITY_KEY);
             navigate('/login?inactivity=1', { replace: true });
             window.location.reload();

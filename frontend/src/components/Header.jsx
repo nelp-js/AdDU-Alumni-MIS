@@ -1,14 +1,36 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import '../styles/Layout.css';
-import { ACCESS_TOKEN, USER_IS_ADMIN } from '../constants';
+import { ACCESS_TOKEN, USER_IS_ADMIN, USER_PROFILE_CACHE } from '../constants';
 import api from '../api';
 import { FiInfo, FiLogOut, FiChevronDown, FiUser } from 'react-icons/fi';
-import { useNotifications } from '../Hooks/NotificationContext'; 
+import { useNotifications } from '../Hooks/NotificationContext';
+
+function readCachedProfile() {
+    try {
+        const raw = localStorage.getItem(USER_PROFILE_CACHE);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') return null;
+        return parsed;
+    } catch {
+        return null;
+    }
+}
+
+function initialAuthFromStorage() {
+    const token = localStorage.getItem(ACCESS_TOKEN);
+    if (!token) {
+        return { user: null, isAdmin: false };
+    }
+    return {
+        user: readCachedProfile(),
+        isAdmin: localStorage.getItem(USER_IS_ADMIN) === 'true',
+    };
+}
 
 function Header() {
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [user, setUser] = useState(null);
+    const [{ user, isAdmin }, setAuth] = useState(initialAuthFromStorage);
     const [showDropdown, setShowDropdown] = useState(false);
     const [showMoreDropdown, setShowMoreDropdown] = useState(false);
     const moreDropdownRef = useRef(null);
@@ -31,22 +53,33 @@ function Header() {
     useEffect(() => {
         const token = localStorage.getItem(ACCESS_TOKEN);
         if (!token) {
-            setIsAdmin(false);
-            setUser(null);
+            setAuth({ user: null, isAdmin: false });
             return;
         }
 
         api.get('/api/user/me/')
             .then((res) => {
                 const userData = res.data;
-                setUser(userData);
                 const adminStatus = Boolean(userData?.is_superuser);
-                setIsAdmin(adminStatus);
                 localStorage.setItem(USER_IS_ADMIN, adminStatus ? 'true' : 'false');
+                try {
+                    localStorage.setItem(
+                        USER_PROFILE_CACHE,
+                        JSON.stringify({
+                            first_name: userData.first_name,
+                            last_name: userData.last_name,
+                            username: userData.username,
+                            email: userData.email,
+                        })
+                    );
+                } catch {
+                    /* ignore quota / private mode */
+                }
+                setAuth({ user: userData, isAdmin: adminStatus });
             })
             .catch(() => {
-                setIsAdmin(false);
-                setUser(null);
+                localStorage.removeItem(USER_PROFILE_CACHE);
+                setAuth({ user: null, isAdmin: false });
             });
     }, []);
 
@@ -61,12 +94,16 @@ function Header() {
         navigate('/profile');
     };
 
+    const hasToken = !!localStorage.getItem(ACCESS_TOKEN);
+    const sessionPending = hasToken && !user;
+
     const handleProfileClick = () => {
-        if (!user) {
+        if (!localStorage.getItem(ACCESS_TOKEN)) {
             navigate('/login');
-        } else {
-            setShowDropdown(!showDropdown);
+            return;
         }
+        if (!user) return;
+        setShowDropdown(!showDropdown);
     };
 
     const getInitials = () => {
@@ -127,10 +164,19 @@ function Header() {
                     )}
 
                     <div className="profile-container">
-                        <button className={`profile-btn header-nav-link ${user ? 'profile-btn-avatar' : ''}`} onClick={handleProfileClick}>
-                            {user ? (
+                        <button
+                            type="button"
+                            className={`profile-btn header-nav-link ${hasToken ? 'profile-btn-avatar' : ''}`}
+                            onClick={handleProfileClick}
+                            aria-busy={sessionPending || undefined}
+                        >
+                            {hasToken ? (
                                 <>
-                                    <span className="profile-initials">{getInitials()}</span>
+                                    <span
+                                        className={`profile-initials${sessionPending ? ' profile-initials-pending' : ''}`}
+                                    >
+                                        {sessionPending ? '…' : getInitials()}
+                                    </span>
                                     <FiChevronDown className="profile-chevron" />
                                 </>
                             ) : (

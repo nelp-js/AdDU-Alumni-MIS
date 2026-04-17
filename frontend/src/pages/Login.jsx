@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import '../styles/Login.css';
-import { ACCESS_TOKEN, REFRESH_TOKEN, USER_IS_ADMIN } from '../constants';
+import { ACCESS_TOKEN, REFRESH_TOKEN, USER_IS_ADMIN, USER_PROFILE_CACHE } from '../constants';
 import { jwtDecode } from 'jwt-decode';
 import api from '../api';
 import Header from '../components/Header';
@@ -99,7 +99,27 @@ function Login() {
                     }
                 }
 
-                navigate(from, { replace: true }); 
+                api.get('/api/user/me/')
+                    .then((me) => {
+                        const u = me.data;
+                        localStorage.setItem(USER_IS_ADMIN, u?.is_superuser ? 'true' : 'false');
+                        try {
+                            localStorage.setItem(
+                                USER_PROFILE_CACHE,
+                                JSON.stringify({
+                                    first_name: u.first_name,
+                                    last_name: u.last_name,
+                                    username: u.username,
+                                    email: u.email,
+                                })
+                            );
+                        } catch {
+                            /* ignore */
+                        }
+                    })
+                    .catch(() => {});
+
+                navigate(from, { replace: true });
 
             } else {
                 if (response.status === 502 || response.status === 503) {

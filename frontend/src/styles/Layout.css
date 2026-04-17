@@ -305,6 +305,13 @@
     border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+.profile-initials-pending {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.02em;
+}
+
 /* Dropdown Card */
 .profile-dropdown {
     position: absolute;
