@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -37,7 +37,6 @@ function formatReceiptDate(isoDate) {
 
 function CampaignDonate() {
     useTitle('Donate to Campaign');
-    const navigate = useNavigate();
     const { id } = useParams();
     const [campaigns, setCampaigns] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -109,7 +108,7 @@ function CampaignDonate() {
 
                         <div className="campaign-donate-modal campaign-donate-modal-page">
                             <label className="campaign-donate-label" htmlFor="campaign-donate-amount">
-                                Enter your donation
+                                Enter your contribution
                             </label>
                             <div className="campaign-donate-input-wrap">
                                 <span className="campaign-donate-currency">₱</span>
@@ -210,7 +209,7 @@ function CampaignDonate() {
                             )}
 
                             <div className="campaign-donate-summary">
-                                <p><span>Your donation</span><strong>{formatMoney(safeDonation)}</strong></p>
+                                <p><span>Your contribution</span><strong>{formatMoney(safeDonation)}</strong></p>
                                 <p className="total"><span>Total due today</span><strong>{formatMoney(safeDonation)}</strong></p>
                             </div>
 
@@ -269,7 +268,7 @@ function CampaignDonate() {
                                     }
                                 }}
                             >
-                                {submitting ? 'Processing...' : 'Donate'}
+                                {submitting ? 'Processing...' : 'Continue'}
                             </button>
 
                             {donationFeedback && (
@@ -277,12 +276,6 @@ function CampaignDonate() {
                                     {donationFeedback}
                                 </p>
                             )}
-
-                            <div className="campaign-donate-actions">
-                                <button type="button" className="campaign-donate-close" onClick={() => navigate(`/campaigns/${id}`)}>
-                                    Cancel
-                                </button>
-                            </div>
                         </div>
                     </div>
                 )}

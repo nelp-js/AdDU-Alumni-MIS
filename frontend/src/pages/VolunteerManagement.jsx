@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -58,6 +58,7 @@ function SplitDropdown({ item, onEdit, onToggleHide, onDelete, togglingId, delet
 
 function VolunteerManagement() {
     useTitle('Volunteer Management');
+    const navigate = useNavigate();
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -66,10 +67,6 @@ function VolunteerManagement() {
     const [deletingId, setDeletingId] = useState(null);
     const [togglingId, setTogglingId] = useState(null);
     const [detailsItem, setDetailsItem] = useState(null);
-    const [editingItem, setEditingItem] = useState(null);
-    const [editForm, setEditForm] = useState({});
-    const [savingEdit, setSavingEdit] = useState(false);
-    const [editError, setEditError] = useState('');
     const [showDenyInput, setShowDenyInput] = useState(null);
     const [denyRemarks, setDenyRemarks] = useState('');
 
@@ -99,22 +96,6 @@ function VolunteerManagement() {
         if (item.status === 'approved') return item.is_hidden ? 'Hidden' : 'Approved';
         if (item.status === 'denied') return 'Denied';
         return 'Pending';
-    };
-
-    const openEdit = (item) => {
-        setEditingItem(item);
-        setEditError('');
-        setEditForm({
-            title: item.title || '',
-            category: item.category || '',
-            summary: item.summary || '',
-            description: item.description || '',
-            start_date: item.start_date ? item.start_date.slice(0, 10) : '',
-            end_date: item.end_date ? item.end_date.slice(0, 10) : '',
-            location: item.location || '',
-            organizer: item.organizer || '',
-            cover_photo: null,
-        });
     };
 
     const handleApprove = (id) => {
@@ -158,39 +139,6 @@ function VolunteerManagement() {
             })
             .catch(() => alert('Failed to delete volunteer opportunity.'))
             .finally(() => setDeletingId(null));
-    };
-
-    const handleEditSave = () => {
-        if (!editingItem) return;
-        setSavingEdit(true);
-        setEditError('');
-        const payload = new FormData();
-        payload.append('title', editForm.title || '');
-        payload.append('category', editForm.category || '');
-        payload.append('summary', editForm.summary || '');
-        payload.append('description', editForm.description || '');
-        payload.append('start_date', editForm.start_date || '');
-        payload.append('end_date', editForm.end_date || '');
-        payload.append('location', editForm.location || '');
-        payload.append('organizer', editForm.organizer || '');
-        if (editForm.cover_photo) payload.append('cover_photo', editForm.cover_photo);
-
-        api.patch(`/api/volunteers/${editingItem.id}/`, payload)
-            .then((res) => {
-                setItems((prev) => prev.map((it) => (it.id === editingItem.id ? { ...it, ...res.data } : it)));
-                if (detailsItem?.id === editingItem.id) setDetailsItem((prev) => ({ ...prev, ...res.data }));
-                setEditingItem(null);
-            })
-            .catch((err) => {
-                const d = err.response?.data;
-                if (d?.detail) setEditError(d.detail);
-                else if (d && typeof d === 'object') {
-                    setEditError(Object.entries(d).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join(' '));
-                } else {
-                    setEditError('Failed to save changes.');
-                }
-            })
-            .finally(() => setSavingEdit(false));
     };
 
     return (
@@ -275,7 +223,7 @@ function VolunteerManagement() {
                                                             {item.status === 'approved' && (
                                                                 <SplitDropdown
                                                                     item={item}
-                                                                    onEdit={() => openEdit(item)}
+                                                                onEdit={() => navigate(`/dashboard/volunteer/edit/${item.id}`)}
                                                                     onToggleHide={() => handleToggleHide(item.id)}
                                                                     onDelete={() => handleDelete(item.id)}
                                                                     togglingId={togglingId}
@@ -309,38 +257,42 @@ function VolunteerManagement() {
                         <div className="vm-modal" onClick={(e) => e.stopPropagation()}>
                             <h2 className="vm-modal-title">Volunteer Opportunity Details</h2>
                             <div className="vm-details-content">
+                                <div className="vm-details-grid">
+                                    {[
+                                        { label: 'Title', value: detailsItem.title },
+                                        { label: 'Category', value: detailsItem.category },
+                                        { label: 'Location', value: detailsItem.location },
+                                        { label: 'Organizer', value: detailsItem.organizer },
+                                        { label: 'Start Date', value: formatDate(detailsItem.start_date) },
+                                        { label: 'End Date', value: formatDate(detailsItem.end_date) },
+                                        { label: 'Summary', value: detailsItem.summary },
+                                        { label: 'Status', value: getStatusLabel(detailsItem), isStatus: true },
+                                        { label: 'Created', value: formatDate(detailsItem.created_at) },
+                                        { label: 'Updated', value: formatDate(detailsItem.updated_at) },
+                                    ].map((item) => (
+                                        <div key={item.label} className="vm-details-item">
+                                            <span className="vm-details-label">{item.label}</span>
+                                            {item.isStatus ? (
+                                                <span className={`vm-status ${getStatusClass(detailsItem)}`}>
+                                                    {item.value}
+                                                </span>
+                                            ) : (
+                                                <span className="vm-details-value">{item.value || '—'}</span>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+
                                 {detailsItem.cover_photo && (
-                                    <div className="vm-details-row">
+                                    <div className="vm-details-row vm-details-block">
                                         <span className="vm-details-label">Cover Photo</span>
                                         <img src={detailsItem.cover_photo} alt="Cover" style={{ maxHeight: '140px', borderRadius: '8px', objectFit: 'cover' }} />
                                     </div>
                                 )}
-                                {[
-                                    ['Title', detailsItem.title],
-                                    ['Category', detailsItem.category],
-                                    ['Location', detailsItem.location],
-                                    ['Organizer', detailsItem.organizer],
-                                    ['Start Date', formatDate(detailsItem.start_date)],
-                                    ['End Date', formatDate(detailsItem.end_date)],
-                                    ['Created', formatDate(detailsItem.created_at)],
-                                    ['Updated', formatDate(detailsItem.updated_at)],
-                                ].map(([label, value]) => (
-                                    <div key={label} className="vm-details-row">
-                                        <span className="vm-details-label">{label}</span>
-                                        <span className="vm-details-value">{value || '—'}</span>
-                                    </div>
-                                ))}
-                                <div className="vm-details-row vm-details-block">
-                                    <span className="vm-details-label">Summary</span>
-                                    <span className="vm-details-value">{detailsItem.summary || '—'}</span>
-                                </div>
+
                                 <div className="vm-details-row vm-details-block">
                                     <span className="vm-details-label">Description</span>
                                     <span className="vm-details-value">{detailsItem.description || '—'}</span>
-                                </div>
-                                <div className="vm-details-row">
-                                    <span className="vm-details-label">Status</span>
-                                    <span className={`vm-status ${getStatusClass(detailsItem)}`}>{getStatusLabel(detailsItem)}</span>
                                 </div>
                                 {detailsItem.remarks && (
                                     <div className="vm-details-row vm-details-block">
@@ -350,13 +302,22 @@ function VolunteerManagement() {
                                 )}
                             </div>
                             <div className="vm-modal-actions">
-                                <div />
-                                <div style={{ display: 'flex', gap: 8 }}>
-                                    {(detailsItem.status === 'pending') && (
-                                        <button type="button" className="vm-modal-details-neutral-btn" onClick={() => { setDetailsItem(null); openEdit(detailsItem); }}>
+                                <div className="vm-modal-actions-left">
+                                    {detailsItem.status === 'pending' && (
+                                        <button
+                                            type="button"
+                                            className="vm-modal-details-neutral-btn"
+                                            onClick={() => {
+                                                const id = detailsItem.id;
+                                                setDetailsItem(null);
+                                                navigate(`/dashboard/volunteer/edit/${id}`);
+                                            }}
+                                        >
                                             Edit
                                         </button>
                                     )}
+                                </div>
+                                <div className="vm-modal-actions-right">
                                     <button type="button" className="vm-modal-details-neutral-btn vm-modal-details-close-deny" onClick={() => setDetailsItem(null)}>
                                         Close
                                     </button>
@@ -366,40 +327,6 @@ function VolunteerManagement() {
                     </div>
                 )}
 
-                {editingItem && (
-                    <div className="vm-modal-overlay" onClick={() => setEditingItem(null)}>
-                        <div className="vm-modal" onClick={(e) => e.stopPropagation()}>
-                            <h2 className="vm-modal-title">Edit Volunteer Opportunity</h2>
-                            {editError && <div className="vm-state vm-error">{editError}</div>}
-                            <div className="vm-details-content" style={{ display: 'grid', gap: '10px' }}>
-                                <input className="vm-deny-input" maxLength={60} placeholder="Title" value={editForm.title || ''} onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))} />
-                                <select className="vm-deny-input" value={editForm.category || ''} onChange={(e) => setEditForm((f) => ({ ...f, category: e.target.value }))}>
-                                    <option value="">Select category</option>
-                                    <option value="Alumni teaching">Alumni teaching</option>
-                                    <option value="Mentorship">Mentorship</option>
-                                    <option value="Projects">Projects</option>
-                                    <option value="Community Engagement">Community Engagement</option>
-                                    <option value="Volunteer Activities">Volunteer Activities</option>
-                                </select>
-                                <textarea className="vm-deny-input" rows={2} maxLength={240} placeholder="Summary" value={editForm.summary || ''} onChange={(e) => setEditForm((f) => ({ ...f, summary: e.target.value }))} />
-                                <textarea className="vm-deny-input" rows={4} placeholder="Description" value={editForm.description || ''} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} />
-                                <div className="vm-deny-inline">
-                                    <input className="vm-deny-input" type="date" value={editForm.start_date || ''} onChange={(e) => setEditForm((f) => ({ ...f, start_date: e.target.value }))} />
-                                    <input className="vm-deny-input" type="date" value={editForm.end_date || ''} onChange={(e) => setEditForm((f) => ({ ...f, end_date: e.target.value }))} />
-                                </div>
-                                <input className="vm-deny-input" maxLength={60} placeholder="Location" value={editForm.location || ''} onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value }))} />
-                                <input className="vm-deny-input" maxLength={60} placeholder="Organizer" value={editForm.organizer || ''} onChange={(e) => setEditForm((f) => ({ ...f, organizer: e.target.value }))} />
-                                <input className="vm-deny-input" type="file" accept="image/*" onChange={(e) => setEditForm((f) => ({ ...f, cover_photo: e.target.files?.[0] || null }))} />
-                            </div>
-                            <div className="vm-modal-actions">
-                                <button type="button" className="vm-modal-close btn btn-close" onClick={() => setEditingItem(null)}>Cancel</button>
-                                <button type="button" className="vm-approve-btn btn btn-edit" onClick={handleEditSave} disabled={savingEdit}>
-                                    {savingEdit ? 'Saving...' : 'Save'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </main>
             <Footer />
         </div>

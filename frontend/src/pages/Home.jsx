@@ -8,10 +8,36 @@ import { useTitle } from '../Hooks/useTitle';
 import { ACCESS_TOKEN } from '../constants';
 import { getOptimizedUrl } from '../utils/imageUtils';
 
+const MAX_FEATURE = 3;
+const DEFAULT_VOLUNTEER_IMAGE = 'https://res.cloudinary.com/dwi7oftcs/image/upload/v1770564696/media/article_covers/cs_alumni_2_mrrw0h.jpg';
+
 // Strips formatting from copy-pasted "Math Bold" text so CSS fonts apply
 function cleanText(text) {
     if (!text) return "";
     return text.normalize("NFKD");
+}
+
+function formatMoney(n) {
+    if (n == null || n === '') return '—';
+    const num = Number(n);
+    if (Number.isNaN(num)) return '—';
+    return '\u20b1' + num.toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+
+function clampPercent(raised, goal) {
+    if (!goal || goal <= 0) return 0;
+    return Math.max(0, Math.min(100, Math.round((raised / goal) * 100)));
+}
+
+function campaignImageSrc(campaign) {
+    return campaign?.cover_image || campaign?.image_url || '';
+}
+
+function truncateTitle(text, maxChars = 72) {
+    const raw = (text || '').trim();
+    if (!raw) return '—';
+    if (raw.length <= maxChars) return raw;
+    return `${raw.slice(0, maxChars).trimEnd()}…`;
 }
 
 function Home() {
@@ -19,6 +45,9 @@ function Home() {
     const isLoggedIn = !!localStorage.getItem(ACCESS_TOKEN);
     const [latestArticles, setLatestArticles] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [featuredVolunteers, setFeaturedVolunteers] = useState([]);
+    const [featuredCampaigns, setFeaturedCampaigns] = useState([]);
+    const [extrasLoaded, setExtrasLoaded] = useState(false);
 
     useEffect(() => {
         api.get('/api/articles/published/')
@@ -30,10 +59,45 @@ function Home() {
                     const dateB = b.approved_at || b.created_at || '';
                     return dateB.localeCompare(dateA);
                 });
-                setLatestArticles(sorted.slice(0, 3));
+                setLatestArticles(sorted.slice(0, MAX_FEATURE));
             })
             .catch(() => setLatestArticles([]))
             .finally(() => setLoading(false));
+    }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const [vRes, cRes] = await Promise.all([
+                    api.get('/api/volunteers/'),
+                    api.get('/api/campaigns/', {
+                        params: { page: 1, page_size: MAX_FEATURE, ordering: 'newest' },
+                    }),
+                ]);
+                if (cancelled) return;
+                const vList = Array.isArray(vRes.data) ? vRes.data : [];
+                const sortedVolunteers = [...vList].sort(
+                    (a, b) => new Date(a.start_date || 0) - new Date(b.start_date || 0)
+                );
+                setFeaturedVolunteers(sortedVolunteers.slice(0, MAX_FEATURE));
+                const cPayload = cRes.data;
+                const cList = Array.isArray(cPayload)
+                    ? cPayload
+                    : (cPayload?.results || []);
+                setFeaturedCampaigns(cList.slice(0, MAX_FEATURE));
+            } catch {
+                if (!cancelled) {
+                    setFeaturedVolunteers([]);
+                    setFeaturedCampaigns([]);
+                }
+            } finally {
+                if (!cancelled) setExtrasLoaded(true);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     return (
@@ -105,6 +169,102 @@ function Home() {
                         );
                     })}
                 </section>
+
+                {extrasLoaded && featuredVolunteers.length > 0 && (
+                    <div className="home-feature-block">
+                        <section className="home-welcome home-welcome--feature">
+                            <h2 className="welcome-title">GIVE BACK YOUR TIME.</h2>
+                            <p className="welcome-subheading">
+                                Volunteer with the alumni community and make a direct impact.
+                            </p>
+                        </section>
+                        <section className="home-cards">
+                            {featuredVolunteers.map((item) => {
+                                const imageUrl =
+                                    getOptimizedUrl(item.cover_photo, 'card') ||
+                                    getOptimizedUrl(DEFAULT_VOLUNTEER_IMAGE, 'card');
+                                const title = item.title || '—';
+                                const blurb = cleanText(item.summary || item.description || '');
+                                return (
+                                    <Link
+                                        key={item.id}
+                                        to={`/volunteer/${item.id}`}
+                                        className="home-card"
+                                    >
+                                        <div className="home-card-image-wrap">
+                                            {imageUrl ? (
+                                                <img src={imageUrl} alt={title} className="home-card-image" />
+                                            ) : (
+                                                <div className="home-card-image-placeholder" />
+                                            )}
+                                        </div>
+                                        <div className="home-card-content">
+                                            <h3 className="home-card-title">{title}</h3>
+                                            <p className="home-card-description">{blurb || '—'}</p>
+                                            <span className="home-card-btn">Learn More</span>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+                        </section>
+                    </div>
+                )}
+
+                {extrasLoaded && featuredCampaigns.length > 0 && (
+                    <div className="home-feature-block">
+                        <section className="home-welcome home-welcome--feature">
+                            <h2 className="welcome-title">GIVE BACK THROUGH SUPPORT.</h2>
+                            <p className="welcome-subheading">
+                                Explore active campaigns and help move community goals forward.
+                            </p>
+                        </section>
+                        <section className="home-cards">
+                            {featuredCampaigns.map((campaign) => {
+                                const goal = Number(campaign.goal_amount || 0);
+                                const raised = Number(campaign.raised_amount || 0);
+                                const pct = clampPercent(raised, goal);
+                                const imageSrc = campaignImageSrc(campaign);
+                                const imageUrl = imageSrc ? getOptimizedUrl(imageSrc, 'card') : '';
+                                const displayTitle = truncateTitle(campaign.title);
+                                return (
+                                    <Link
+                                        key={campaign.id}
+                                        to={`/campaigns/${campaign.id}`}
+                                        className="home-card home-card--campaign"
+                                    >
+                                        <div className="home-card-image-wrap">
+                                            {imageUrl ? (
+                                                <img
+                                                    src={imageUrl}
+                                                    alt={campaign.title || 'Campaign'}
+                                                    className="home-card-image"
+                                                />
+                                            ) : (
+                                                <div className="home-card-image-placeholder" />
+                                            )}
+                                        </div>
+                                        <div className="home-card-content">
+                                            <h3 className="home-card-title">{displayTitle}</h3>
+                                            <div className="home-card-progress-wrap" aria-hidden>
+                                                <div className="home-card-progress-bar">
+                                                    <div
+                                                        className="home-card-progress-fill"
+                                                        style={{ width: `${pct}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <p className="home-card-campaign-meta">
+                                                {formatMoney(campaign.raised_amount)} raised of{' '}
+                                                {formatMoney(campaign.goal_amount)} goal
+                                            </p>
+                                            <span className="home-card-btn">Show Support</span>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+                        </section>
+                    </div>
+                )}
             </main>
 
             <Footer />

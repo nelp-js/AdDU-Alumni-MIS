@@ -13,6 +13,7 @@ function Volunteer() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const volunteerHeroImage = '/Volunteer.png';
     const defaultImage = getOptimizedUrl('https://res.cloudinary.com/dwi7oftcs/image/upload/v1770564696/media/article_covers/cs_alumni_2_mrrw0h.jpg', 'hero');
     const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
         'August', 'September', 'October', 'November', 'December'];
@@ -73,20 +74,34 @@ function Volunteer() {
         <div className="volunteer-page">
             <Header />
             <main className="volunteer-main">
+                <section className="volunteer-heading">
+                    <h1 className="volunteer-title">Volunteer</h1>
+                    <p className="volunteer-subtitle">Explore volunteer opportunities and make an impact with the alumni community.</p>
+                </section>
                 <section className="volunteer-hero">
-                    <img src={defaultImage} alt="Volunteer opportunities" className="volunteer-hero-image" />
+                    <img src={volunteerHeroImage} alt="Volunteer opportunities" className="volunteer-hero-image" />
                 </section>
 
                 <section className="volunteer-search-section">
                     <form className="volunteer-search-box" onSubmit={(e) => e.preventDefault()}>
                         <input
-                            type="search"
+                            type="text"
                             className="volunteer-search-input"
-                            placeholder="Search..."
+                            placeholder="Search"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             aria-label="Search volunteer opportunities"
                         />
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                className="volunteer-search-clear"
+                                onClick={() => setSearchQuery('')}
+                                aria-label="Clear search"
+                            >
+                                ×
+                            </button>
+                        )}
                         <button type="submit" className="volunteer-find-btn" aria-label="Search">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <circle cx="11" cy="11" r="7" />

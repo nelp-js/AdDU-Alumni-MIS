@@ -101,6 +101,22 @@
     margin: 0;
 }
 
+.home-feature-block {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.home-welcome--feature {
+    padding-top: 24px;
+    padding-bottom: 40px;
+}
+
+.home-feature-block .home-cards {
+    padding-bottom: 80px;
+}
+
 /* ========== Cards ========== */
 .home-cards {
     display: grid;
@@ -202,6 +218,40 @@
     color: #374151;
     margin: 0 0 24px 0;
     line-height: 1.5;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.home-card-progress-wrap {
+    margin: 0 0 10px;
+    width: 100%;
+}
+
+.home-card-progress-bar {
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.home-card-progress-fill {
+    height: 100%;
+    background: #111827;
+    border-radius: 999px;
+    min-width: 0;
+    transition: width 0.2s ease;
+}
+
+.home-card-campaign-meta {
+    font-family: 'Avenir LT Std', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+    margin: 0 0 20px;
+    line-height: 1.45;
     flex: 1;
 }
 

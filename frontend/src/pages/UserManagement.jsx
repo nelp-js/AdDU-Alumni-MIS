@@ -409,9 +409,13 @@ function UserManagement() {
                                 <div className="user-details-grid">
                                     <DetailRow label="ID Type" value={detailsUser.id_type} />
                                     {detailsUser.valid_id_file && (
-                                        <div className="content-mgmt-detail-row">
+                                        <div className="content-mgmt-detail-row user-details-row-block">
                                             <span className="content-mgmt-detail-label">Valid ID</span>
-                                            <a href={detailsUser.valid_id_file} target="_blank" rel="noreferrer" className="user-details-file-link">View ID</a>
+                                            <img
+                                                src={detailsUser.valid_id_file}
+                                                alt="Valid ID"
+                                                className="user-details-doc-image"
+                                            />
                                         </div>
                                     )}
                                     {detailsUser.diploma_file && (

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -48,11 +48,17 @@ function trimToWordLimit(text, maxWords) {
 }
 
 function CreateJob() {
-    useTitle('Create Job & Internship');
+    const { kind, id } = useParams();
+    const routeType = kind === 'job' || kind === 'internship' ? kind : null;
+    const isEditMode = Boolean(routeType && id);
+    useTitle(isEditMode ? `Edit ${routeType === 'job' ? 'Job' : 'Internship'}` : 'Create Job & Internship');
     const navigate  = useNavigate();
-    const [type, setType]       = useState(null); // 'job' | 'internship'
+    const [type, setType]       = useState(routeType); // 'job' | 'internship'
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [loadingInitial, setLoadingInitial] = useState(false);
+    const [loadError, setLoadError] = useState('');
+    const [submitError, setSubmitError] = useState('');
     const [formData, setFormData] = useState({});
     const descriptionWords = countWords(formData.description);
     const companyCount = (formData.company || '').length;
@@ -67,6 +73,47 @@ function CreateJob() {
         setFormData(t === 'job' ? { ...JOB_FIELDS } : { ...INTERNSHIP_FIELDS });
     };
 
+    useEffect(() => {
+        if (!isEditMode || !routeType || !id) return;
+        setType(routeType);
+        setLoadingInitial(true);
+        setLoadError('');
+
+        const endpoint = routeType === 'job' ? `/api/jobs/${id}/` : `/api/internships/${id}/`;
+        api.get(endpoint)
+            .then((res) => {
+                const item = res.data || {};
+                if (routeType === 'job') {
+                    setFormData({
+                        company: item.company || '',
+                        position: item.position || '',
+                        location: item.location || '',
+                        modality: item.modality || '',
+                        employmentType: item.employment_type || '',
+                        salary: item.salary || '',
+                        email: item.email || '',
+                        startDate: item.start_date ? item.start_date.slice(0, 10) : '',
+                        endDate: item.end_date ? item.end_date.slice(0, 10) : '',
+                        description: item.description || '',
+                    });
+                } else {
+                    setFormData({
+                        company: item.company || '',
+                        position: item.position || '',
+                        location: item.location || '',
+                        modality: item.modality || '',
+                        allowance: item.allowance || '',
+                        email: item.email || '',
+                        startDate: item.start_date ? item.start_date.slice(0, 10) : '',
+                        endDate: item.end_date ? item.end_date.slice(0, 10) : '',
+                        description: item.description || '',
+                    });
+                }
+            })
+            .catch(() => setLoadError(`Failed to load ${routeType}.`))
+            .finally(() => setLoadingInitial(false));
+    }, [isEditMode, routeType, id]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         if (name === 'description') {
@@ -79,13 +126,13 @@ function CreateJob() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitError('');
         if (!formData.company || !formData.position || !formData.location || !formData.email || !formData.description) {
-            alert('Please fill in all required fields.');
+            setSubmitError('Please fill in all required fields.');
             return;
         }
         setLoading(true);
         try {
-            const endpoint = type === 'job' ? '/api/jobs/' : '/api/internships/';
             const payload =
                 type === 'job'
                     ? {
@@ -111,18 +158,26 @@ function CreateJob() {
                           end_date: formData.endDate,
                           description: formData.description,
                       };
-            await api.post(endpoint, payload);
+            if (isEditMode && id) {
+                const endpoint = type === 'job' ? `/api/jobs/${id}/` : `/api/internships/${id}/`;
+                await api.patch(endpoint, payload);
+            } else {
+                const endpoint = type === 'job' ? '/api/jobs/' : '/api/internships/';
+                await api.post(endpoint, payload);
+            }
             setSuccess(true);
-            setTimeout(() => navigate('/dashboard/jobs'), 3000);
+            setTimeout(() => navigate('/dashboard/jobs'), 2200);
         } catch (err) {
             const data = err.response?.data;
-            alert(`Failed to submit: ${data?.detail || 'Please try again.'}`);
+            if (typeof data === 'string') setSubmitError(data);
+            else if (data?.detail) setSubmitError(data.detail);
+            else setSubmitError(`Failed to ${isEditMode ? 'save changes' : 'submit'}: Please try again.`);
         } finally {
             setLoading(false);
         }
     };
 
-    if (!type) {
+    if (!type && !isEditMode) {
         return (
             <div className="create-event-page">
                 <Header />
@@ -168,7 +223,11 @@ function CreateJob() {
                 <main className="create-event-main">
                     <div className="create-event-form-box">
                         <div className="ce-success-message">
-                            <p>✓ Your {type === 'job' ? 'job posting' : 'internship'} has been submitted and is pending approval.</p>
+                            <p>
+                                ✓ {isEditMode
+                                    ? `Your ${type === 'job' ? 'job posting' : 'internship'} has been updated successfully.`
+                                    : `Your ${type === 'job' ? 'job posting' : 'internship'} has been submitted and is pending approval.`}
+                            </p>
                             <p>Redirecting to dashboard...</p>
                         </div>
                     </div>
@@ -184,14 +243,20 @@ function CreateJob() {
             <Header />
             <main className="create-event-main">
                 <h1 className="create-event-title">
-                    Post {type === 'job' ? 'a Job' : 'an Internship'}
+                    {isEditMode ? `Edit ${type === 'job' ? 'Job' : 'Internship'}` : `Post ${type === 'job' ? 'a Job' : 'an Internship'}`}
                 </h1>
                 <div className="create-event-form-box">
-                    <button type="button" className="cj-back-type" onClick={() => setType(null)}>
-                        ← Change type
-                    </button>
+                    {!isEditMode && (
+                        <button type="button" className="cj-back-type" onClick={() => setType(null)}>
+                            ← Change type
+                        </button>
+                    )}
+                    {loadingInitial && <div className="jm-state">Loading details...</div>}
+                    {loadError && <div className="jm-state jm-error">{loadError}</div>}
+                    {!loadingInitial && !loadError && (
 
                     <form className="create-event-form" onSubmit={handleSubmit}>
+                        {submitError && <div className="jm-state jm-error" style={{ padding: '8px 0 4px', textAlign: 'left' }}>{submitError}</div>}
 
                         {/* Company & Position */}
                         <div className="ce-row">
@@ -340,15 +405,16 @@ function CreateJob() {
                         </div>
 
                         <div className="ce-actions">
-                            <button type="button" className="ce-cancel-btn" onClick={() => navigate(-1)}>
+                            <button type="button" className="ce-cancel-btn" onClick={() => navigate('/dashboard/jobs')}>
                                 Cancel
                             </button>
                             <button type="submit" className="ce-submit-btn" disabled={loading}>
-                                <span>{loading ? 'Submitting...' : 'Submit for Approval'}</span>
+                                <span>{loading ? (isEditMode ? 'Saving...' : 'Submitting...') : (isEditMode ? 'Save Changes' : 'Submit for Approval')}</span>
                             </button>
                         </div>
 
                     </form>
+                    )}
                 </div>
             </main>
             <Footer />

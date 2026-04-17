@@ -14,6 +14,16 @@
     padding: 44px 24px 64px;
 }
 
+.alumni-main-directory {
+    padding-top: 0;
+}
+
+.alumni-hero {
+    text-align: center;
+    padding: 60px 24px 36px;
+    margin: 0 auto;
+}
+
 .alumni-title {
     margin: 0;
     text-align: center;
@@ -30,9 +40,9 @@
 }
 
 .alumni-search-section {
-    margin-top: 20px;
-    margin-bottom: 18px;
-    max-width: 720px;
+    margin-top: 0;
+    margin-bottom: 24px;
+    max-width: 540px;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
@@ -41,7 +51,7 @@
 .alumni-search-pill {
     background: #ffffff;
     border-radius: 999px;
-    min-height: 58px;
+    min-height: 48px;
     padding: 0 0 0 18px;
     display: flex;
     align-items: center;
@@ -54,16 +64,38 @@
 .alumni-search-input {
     flex: 1;
     min-width: 0;
+    height: 100%;
     border: none;
+    padding: 0 12px 0 0;
+    font-family: 'Avenir Book', 'Avenir LT Pro Light', sans-serif;
+    font-size: 16px;
+    color: #4b5563;
     outline: none;
     background: transparent;
-    font-size: 15px;
-    color: #4b5563;
-    padding: 10px 14px 10px 0;
 }
 
 .alumni-search-input::placeholder {
     color: #aab2c5;
+}
+
+.alumni-search-clear {
+    flex-shrink: 0;
+    width: 44px;
+    align-self: stretch;
+    border: none;
+    background: transparent;
+    color: #111827;
+    cursor: pointer;
+    font-size: 28px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.alumni-search-clear:hover {
+    color: #374151;
 }
 
 .alumni-search-button {
@@ -166,6 +198,11 @@
 
 .alumni-error {
     color: #b91c1c;
+}
+
+.alumni-empty-state {
+    font-size: 16px;
+    padding: 48px 20px;
 }
 
 .alumni-back-row {
@@ -272,11 +309,25 @@
     .alumni-grid {
         grid-template-columns: 1fr 1fr;
     }
+
+    .alumni-hero {
+        padding: 48px 20px 24px;
+    }
+
+    .alumni-search-section {
+        margin-bottom: 20px;
+    }
 }
 
 @media (max-width: 640px) {
     .alumni-main {
         padding: 30px 16px 42px;
+    }
+    .alumni-main-directory {
+        padding: 0 16px 42px;
+    }
+    .alumni-hero {
+        padding: 40px 16px 16px;
     }
     .alumni-title {
         font-size: 28px;
@@ -285,11 +336,14 @@
         grid-template-columns: 1fr;
     }
     .alumni-search-pill {
-        min-height: 54px;
+        min-height: 48px;
         padding-left: 14px;
     }
     .alumni-search-button {
         width: 64px;
+    }
+    .alumni-search-section {
+        margin-bottom: 16px;
     }
     .alumni-profile-header {
         flex-direction: column;

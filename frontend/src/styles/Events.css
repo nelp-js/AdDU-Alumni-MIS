@@ -15,6 +15,27 @@
     box-sizing: border-box;
 }
 
+.events-heading {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.events-title {
+    margin: 0;
+    font-size: 36px;
+    font-weight: 300;
+    color: #111827;
+    text-align: center;
+}
+
+.events-subtitle {
+    margin: 8px 0 0;
+    color: #6b7280;
+    font-size: 15px;
+    text-align: center;
+    line-height: 1.5;
+}
+
 /* Hero section – full width, search bar sits below and is smaller */
 .events-hero {
     margin-bottom: 0;
@@ -32,8 +53,8 @@
 /* ========== Search bar ========== */
 .events-search-section {
     margin-top: 32px;
-    margin-bottom: 40px;
-    max-width: 720px;
+    margin-bottom: 24px;
+    max-width: 540px;
     width: 100%;
     box-sizing: border-box;
     margin-left: auto;
@@ -43,7 +64,7 @@
 .events-search-box {
     background: #ffffff;
     border-radius: 999px;
-    min-height: 58px;
+    min-height: 48px;
     padding: 0 0 0 18px;
     display: flex;
     align-items: center;
@@ -72,6 +93,26 @@
 
 .events-search-input::placeholder {
     color: #aab2c5;
+}
+
+.events-search-clear {
+    flex-shrink: 0;
+    width: 44px;
+    align-self: stretch;
+    border: none;
+    background: transparent;
+    color: #111827;
+    cursor: pointer;
+    font-size: 28px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.events-search-clear:hover {
+    color: #374151;
 }
 
 .events-find-events-btn {
@@ -294,7 +335,7 @@
     .events-search-section {
         max-width: 100%;
         margin-top: 28px;
-        margin-bottom: 36px;
+        margin-bottom: 24px;
     }
 }
 
@@ -310,7 +351,7 @@
     .events-search-section {
         max-width: 100%;
         margin-top: 24px;
-        margin-bottom: 32px;
+        margin-bottom: 24px;
     }
 
     .events-upcoming {
@@ -343,11 +384,11 @@
         max-width: 100%;
         width: 100%;
         margin-top: 20px;
-        margin-bottom: 28px;
+        margin-bottom: 20px;
     }
 
     .events-search-box {
-        min-height: 54px;
+        min-height: 48px;
         padding: 0 0 0 16px;
     }
 
@@ -357,6 +398,10 @@
 
     .events-search-input {
         font-size: 16px; /* prevents zoom on iOS */
+    }
+
+    .events-title {
+        font-size: 28px;
     }
 
     .events-section-title {
@@ -428,16 +473,20 @@
     .events-search-section {
         width: 100%;
         margin-top: 16px;
-        margin-bottom: 24px;
+        margin-bottom: 16px;
     }
 
     .events-search-box {
-        min-height: 52px;
+        min-height: 48px;
         padding: 0 0 0 14px;
     }
 
     .events-find-events-btn {
         width: 58px;
+    }
+
+    .events-heading {
+        margin-bottom: 30px;
     }
 
     .events-section-title {

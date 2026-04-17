@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -32,12 +32,17 @@ function trimToWordLimit(text, maxWords) {
 }
 
 function CreateVolunteer() {
-    useTitle('Create Volunteer');
+    const { id } = useParams();
+    const isEditMode = Boolean(id);
+    useTitle(isEditMode ? 'Edit Volunteer' : 'Create Volunteer');
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [fetchLoading, setFetchLoading] = useState(false);
+    const [loadError, setLoadError] = useState('');
     const [success, setSuccess] = useState(false);
     const [submitError, setSubmitError] = useState('');
     const [coverPreviewUrl, setCoverPreviewUrl] = useState(null);
+    const [existingCoverUrl, setExistingCoverUrl] = useState(null);
     const [formData, setFormData] = useState({
         title: '',
         category: '',
@@ -52,6 +57,30 @@ function CreateVolunteer() {
 
     const descriptionWords = countWords(formData.description);
 
+    useEffect(() => {
+        if (!isEditMode || !id) return;
+        setFetchLoading(true);
+        setLoadError('');
+        api.get(`/api/volunteers/${id}/`)
+            .then((res) => {
+                const item = res.data || {};
+                setFormData({
+                    title: item.title || '',
+                    category: item.category || '',
+                    description: item.description || '',
+                    startDate: item.start_date ? item.start_date.slice(0, 10) : '',
+                    endDate: item.end_date ? item.end_date.slice(0, 10) : '',
+                    coverPhoto: null,
+                    summary: item.summary || '',
+                    location: item.location || '',
+                    organizer: item.organizer || '',
+                });
+                setExistingCoverUrl(item.cover_photo || null);
+            })
+            .catch(() => setLoadError('Failed to load volunteer opportunity.'))
+            .finally(() => setFetchLoading(false));
+    }, [isEditMode, id]);
+
     const handleChange = (e) => {
         const { name, value, type, files } = e.target;
         let nextValue = value;
@@ -61,14 +90,13 @@ function CreateVolunteer() {
     };
 
     useEffect(() => {
-        if (!formData.coverPhoto) {
-            setCoverPreviewUrl(null);
-            return;
+        if (formData.coverPhoto) {
+            const objectUrl = URL.createObjectURL(formData.coverPhoto);
+            setCoverPreviewUrl(objectUrl);
+            return () => URL.revokeObjectURL(objectUrl);
         }
-        const objectUrl = URL.createObjectURL(formData.coverPhoto);
-        setCoverPreviewUrl(objectUrl);
-        return () => URL.revokeObjectURL(objectUrl);
-    }, [formData.coverPhoto]);
+        setCoverPreviewUrl(existingCoverUrl || null);
+    }, [formData.coverPhoto, existingCoverUrl]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -87,9 +115,13 @@ function CreateVolunteer() {
         if (formData.coverPhoto) payload.append('cover_photo', formData.coverPhoto);
 
         try {
-            await api.post('/api/volunteers/', payload);
+            if (isEditMode && id) {
+                await api.patch(`/api/volunteers/${id}/`, payload);
+            } else {
+                await api.post('/api/volunteers/', payload);
+            }
             setSuccess(true);
-            setTimeout(() => navigate('/dashboard'), 2500);
+            setTimeout(() => navigate('/dashboard/volunteers'), 2500);
         } catch (error) {
             const responseData = error.response?.data;
             if (typeof responseData === 'string') {
@@ -98,7 +130,11 @@ function CreateVolunteer() {
                 setSubmitError(responseData.detail);
             } else {
                 const firstError = responseData && Object.values(responseData)[0];
-                setSubmitError(Array.isArray(firstError) ? firstError[0] : 'Failed to create volunteer opportunity.');
+                setSubmitError(
+                    Array.isArray(firstError)
+                        ? firstError[0]
+                        : `Failed to ${isEditMode ? 'update' : 'create'} volunteer opportunity.`
+                );
             }
         } finally {
             setLoading(false);
@@ -109,15 +145,26 @@ function CreateVolunteer() {
         <div className="create-volunteer-page">
             <Header />
             <main className="create-event-main">
-                <h1 className="create-event-title">Create Volunteer Opportunity</h1>
+                <h1 className="create-event-title">
+                    {isEditMode ? 'Edit Volunteer Opportunity' : 'Create Volunteer Opportunity'}
+                </h1>
                 <div className="create-event-form-box">
-                    {success ? (
-                        <div className="ce-success-message">
-                            <p>✓ Volunteer opportunity created successfully.</p>
-                            <p>Redirecting to dashboard...</p>
+                    {fetchLoading && (
+                        <div className="ce-loading-msg">Loading volunteer opportunity...</div>
+                    )}
+                    {loadError && (
+                        <div className="ce-success-message" style={{ background: '#fee2e2', borderColor: '#fecaca' }}>
+                            <p style={{ color: '#b91c1c', marginBottom: 0 }}>{loadError}</p>
                         </div>
-                    ) : (
-                        <form className="create-event-form" onSubmit={handleSubmit}>
+                    )}
+                    {!fetchLoading && !loadError && (
+                        success ? (
+                            <div className="ce-success-message">
+                                <p>✓ {isEditMode ? 'Volunteer opportunity updated successfully.' : 'Volunteer opportunity created successfully.'}</p>
+                                <p>Redirecting to dashboard...</p>
+                            </div>
+                        ) : (
+                            <form className="create-event-form" onSubmit={handleSubmit}>
                             {submitError && (
                                 <div className="ce-success-message" style={{ background: '#fee2e2', borderColor: '#fecaca' }}>
                                     <p style={{ color: '#b91c1c', marginBottom: 0 }}>{submitError}</p>
@@ -157,7 +204,9 @@ function CreateVolunteer() {
                             </div>
 
                             <div className="ce-field-group">
-                                <label className="ce-label-large">Cover Photo <span className="ce-required">*</span></label>
+                                <label className="ce-label-large">
+                                    Cover Photo {!isEditMode && <span className="ce-required">*</span>}
+                                </label>
                                 {coverPreviewUrl && (
                                     <div className="ce-upload-preview">
                                         <img src={coverPreviewUrl} alt="Preview" className="ce-upload-preview-img" />
@@ -166,7 +215,9 @@ function CreateVolunteer() {
                                 )}
                                 <label className="ce-file-input">
                                     <span className="ce-file-placeholder">
-                                        {formData.coverPhoto ? formData.coverPhoto.name : 'Upload Image (Required)'}
+                                        {formData.coverPhoto
+                                            ? formData.coverPhoto.name
+                                            : (isEditMode && existingCoverUrl ? 'Change Image (optional)' : 'Upload Image (Required)')}
                                     </span>
                                     <input
                                         type="file"
@@ -174,7 +225,7 @@ function CreateVolunteer() {
                                         accept="image/*"
                                         onChange={handleChange}
                                         style={{ display: 'none' }}
-                                        required
+                                        {...(!isEditMode && !formData.coverPhoto ? { required: true } : {})}
                                     />
                                     <span className="ce-upload-btn">Browse</span>
                                 </label>
@@ -274,14 +325,18 @@ function CreateVolunteer() {
                             </div>
 
                             <div className="ce-actions">
-                                <button type="button" className="ce-cancel-btn" onClick={() => navigate(-1)}>
+                                <button type="button" className="ce-cancel-btn" onClick={() => navigate('/dashboard/volunteers')}>
                                     Cancel
                                 </button>
                                 <button type="submit" className="ce-submit-btn" disabled={loading}>
-                                    <span>{loading ? 'Creating...' : 'Create Volunteer Opportunity'}</span>
+                                    <span>{loading
+                                        ? (isEditMode ? 'Saving...' : 'Creating...')
+                                        : (isEditMode ? 'Save Changes' : 'Create Volunteer Opportunity')
+                                    }</span>
                                 </button>
                             </div>
-                        </form>
+                            </form>
+                        )
                     )}
                 </div>
             </main>

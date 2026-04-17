@@ -6,6 +6,8 @@ import api from '../api';
 import '../styles/CreateEvent.css';
 import { useTitle } from '../Hooks/useTitle';
 
+const MAX_EVENT_NAME = 140;
+
 function EditEvent() {
     useTitle('Edit Event');
     const navigate = useNavigate();
@@ -46,7 +48,7 @@ function EditEvent() {
                 const e = res.data;
                 const organizers = (e.organizer_names || '').split(',').map((s) => s.trim());
                 setFormData({
-                    eventName:           e.event_name || '',
+                    eventName:           (e.event_name || '').slice(0, MAX_EVENT_NAME),
                     category:            e.category || '',
                     previewText:         e.preview_text || '',
                     coverPhoto:          null,
@@ -78,6 +80,7 @@ function EditEvent() {
         let val = value;
         if (type === 'checkbox') val = checked;
         if (type === 'file') val = files[0] || null;
+        if (name === 'eventName' && typeof val === 'string') val = val.slice(0, MAX_EVENT_NAME);
         setFormData((prev) => ({ ...prev, [name]: val }));
     };
 
@@ -175,9 +178,20 @@ function EditEvent() {
                         <form className="create-event-form" onSubmit={handleSubmit}>
 
                             <div className="ce-field-group">
-                                <label className="ce-label-large">Event Name <span className="ce-required">*</span></label>
-                                <input type="text" name="eventName" value={formData.eventName}
-                                    onChange={handleChange} className="ce-input" placeholder="Enter event name" required />
+                                <div className="ce-label-row">
+                                    <label className="ce-label-large">Event Name <span className="ce-required">*</span></label>
+                                    <span className="ce-char-count">{formData.eventName.length}/{MAX_EVENT_NAME}</span>
+                                </div>
+                                <input
+                                    type="text"
+                                    name="eventName"
+                                    value={formData.eventName}
+                                    onChange={handleChange}
+                                    className="ce-input"
+                                    maxLength={MAX_EVENT_NAME}
+                                    placeholder="Enter event name"
+                                    required
+                                />
                             </div>
 
                             <div className="ce-field-group">

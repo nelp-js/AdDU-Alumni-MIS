@@ -176,11 +176,11 @@
 /* ── Actions ── */
 .jm-actions {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     gap: 8px;
-    align-items: center;
-    white-space: nowrap;
-    flex-wrap: wrap;
+    align-items: flex-start;
+    white-space: normal;
+    flex-wrap: nowrap;
 }
 
 .jm-btn-group {
@@ -498,11 +498,35 @@
     background: white;
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-    max-width: 600px;
+    max-width: 760px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
     padding: 24px;
+}
+
+.jm-modal {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f3f4f6;
+}
+
+.jm-modal::-webkit-scrollbar {
+    width: 8px;
+}
+
+.jm-modal::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 999px;
+}
+
+.jm-modal::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+    border: 2px solid #f3f4f6;
+}
+
+.jm-modal::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
 .jm-modal-title {
@@ -515,7 +539,7 @@
 .jm-details-content {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
 }
 
 .jm-details-row {
@@ -531,17 +555,31 @@
 
 .jm-details-label {
     flex-shrink: 0;
-    width: 140px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #6b7280;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6d7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .jm-details-value {
-    flex: 1;
     font-size: 14px;
     color: #374151;
     word-break: break-word;
+}
+
+.jm-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 24px;
+}
+
+.jm-details-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
 }
 
 .jm-remarks {
@@ -556,6 +594,13 @@
     margin-top: 24px;
     padding-top: 16px;
     border-top: 1px solid #e5e7eb;
+}
+
+.jm-modal-actions-left,
+.jm-modal-actions-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
 .jm-modal-close {
@@ -604,4 +649,5 @@
     .jm-main { padding: 40px 16px 32px; }
     .jm-table th, .jm-table td { padding: 10px 12px; font-size: 13px; }
     .jm-deny-input { width: 120px; }
+    .jm-details-grid { grid-template-columns: 1fr; gap: 10px; }
 }

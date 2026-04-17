@@ -312,23 +312,36 @@ function ContentManagement() {
                         <div className="content-mgmt-modal" onClick={(e) => e.stopPropagation()}>
                             <h2 className="content-mgmt-modal-title">Article Details</h2>
                             <div className="content-mgmt-details">
-                                <div className="content-mgmt-detail-row">
-                                    <span className="content-mgmt-detail-label">Title</span>
-                                    <span className="content-mgmt-detail-value">{detailsArticle.title || '—'}</span>
+                                <div className="content-mgmt-details-grid">
+                                    {[
+                                        { label: 'Title', value: detailsArticle.title || '—' },
+                                        { label: 'Author', value: detailsArticle.author_name || '—' },
+                                        { label: 'Subtitle', value: detailsArticle.subtitle || '—' },
+                                        { label: 'Status', value: getStatusLabel(detailsArticle), isStatus: true },
+                                        {
+                                            label: 'Created',
+                                            value: formatDate(detailsArticle.content_created_time || detailsArticle.created_at),
+                                        },
+                                        {
+                                            label: 'Approved',
+                                            value: detailsArticle.approved_at ? formatDate(detailsArticle.approved_at) : '—',
+                                        },
+                                    ].map((item) => (
+                                        <div key={item.label} className="content-mgmt-details-item">
+                                            <span className="content-mgmt-detail-label">{item.label}</span>
+                                            {item.isStatus ? (
+                                                <span className={`content-mgmt-status content-mgmt-status-${getStatusClass(detailsArticle)}`}>
+                                                    {item.value}
+                                                </span>
+                                            ) : (
+                                                <span className="content-mgmt-detail-value">{item.value}</span>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="content-mgmt-detail-row">
-                                    <span className="content-mgmt-detail-label">Author</span>
-                                    <span className="content-mgmt-detail-value">{detailsArticle.author_name || '—'}</span>
-                                </div>
-                                {detailsArticle.subtitle && (
-                                    <div className="content-mgmt-detail-row content-mgmt-detail-block">
-                                        <span className="content-mgmt-detail-label">Subtitle</span>
-                                        <span className="content-mgmt-detail-value">{detailsArticle.subtitle}</span>
-                                    </div>
-                                )}
                                 {detailsArticle.cover_image && (
-                                    <div className="content-mgmt-detail-row">
-                                        <span className="content-mgmt-detail-label">Cover</span>
+                                    <div className="content-mgmt-detail-row content-mgmt-detail-block">
+                                        <span className="content-mgmt-detail-label">Cover Photo</span>
                                         <img
                                             src={detailsArticle.cover_image}
                                             alt="Cover"
@@ -340,55 +353,42 @@ function ContentManagement() {
                                     <div className="content-mgmt-detail-row content-mgmt-detail-block">
                                         <span className="content-mgmt-detail-label">Content</span>
                                         <div
-                                            className="content-mgmt-detail-html"
+                                            className="content-mgmt-detail-value content-mgmt-detail-rich"
                                             dangerouslySetInnerHTML={{ __html: detailsArticle.content }}
                                         />
                                     </div>
                                 )}
-                                <div className="content-mgmt-detail-row">
-                                    <span className="content-mgmt-detail-label">Status</span>
-                                    <span className={`content-mgmt-status content-mgmt-status-${getStatusClass(detailsArticle)}`}>
-                                        {getStatusLabel(detailsArticle)}
-                                    </span>
-                                </div>
                                 {detailsArticle.remarks && (
                                     <div className="content-mgmt-detail-row content-mgmt-detail-block">
                                         <span className="content-mgmt-detail-label">Denial Remarks</span>
                                         <span className="content-mgmt-detail-value">{detailsArticle.remarks}</span>
                                     </div>
                                 )}
-                                <div className="content-mgmt-detail-row">
-                                    <span className="content-mgmt-detail-label">Created</span>
-                                    <span className="content-mgmt-detail-value">
-                                        {formatDate(detailsArticle.content_created_time || detailsArticle.created_at)}
-                                    </span>
-                                </div>
-                                {detailsArticle.approved_at && (
-                                    <div className="content-mgmt-detail-row">
-                                        <span className="content-mgmt-detail-label">Approved</span>
-                                        <span className="content-mgmt-detail-value">
-                                            {formatDate(detailsArticle.approved_at)}
-                                        </span>
-                                    </div>
-                                )}
                             </div>
                             <div className="content-mgmt-modal-actions">
-                                <div />
-                                {detailsArticle.status === 'draft' && (
+                                <div className="content-mgmt-modal-actions-left">
+                                    {detailsArticle.status === 'draft' && (
+                                        <button
+                                            type="button"
+                                            className="content-mgmt-modal-details-neutral-btn"
+                                            onClick={() => {
+                                                setDetailsArticle(null);
+                                                navigate(`/dashboard/content/edit/${detailsArticle.id}`);
+                                            }}
+                                        >
+                                            Edit
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="content-mgmt-modal-actions-right">
                                     <button
                                         type="button"
-                                        className="content-mgmt-modal-details-neutral-btn"
-                                        onClick={() => {
-                                            setDetailsArticle(null);
-                                            navigate(`/dashboard/content/edit/${detailsArticle.id}`);
-                                        }}
+                                        className="content-mgmt-modal-details-neutral-btn content-mgmt-modal-details-close-deny"
+                                        onClick={() => setDetailsArticle(null)}
                                     >
-                                        Edit
+                                        Close
                                     </button>
-                                )}
-                                <button type="button" className="content-mgmt-modal-details-neutral-btn content-mgmt-modal-details-close-deny" onClick={() => setDetailsArticle(null)}>
-                                    Close
-                                </button>
+                                </div>
                             </div>
                         </div>
                     </div>

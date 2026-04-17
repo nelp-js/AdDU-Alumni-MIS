@@ -6,7 +6,7 @@ import '../styles/CreateEvent.css';
 import { useTitle } from '../Hooks/useTitle';
 import { useNavigate } from 'react-router-dom';
 
-const MAX_EVENT_NAME = 60;
+const MAX_EVENT_NAME = 140;
 const MAX_VENUE = 140;
 const MAX_ORGANIZER_NAME = 60;
 const MAX_DESCRIPTION_WORDS = 1200;
@@ -56,6 +56,7 @@ function CreateEvent() {
         if (type === 'checkbox') val = checked;
         if (type === 'file') val = files[0] || null;
         if (name === 'description') val = trimToWordLimit(value, MAX_DESCRIPTION_WORDS);
+        if (name === 'eventName' && typeof val === 'string') val = val.slice(0, MAX_EVENT_NAME);
         setFormData((prev) => ({ ...prev, [name]: val }));
     };
 

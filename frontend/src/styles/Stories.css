@@ -16,26 +16,23 @@
 
 .stories-hero {
     text-align: center;
-    padding: 60px 24px 48px;
+    padding: 60px 24px 36px;
     margin: 0 auto;
 }
 
 .stories-title {
-    font-size: 28px;
-    font-weight: 400;
-    color: #333;
+    margin: 0;
+    font-size: 36px;
+    font-weight: 300;
+    color: #111827;
     text-align: center;
-    margin: 0 0 12px 0;
-    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
 }
 
 .stories-subtitle {
-    font-size: 16px;
-    font-weight: 400;
-    color: #6d7280;
+    margin: 8px 0 24px;
+    color: #6b7280;
+    font-size: 15px;
     text-align: center;
-    margin: 0;
-    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
     line-height: 1.5;
 }
 
@@ -54,13 +51,15 @@
 }
 
 .stories-search-pill {
-    flex: 1 1 0%;
+    flex: 0 1 75%;
     min-width: 0;
+    width: 100%;
+    max-width: 540px;
     display: flex;
     align-items: center;
     background: #ffffff;
     border-radius: 999px;
-    min-height: 58px;
+    min-height: 48px;
     padding: 0 0 0 18px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     border: 1px solid #eceff4;
@@ -69,17 +68,38 @@
 .stories-search-input {
     flex: 1;
     min-width: 0;
+    height: 100%;
     border: none;
+    padding: 0 12px 0 0;
+    font-family: 'Avenir Book', 'Avenir LT Pro Light', sans-serif;
+    font-size: 16px;
+    color: #4b5563;
     outline: none;
     background: transparent;
-    font-size: 15px;
-    font-family: 'Avenir LT Std', system-ui, sans-serif;
-    color: #4b5563;
-    padding: 10px 14px 10px 0;
 }
 
 .stories-search-input::placeholder {
     color: #aab2c5;
+}
+
+.stories-search-clear {
+    flex-shrink: 0;
+    width: 44px;
+    align-self: stretch;
+    border: none;
+    background: transparent;
+    color: #111827;
+    cursor: pointer;
+    font-size: 28px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.stories-search-clear:hover {
+    color: #374151;
 }
 
 .stories-search-button {
@@ -235,7 +255,7 @@
 
 @media (max-width: 768px) {
     .stories-hero {
-        padding: 48px 20px 40px;
+        padding: 48px 20px 24px;
     }
 
     .stories-toolbar {
@@ -253,7 +273,7 @@
 
 @media (max-width: 480px) {
     .stories-hero {
-        padding: 40px 16px 32px;
+        padding: 40px 16px 16px;
     }
 
     .stories-toolbar {
@@ -262,16 +282,12 @@
     }
 
     .stories-search-pill {
-        min-height: 54px;
+        min-height: 48px;
         padding: 0 0 0 14px;
     }
 
     .stories-search-button {
         width: 64px;
-    }
-
-    .stories-search-input {
-        font-size: 16px; /* prevents zoom on iOS */
     }
 
     .stories-sort-select {
@@ -283,10 +299,10 @@
     }
 
     .stories-title {
-        font-size: 24px;
+        font-size: 28px;
     }
 
     .stories-subtitle {
-        font-size: 14px;
+        font-size: 15px;
     }
 }

@@ -122,6 +122,10 @@ function Events() {
         <div className="events-page">
             <Header />
             <main className="events-main">
+                <section className="events-heading">
+                    <h1 className="events-title">Events</h1>
+                    <p className="events-subtitle">Stay updated with alumni events and gatherings from the community.</p>
+                </section>
 
                 <section className="events-hero">
                     <img
@@ -134,13 +138,23 @@ function Events() {
                 <section className="events-search-section">
                     <form className="events-search-box" onSubmit={handleFindEvents}>
                         <input
-                            type="search"
-                            placeholder="Search..."
+                            type="text"
+                            placeholder="Search"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="events-search-input"
                             aria-label="Search for events"
                         />
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                className="events-search-clear"
+                                onClick={() => setSearchQuery('')}
+                                aria-label="Clear search"
+                            >
+                                ×
+                            </button>
+                        )}
                         <button type="submit" className="events-find-events-btn" aria-label="Search">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <circle cx="11" cy="11" r="7" />

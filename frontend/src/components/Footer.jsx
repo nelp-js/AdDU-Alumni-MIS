@@ -1,4 +1,5 @@
 import '../styles/Layout.css';
+import { Link } from 'react-router-dom';
 
 function Footer() {
     return (
@@ -36,27 +37,20 @@ function Footer() {
                             </svg>
                         </a>
                     </div>
-                    <div className="footer-links">
-                        <a href="#alumni-near-me">Alumni Near Me</a>
-                        <a href="#in-memoriam">In Memoriam</a>
-                        <a href="#directory">Directory</a>
-                    </div>
                 </div>
 
                 <div className="footer-section footer-engage">
                     <h3>Engage</h3>
                     <div className="footer-links">
-                        <a href="#programs">Programs</a>
-                        <a href="#partner">Partner</a>
-                        <a href="#give">Give</a>
+                        <Link to="/campaigns">Support</Link>
+                        <Link to="/volunteer">Volunteer</Link>
                     </div>
                 </div>
 
                 <div className="footer-section footer-events">
                     <h3>Events</h3>
                     <div className="footer-links">
-                        <a href="#events-calendar">Events Calendar</a>
-                        <a href="#travel">Travel</a>
+                        <Link to="/events">Events Calendar</Link>
                     </div>
                 </div>
             </div>

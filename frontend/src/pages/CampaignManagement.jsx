@@ -89,6 +89,7 @@ function getStatusLabel(campaign) {
 
 function CampaignManagement() {
     useTitle('Campaign Management');
+    const navigate = useNavigate();
 
     const [campaigns, setCampaigns] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -333,34 +334,45 @@ function CampaignManagement() {
                         <div className="campaign-mgmt-modal" onClick={(e) => e.stopPropagation()}>
                             <h2 className="campaign-mgmt-modal-title">Campaign Details</h2>
                             <div className="campaign-mgmt-details-content">
-                                {[
-                                    ['Title', detailsItem.title],
-                                    ['Category', detailsItem.category],
-                                    ['Goal', formatMoney(detailsItem.goal_amount)],
-                                    ['Raised', formatMoney(detailsItem.raised_amount)],
-                                    ['Donors', detailsItem.donors_count ?? '—'],
-                                    ['Donations (records)', detailsItem.donations_count ?? '—'],
-                                    ['End date', formatDate(detailsItem.end_date)],
-                                    ['Created by', detailsItem.created_by_name || '—'],
-                                    ['Created', formatDate(detailsItem.created_at)],
-                                ].map(([label, value]) => (
-                                    <div key={label} className="campaign-mgmt-details-row">
-                                        <span className="campaign-mgmt-details-label">{label}</span>
-                                        <span className="campaign-mgmt-details-value">{value ?? '—'}</span>
-                                    </div>
-                                ))}
+                                <div className="campaign-mgmt-details-grid">
+                                    {[
+                                        { label: 'Title', value: detailsItem.title },
+                                        { label: 'Category', value: detailsItem.category },
+                                        { label: 'Goal', value: formatMoney(detailsItem.goal_amount) },
+                                        { label: 'Raised', value: formatMoney(detailsItem.raised_amount) },
+                                        { label: 'Contributors', value: detailsItem.donors_count ?? '—' },
+                                        { label: 'Contributions', value: detailsItem.donations_count ?? '—' },
+                                        { label: 'End Date', value: formatDate(detailsItem.end_date) },
+                                        { label: 'Created By', value: detailsItem.created_by_name || '—' },
+                                        { label: 'Created', value: formatDate(detailsItem.created_at) },
+                                        { label: 'Status', value: getStatusLabel(detailsItem), isStatus: true },
+                                    ].map((item) => (
+                                        <div key={item.label} className="campaign-mgmt-details-item">
+                                            <span className="campaign-mgmt-details-label">{item.label}</span>
+                                            {item.isStatus ? (
+                                                <span className={`campaign-mgmt-status ${getStatusClass(detailsItem)}`}>
+                                                    {item.value}
+                                                </span>
+                                            ) : (
+                                                <span className="campaign-mgmt-details-value">{item.value ?? '—'}</span>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                {(detailsItem.cover_image || detailsItem.image_url) && (
+                                    <div className="campaign-mgmt-details-row campaign-mgmt-details-block">
+                                        <span className="campaign-mgmt-details-label">Cover Photo</span>
+                                        <img
+                                            src={detailsItem.cover_image || detailsItem.image_url}
+                                            alt="Cover"
+                                            className="campaign-mgmt-details-cover"
+                                        />
+                                    </div>
+                                )}
                                 <div className="campaign-mgmt-details-row campaign-mgmt-details-block">
                                     <span className="campaign-mgmt-details-label">Description</span>
                                     <span className="campaign-mgmt-details-value">
                                         {detailsItem.description || '—'}
-                                    </span>
-                                </div>
-                                <div className="campaign-mgmt-details-row">
-                                    <span className="campaign-mgmt-details-label">Status</span>
-                                    <span
-                                        className={`campaign-mgmt-status ${getStatusClass(detailsItem)}`}
-                                    >
-                                        {getStatusLabel(detailsItem)}
                                     </span>
                                 </div>
                                 {detailsItem.remarks && (
@@ -371,22 +383,29 @@ function CampaignManagement() {
                                 )}
                             </div>
                             <div className="campaign-mgmt-modal-actions">
-                                {(!detailsItem.status || detailsItem.status === 'pending') && (
-                                    <Link
-                                        to={`/dashboard/campaigns/edit/${detailsItem.id}`}
-                                        className="campaign-mgmt-modal-details-neutral-btn"
-                                        style={{ textDecoration: 'none' }}
-                                    >
-                                        Edit
-                                    </Link>
-                                )}
-                                <button
-                                    type="button"
-                                    className="campaign-mgmt-modal-details-neutral-btn campaign-mgmt-modal-details-close-deny"
-                                    onClick={() => setDetailsItem(null)}
-                                >
-                                    Close
-                                </button>
+                                <div className="campaign-mgmt-modal-actions-left">
+                                    {(!detailsItem.status || detailsItem.status === 'pending') && (
+                                        <button
+                                            type="button"
+                                            className="campaign-mgmt-modal-details-neutral-btn"
+                                            onClick={() => {
+                                                setDetailsItem(null);
+                                                navigate(`/dashboard/campaigns/edit/${detailsItem.id}`);
+                                            }}
+                                        >
+                                            Edit
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="campaign-mgmt-modal-actions-right">
+                                        <button
+                                            type="button"
+                                            className="campaign-mgmt-modal-details-neutral-btn campaign-mgmt-modal-details-close-deny"
+                                            onClick={() => setDetailsItem(null)}
+                                        >
+                                            Close
+                                        </button>
+                                </div>
                             </div>
                         </div>
                     </div>

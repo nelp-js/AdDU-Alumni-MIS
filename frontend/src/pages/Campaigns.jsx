@@ -43,7 +43,6 @@ function Campaigns() {
     const [category, setCategory] = useState('');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [totalCount, setTotalCount] = useState(0);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -67,13 +66,11 @@ function Campaigns() {
             .then((res) => {
                 if (Array.isArray(res.data)) {
                     setCampaigns(res.data);
-                    setTotalCount(res.data.length);
                     setTotalPages(1);
                     return;
                 }
                 const payload = res.data || {};
                 setCampaigns(Array.isArray(payload.results) ? payload.results : []);
-                setTotalCount(Number(payload.count) || 0);
                 setTotalPages(Math.max(1, Number(payload.total_pages) || 1));
             })
             .catch(() => setError('Failed to load campaigns.'))
@@ -87,19 +84,35 @@ function Campaigns() {
     return (
         <div className="opp-page">
             <Header />
-            <main className="opp-main">
-                <h1 className="opp-title">Campaigns</h1>
-                <p className="opp-subtitle">Support approved fundraising campaigns from the alumni community.</p>
+            <main className="opp-main campaign-main">
+                <section className="campaign-hero">
+                    <h1 className="opp-title">Campaigns</h1>
+                    <p className="opp-subtitle">Support approved fundraising campaigns from the alumni community.</p>
+                </section>
                 <section className="campaign-search-toolbar">
                     <form className="campaign-search-pill" onSubmit={handleSearchSubmit}>
                         <input
-                            type="search"
+                            type="text"
                             className="campaign-search-input"
-                            placeholder="Search campaigns..."
+                            placeholder="Search"
                             value={searchInput}
                             onChange={(e) => setSearchInput(e.target.value)}
                             aria-label="Search campaigns"
                         />
+                        {searchInput && (
+                            <button
+                                type="button"
+                                className="campaign-search-clear"
+                                onClick={() => {
+                                    setSearchInput('');
+                                    setSearch('');
+                                    setPage(1);
+                                }}
+                                aria-label="Clear search"
+                            >
+                                ×
+                            </button>
+                        )}
                         <button type="submit" className="campaign-search-button" aria-label="Search">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <circle cx="11" cy="11" r="7" />
@@ -125,14 +138,10 @@ function Campaigns() {
                     </div>
                 </section>
 
-                {!loading && !error && (
-                    <p className="opp-results-count">{totalCount} result{totalCount === 1 ? '' : 's'}</p>
-                )}
-
                 {loading && <div className="opp-state">Loading...</div>}
                 {error && <div className="opp-state opp-error">{error}</div>}
                 {!loading && !error && campaigns.length === 0 && (
-                    <div className="opp-state">No active campaigns at the moment.</div>
+                    <div className="opp-state opp-empty-state">No available results found.</div>
                 )}
 
                 {!loading && !error && campaigns.length > 0 && (

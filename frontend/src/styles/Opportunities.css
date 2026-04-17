@@ -14,6 +14,26 @@
     box-sizing: border-box;
 }
 
+.campaign-main {
+    padding-top: 0;
+}
+
+.jobs-main {
+    padding-top: 0;
+}
+
+.campaign-hero {
+    text-align: center;
+    padding: 60px 24px 36px;
+    margin: 0 auto;
+}
+
+.jobs-hero {
+    text-align: center;
+    padding: 60px 24px 36px;
+    margin: 0 auto;
+}
+
 .opp-title {
     margin: 0;
     font-size: 36px;
@@ -42,18 +62,20 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    margin: 0 auto 10px;
+    margin: 0 auto 24px;
     box-sizing: border-box;
 }
 
 .opp-search-pill {
-    flex: 1 1 0%;
+    flex: 0 1 75%;
     min-width: 0;
+    width: 100%;
+    max-width: 560px;
     display: flex;
     align-items: center;
     background: #fff;
     border-radius: 999px;
-    min-height: 58px;
+    min-height: 48px;
     padding: 0 0 0 18px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     border: 1px solid #eceff4;
@@ -62,16 +84,38 @@
 .opp-search-input {
     flex: 1;
     min-width: 0;
+    height: 100%;
     border: none;
+    padding: 0 12px 0 0;
+    font-family: 'Avenir Book', 'Avenir LT Pro Light', sans-serif;
+    font-size: 16px;
+    color: #4b5563;
     outline: none;
     background: transparent;
-    font-size: 15px;
-    color: #4b5563;
-    padding: 10px 14px 10px 0;
 }
 
 .opp-search-input::placeholder {
     color: #aab2c5;
+}
+
+.opp-search-clear {
+    flex-shrink: 0;
+    width: 44px;
+    align-self: stretch;
+    border: none;
+    background: transparent;
+    color: #111827;
+    cursor: pointer;
+    font-size: 28px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.opp-search-clear:hover {
+    color: #374151;
 }
 
 .opp-search-button {
@@ -167,18 +211,20 @@
     justify-content: center;
     width: 100%;
     max-width: 960px;
-    margin: 0 auto 12px;
+    margin: 0 auto 24px;
     box-sizing: border-box;
 }
 
 .campaign-search-pill {
-    flex: 1 1 0%;
+    flex: 0 1 75%;
     min-width: 0;
+    width: 100%;
+    max-width: 585px;
     display: flex;
     align-items: center;
     background: #fff;
     border-radius: 999px;
-    min-height: 58px;
+    min-height: 48px;
     padding: 0 0 0 18px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     border: 1px solid #eceff4;
@@ -187,16 +233,38 @@
 .campaign-search-input {
     flex: 1;
     min-width: 0;
+    height: 100%;
     border: none;
+    padding: 0 12px 0 0;
+    font-family: 'Avenir Book', 'Avenir LT Pro Light', sans-serif;
+    font-size: 16px;
+    color: #4b5563;
     outline: none;
     background: transparent;
-    font-size: 15px;
-    color: #4b5563;
-    padding: 10px 14px 10px 0;
 }
 
 .campaign-search-input::placeholder {
     color: #aab2c5;
+}
+
+.campaign-search-clear {
+    flex-shrink: 0;
+    width: 44px;
+    align-self: stretch;
+    border: none;
+    background: transparent;
+    color: #111827;
+    cursor: pointer;
+    font-size: 28px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.campaign-search-clear:hover {
+    color: #374151;
 }
 
 .campaign-search-button {
@@ -780,21 +848,6 @@
     line-height: 1.45;
 }
 
-.campaign-donate-actions {
-    margin-top: 12px;
-    display: flex;
-    justify-content: flex-end;
-}
-
-.campaign-donate-close {
-    border: 1px solid #d1d5db;
-    background: #fff;
-    color: #374151;
-    border-radius: 8px;
-    padding: 8px 12px;
-    cursor: pointer;
-}
-
 .campaign-receipt-overlay {
     position: fixed;
     inset: 0;
@@ -1145,6 +1198,12 @@
     color: #b91c1c;
 }
 
+.opp-empty-state {
+    text-align: center;
+    font-size: 16px;
+    padding: 48px 20px;
+}
+
 @media (max-width: 900px) {
     .opp-grid { grid-template-columns: 1fr 1fr; }
     .campaign-public-grid { grid-template-columns: 1fr 1fr; }
@@ -1156,8 +1215,28 @@
     }
 }
 
+@media (max-width: 768px) {
+    .campaign-hero {
+        padding: 48px 20px 24px;
+    }
+
+    .jobs-hero {
+        padding: 48px 20px 24px;
+    }
+
+    .opp-toolbar {
+        margin: 0 auto 20px;
+    }
+
+    .campaign-search-toolbar {
+        margin: 0 auto 20px;
+    }
+}
+
 @media (max-width: 640px) {
     .opp-main { padding: 28px 16px 48px; }
+    .campaign-main { padding: 0 16px 48px; }
+    .jobs-main { padding: 0 16px 48px; }
     .opp-title { font-size: 28px; }
     .opp-grid { grid-template-columns: 1fr; }
     .campaign-public-grid { grid-template-columns: 1fr; }
@@ -1181,7 +1260,7 @@
         gap: 10px;
     }
     .opp-search-pill {
-        min-height: 54px;
+        min-height: 48px;
         width: 100%;
     }
     .opp-search-button {
@@ -1198,7 +1277,7 @@
         gap: 10px;
     }
     .campaign-search-pill {
-        min-height: 54px;
+        min-height: 48px;
         width: 100%;
     }
     .campaign-search-button {
@@ -1209,5 +1288,24 @@
     }
     .campaign-filter-select {
         width: 100%;
+    }
+
+}
+
+@media (max-width: 480px) {
+    .campaign-hero {
+        padding: 40px 16px 16px;
+    }
+
+    .jobs-hero {
+        padding: 40px 16px 16px;
+    }
+
+    .opp-toolbar {
+        margin: 0 auto 16px;
+    }
+
+    .campaign-search-toolbar {
+        margin: 0 auto 16px;
     }
 }

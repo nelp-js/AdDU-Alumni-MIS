@@ -9,12 +9,12 @@ import '../styles/Home.css';
 import { getOptimizedUrl } from '../utils/imageUtils';
 
 const SORT_OPTIONS = [
-    { value: 'alphabetical', label: 'A–Z' },
     { value: 'newest', label: 'Newest' },
+    { value: 'alphabetical', label: 'A–Z' },
     { value: 'oldest', label: 'Oldest' },
 ];
 
-const CARDS_PER_PAGE = 3;
+const CARDS_PER_PAGE = 9;
 
 function cleanText(text) {
     if (!text) return "";
@@ -27,7 +27,7 @@ function Stories() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [sortBy, setSortBy] = useState('none');
+    const [sortBy, setSortBy] = useState('newest');
     const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
@@ -53,7 +53,7 @@ function Stories() {
 
         if (sortBy === 'alphabetical') {
             list.sort((a, b) => cleanText(a.title || '').localeCompare(cleanText(b.title || ''), undefined, { sensitivity: 'base' }));
-        } else if (sortBy === 'newest' || sortBy === 'none') {
+        } else if (sortBy === 'newest') {
             list.sort((a, b) => {
                 const dateA = a.approved_at || a.created_at || '';
                 const dateB = b.approved_at || b.created_at || '';
@@ -96,13 +96,23 @@ function Stories() {
                     <section className="stories-toolbar">
                         <form className="stories-search-pill" onSubmit={handleSearchSubmit}>
                             <input
-                                type="search"
-                                placeholder="Search by title, author..."
+                                type="text"
+                                placeholder="Search"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="stories-search-input"
                                 aria-label="Search articles"
                             />
+                            {searchQuery && (
+                                <button
+                                    type="button"
+                                    className="stories-search-clear"
+                                    onClick={() => setSearchQuery('')}
+                                    aria-label="Clear search"
+                                >
+                                    ×
+                                </button>
+                            )}
                             <button type="submit" className="stories-search-button" aria-label="Search">
                                 <span className="stories-search-icon" aria-hidden>
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -119,7 +129,6 @@ function Stories() {
                                 className="stories-sort-select"
                                 aria-label="Sort articles"
                             >
-                                <option value="none">Sort by</option>
                                 {SORT_OPTIONS.map((opt) => (
                                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                                 ))}

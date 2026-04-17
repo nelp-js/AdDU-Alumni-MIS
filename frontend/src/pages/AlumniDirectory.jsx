@@ -46,20 +46,35 @@ function AlumniDirectory() {
     return (
         <div className="alumni-page">
             <Header />
-            <main className="alumni-main">
-                <h1 className="alumni-title">Find Alumni</h1>
-                <p className="alumni-subtitle">Search alumni by name, program, graduation year, company, location, or email.</p>
+            <main className="alumni-main alumni-main-directory">
+                <section className="alumni-hero">
+                    <h1 className="alumni-title">Find Alumni</h1>
+                    <p className="alumni-subtitle">Search alumni by name, program, graduation year, company, location, or email.</p>
+                </section>
 
                 <section className="alumni-search-section">
                     <form className="alumni-search-pill" onSubmit={handleSearchSubmit}>
                         <input
-                            type="search"
+                            type="text"
                             className="alumni-search-input"
-                            placeholder="Search alumni..."
+                            placeholder="Search"
                             value={searchInput}
                             onChange={(e) => setSearchInput(e.target.value)}
                             aria-label="Search alumni"
                         />
+                        {searchInput && (
+                            <button
+                                type="button"
+                                className="alumni-search-clear"
+                                onClick={() => {
+                                    setSearchInput('');
+                                    setSearch('');
+                                }}
+                                aria-label="Clear search"
+                            >
+                                ×
+                            </button>
+                        )}
                         <button type="submit" className="alumni-search-button" aria-label="Search">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <circle cx="11" cy="11" r="7" />
@@ -72,7 +87,7 @@ function AlumniDirectory() {
                 {loading && <div className="alumni-state">Loading...</div>}
                 {error && <div className="alumni-state alumni-error">{error}</div>}
                 {!loading && !error && items.length === 0 && (
-                    <div className="alumni-state">No alumni found.</div>
+                    <div className="alumni-state alumni-empty-state">No available results found.</div>
                 )}
 
                 {!loading && !error && items.length > 0 && (

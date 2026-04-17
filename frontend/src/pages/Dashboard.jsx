@@ -6,7 +6,7 @@ import api from '../api';
 import {
     FiUsers, FiCalendar, FiBriefcase, FiDollarSign, FiFileText
 } from 'react-icons/fi';
-import { FaHandHoldingHeart } from 'react-icons/fa';
+import { FaHandHoldingHeart, FaHeart } from 'react-icons/fa';
 import '../styles/Dashboard.css';
 import { useTitle } from '../Hooks/useTitle';
 import { useNotifications } from '../Hooks/NotificationContext';
@@ -20,11 +20,11 @@ const MODULE_CARDS = [
     { icon: 'calendar',    title: 'Event Management',        description: 'Create, manage, and track alumni events and attendance.',                           button: 'Manage Events',    to: '/dashboard/events',   secondaryButton: 'Create Event',      secondaryTo: '/create-event' },
     { icon: 'briefcase',   title: 'Job & Internship',        description: 'Job postings, applications, and career tracking.',                                  button: 'Manage Jobs & Internships',      to: '/dashboard/jobs',     secondaryButton: 'Create Job or Internship',        secondaryTo: '/dashboard/jobs/create' },
     { icon: 'survey',      title: 'Volunteer',               description: 'Manage volunteer opportunities and community engagement activities.',                button: 'Manage Volunteer', to: '/dashboard/volunteers', secondaryButton: 'Create Volunteer Opportunity', secondaryTo: '/dashboard/volunteer/create' },
-    { icon: 'fundraising', title: 'Fundraising & Donations', description: 'Campaign management, donations, and financial support.',                            button: 'Manage Campaigns', to: '/dashboard/campaigns', secondaryButton: 'Create Campaign',   secondaryTo: '/dashboard/donations/create' },
+    { icon: 'fundraising', title: 'Fundraising & Campaigns', description: 'Campaign management, contributions, and financial support.',                        button: 'Manage Campaigns', to: '/dashboard/campaigns', secondaryButton: 'Create Campaign',   secondaryTo: '/dashboard/donations/create' },
 ];
 
-const STAT_ICON_MAP   = { people: FiUsers, calendar: FiCalendar, briefcase: FiBriefcase, donation: FiDollarSign, document: FiFileText, volunteer: FaHandHoldingHeart };
-const MODULE_ICON_MAP = { users: FiUsers, document: FiFileText, calendar: FiCalendar, briefcase: FiBriefcase, survey: FaHandHoldingHeart, fundraising: FiDollarSign };
+const STAT_ICON_MAP   = { people: FiUsers, calendar: FiCalendar, briefcase: FiBriefcase, donation: FaHeart, document: FiFileText, volunteer: FaHandHoldingHeart };
+const MODULE_ICON_MAP = { users: FiUsers, document: FiFileText, calendar: FiCalendar, briefcase: FiBriefcase, survey: FaHandHoldingHeart, fundraising: FaHeart };
 
 function StatIcon({ type, color }) {
     const Icon = STAT_ICON_MAP[type];
@@ -143,7 +143,7 @@ function Dashboard() {
                         if (card.title === 'CMS & News Feed')         badgeValue = notifications.articles;
                         if (card.title === 'Job & Internship')        badgeValue = (notifications.jobs || 0) + (notifications.internships || 0);
                         if (card.title === 'Volunteer')               badgeValue = notifications.volunteers || 0;
-                        if (card.title === 'Fundraising & Donations') badgeValue = (notifications.campaigns || 0);
+                        if (card.icon === 'fundraising')              badgeValue = (notifications.campaigns || 0);
 
                         return (
                             <div key={card.title} className="dashboard-module-card" style={{ position: 'relative' }}>

@@ -377,8 +377,71 @@ function EventManagement() {
                             <h2 className="event-mgmt-modal-title">Event Details</h2>
 
                             <div className="event-mgmt-details-content">
+                                <div className="event-mgmt-details-grid">
+                                    {[
+                                        { label: 'Event Name', value: detailsEvent.event_name },
+                                        { label: 'Category', value: detailsEvent.category },
+                                        { label: 'Venue', value: detailsEvent.venue },
+                                        {
+                                            label: 'Start',
+                                            value: formatDateTime(
+                                                detailsEvent.start_date,
+                                                detailsEvent.start_time
+                                            ),
+                                        },
+                                        {
+                                            label: 'End',
+                                            value: detailsEvent.end_date
+                                                ? formatDateTime(
+                                                      detailsEvent.end_date,
+                                                      detailsEvent.end_time
+                                                  )
+                                                : '—',
+                                        },
+                                        { label: 'Cost', value: detailsEvent.cost },
+                                        { label: 'Capacity', value: detailsEvent.participants },
+                                        { label: 'Organizers', value: detailsEvent.organizer_names },
+                                        { label: 'Created', value: formatDate(detailsEvent.created_at) },
+                                        {
+                                            label: 'Last Updated',
+                                            value: formatDate(detailsEvent.updated_at),
+                                        },
+                                        {
+                                            label: 'Status',
+                                            value: getStatusLabel(detailsEvent),
+                                            isStatus: true,
+                                        },
+                                    ].map((item) => (
+                                        <div key={item.label} className="event-mgmt-details-item">
+                                            <span className="event-mgmt-details-label">{item.label}</span>
+                                            {item.isStatus ? (
+                                                <span
+                                                    className={`event-mgmt-status ${getStatusClass(
+                                                        detailsEvent
+                                                    )}`}
+                                                >
+                                                    {item.value}
+                                                </span>
+                                            ) : (
+                                                <span className="event-mgmt-details-value">
+                                                    {item.value || '—'}
+                                                </span>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {detailsEvent.preview_text && (
+                                    <div className="event-mgmt-details-row event-mgmt-details-row-block">
+                                        <span className="event-mgmt-details-label">Short Preview</span>
+                                        <span className="event-mgmt-details-value">
+                                            {detailsEvent.preview_text}
+                                        </span>
+                                    </div>
+                                )}
+
                                 {detailsEvent.event_image && (
-                                    <div className="event-mgmt-details-row">
+                                    <div className="event-mgmt-details-row event-mgmt-details-row-block">
                                         <span className="event-mgmt-details-label">Cover Photo</span>
                                         <img
                                             src={detailsEvent.event_image}
@@ -392,89 +455,10 @@ function EventManagement() {
                                     </div>
                                 )}
 
-                                <div className="event-mgmt-details-row">
-                                    <span className="event-mgmt-details-label">Event Name</span>
-                                    <span className="event-mgmt-details-value">
-                                        {detailsEvent.event_name || '—'}
-                                    </span>
-                                </div>
-
-                                <div className="event-mgmt-details-row">
-                                    <span className="event-mgmt-details-label">Category</span>
-                                    <span className="event-mgmt-details-value">
-                                        {detailsEvent.category || '—'}
-                                    </span>
-                                </div>
-
-                                {detailsEvent.preview_text && (
-                                    <div className="event-mgmt-details-row event-mgmt-details-row-block">
-                                        <span className="event-mgmt-details-label">Short Preview</span>
-                                        <span className="event-mgmt-details-value">
-                                            {detailsEvent.preview_text}
-                                        </span>
-                                    </div>
-                                )}
-
                                 <div className="event-mgmt-details-row event-mgmt-details-row-block">
                                     <span className="event-mgmt-details-label">Description</span>
                                     <span className="event-mgmt-details-value">
                                         {detailsEvent.event_description || '—'}
-                                    </span>
-                                </div>
-
-                                <div className="event-mgmt-details-row">
-                                    <span className="event-mgmt-details-label">Venue</span>
-                                    <span className="event-mgmt-details-value">
-                                        {detailsEvent.venue || '—'}
-                                    </span>
-                                </div>
-
-                                <div className="event-mgmt-details-row">
-                                    <span className="event-mgmt-details-label">Start</span>
-                                    <span className="event-mgmt-details-value">
-                                        {formatDateTime(detailsEvent.start_date, detailsEvent.start_time)}
-                                    </span>
-                                </div>
-
-                                <div className="event-mgmt-details-row">
-                                    <span className="event-mgmt-details-label">End</span>
-                                    <span className="event-mgmt-details-value">
-                                        {detailsEvent.end_date
-                                            ? formatDateTime(
-                                                  detailsEvent.end_date,
-                                                  detailsEvent.end_time
-                                              )
-                                            : '—'}
-                                    </span>
-                                </div>
-
-                                <div className="event-mgmt-details-row">
-                                    <span className="event-mgmt-details-label">Cost</span>
-                                    <span className="event-mgmt-details-value">
-                                        {detailsEvent.cost || '—'}
-                                    </span>
-                                </div>
-
-                                <div className="event-mgmt-details-row">
-                                    <span className="event-mgmt-details-label">Capacity</span>
-                                    <span className="event-mgmt-details-value">
-                                        {detailsEvent.participants || '—'}
-                                    </span>
-                                </div>
-
-                                <div className="event-mgmt-details-row">
-                                    <span className="event-mgmt-details-label">Organizers</span>
-                                    <span className="event-mgmt-details-value">
-                                        {detailsEvent.organizer_names || '—'}
-                                    </span>
-                                </div>
-
-                                <div className="event-mgmt-details-row">
-                                    <span className="event-mgmt-details-label">Status</span>
-                                    <span
-                                        className={`event-mgmt-status ${getStatusClass(detailsEvent)}`}
-                                    >
-                                        {getStatusLabel(detailsEvent)}
                                     </span>
                                 </div>
 
@@ -486,29 +470,10 @@ function EventManagement() {
                                         </span>
                                     </div>
                                 )}
-
-                                {detailsEvent.created_at && (
-                                    <div className="event-mgmt-details-row">
-                                        <span className="event-mgmt-details-label">Created</span>
-                                        <span className="event-mgmt-details-value">
-                                            {formatDate(detailsEvent.created_at)}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {detailsEvent.updated_at && (
-                                    <div className="event-mgmt-details-row">
-                                        <span className="event-mgmt-details-label">Last Updated</span>
-                                        <span className="event-mgmt-details-value">
-                                            {formatDate(detailsEvent.updated_at)}
-                                        </span>
-                                    </div>
-                                )}
                             </div>
 
                             <div className="event-mgmt-modal-actions event-mgmt-details-actions">
-                                <div />
-                                <div className="event-mgmt-modal-actions-right">
+                                <div className="event-mgmt-modal-actions-left">
                                     {isPending(detailsEvent) && (
                                         <button
                                             type="button"
@@ -522,6 +487,8 @@ function EventManagement() {
                                             Edit
                                         </button>
                                     )}
+                                </div>
+                                <div className="event-mgmt-modal-actions-right">
                                     <button
                                         type="button"
                                         className="event-mgmt-modal-neutral-btn event-mgmt-modal-close-deny"

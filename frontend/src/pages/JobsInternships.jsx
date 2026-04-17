@@ -30,7 +30,6 @@ function JobsInternships() {
     const [ordering, setOrdering] = useState('newest');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [totalCount, setTotalCount] = useState(0);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -57,13 +56,11 @@ function JobsInternships() {
             .then((res) => {
                 if (Array.isArray(res.data)) {
                     setItems(res.data);
-                    setTotalCount(res.data.length);
                     setTotalPages(1);
                     return;
                 }
                 const payload = res.data || {};
                 setItems(Array.isArray(payload.results) ? payload.results : []);
-                setTotalCount(Number(payload.count) || 0);
                 setTotalPages(Math.max(1, Number(payload.total_pages) || 1));
             })
             .catch(() => setError('Failed to load opportunities.'))
@@ -73,42 +70,35 @@ function JobsInternships() {
     return (
         <div className="opp-page">
             <Header />
-            <main className="opp-main">
-                <h1 className="opp-title">Jobs & Internships</h1>
-                <p className="opp-subtitle">Browse approved opportunities from alumni and partners.</p>
-
-                <div className="opp-tabs">
-                    <button
-                        type="button"
-                        className={`opp-tab ${tab === 'jobs' ? 'active' : ''}`}
-                        onClick={() => {
-                            setTab('jobs');
-                            setPage(1);
-                        }}
-                    >
-                        Jobs
-                    </button>
-                    <button
-                        type="button"
-                        className={`opp-tab ${tab === 'internships' ? 'active' : ''}`}
-                        onClick={() => {
-                            setTab('internships');
-                            setPage(1);
-                        }}
-                    >
-                        Internships
-                    </button>
-                </div>
+            <main className="opp-main jobs-main">
+                <section className="jobs-hero">
+                    <h1 className="opp-title">Jobs & Internships</h1>
+                    <p className="opp-subtitle">Browse approved opportunities from alumni and partners.</p>
+                </section>
 
                 <div className="opp-toolbar">
                     <div className="opp-search-pill">
                         <input
                             type="text"
                             className="opp-search-input"
-                            placeholder="Search position, company, location, keyword..."
+                            placeholder="Search"
                             value={searchInput}
                             onChange={(e) => setSearchInput(e.target.value)}
                         />
+                        {searchInput && (
+                            <button
+                                type="button"
+                                className="opp-search-clear"
+                                onClick={() => {
+                                    setSearchInput('');
+                                    setSearch('');
+                                    setPage(1);
+                                }}
+                                aria-label="Clear search"
+                            >
+                                ×
+                            </button>
+                        )}
                         <button
                             type="button"
                             className="opp-search-button"
@@ -165,14 +155,33 @@ function JobsInternships() {
                     </div>
                 </div>
 
-                {!loading && !error && (
-                    <p className="opp-results-count">{totalCount} result{totalCount === 1 ? '' : 's'}</p>
-                )}
+                <div className="opp-tabs">
+                    <button
+                        type="button"
+                        className={`opp-tab ${tab === 'jobs' ? 'active' : ''}`}
+                        onClick={() => {
+                            setTab('jobs');
+                            setPage(1);
+                        }}
+                    >
+                        Jobs
+                    </button>
+                    <button
+                        type="button"
+                        className={`opp-tab ${tab === 'internships' ? 'active' : ''}`}
+                        onClick={() => {
+                            setTab('internships');
+                            setPage(1);
+                        }}
+                    >
+                        Internships
+                    </button>
+                </div>
 
                 {loading && <div className="opp-state">Loading...</div>}
                 {error && <div className="opp-state opp-error">{error}</div>}
                 {!loading && !error && items.length === 0 && (
-                    <div className="opp-state">No {tab} available right now.</div>
+                    <div className="opp-state opp-empty-state">No available results found.</div>
                 )}
 
                 {!loading && !error && items.length > 0 && (

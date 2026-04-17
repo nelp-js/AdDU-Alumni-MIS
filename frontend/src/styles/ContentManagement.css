@@ -506,7 +506,7 @@
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-    max-width: 560px;
+    max-width: 760px;
     width: 100%;
     max-height: 90vh;
     overflow: hidden;
@@ -524,6 +524,46 @@
 .content-mgmt-details {
     padding: 0 24px 24px;
     overflow-y: auto;
+}
+
+/* Match User Details scrollbar style across details modals */
+.content-mgmt-details {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f3f4f6;
+}
+
+.content-mgmt-details::-webkit-scrollbar {
+    width: 8px;
+}
+
+.content-mgmt-details::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 999px;
+}
+
+.content-mgmt-details::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+    border: 2px solid #f3f4f6;
+}
+
+.content-mgmt-details::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.content-mgmt-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 24px;
+    margin-bottom: 12px;
+}
+
+.content-mgmt-details-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
 }
 
 .content-mgmt-detail-row {
@@ -550,26 +590,26 @@
     color: #374151;
 }
 
-.content-mgmt-detail-html {
+.content-mgmt-detail-rich {
     font-size: 14px;
     color: #374151;
     line-height: 1.6;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 12px;
-    max-height: 200px;
-    overflow-y: auto;
 }
 
-.content-mgmt-detail-html p {
+.content-mgmt-detail-rich p {
     margin: 0 0 8px 0;
 }
 
-.content-mgmt-detail-html p:last-child {
+.content-mgmt-detail-rich p:last-child {
     margin-bottom: 0;
 }
 
 .content-mgmt-detail-cover {
+    display: block;
+    align-self: flex-start;
+    width: auto;
+    height: auto;
+    margin: 0;
     max-width: 100%;
     max-height: 200px;
     object-fit: contain;
@@ -578,14 +618,29 @@
 
 .content-mgmt-modal-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     gap: 8px;
-    padding: 16px 24px;
+    margin: 0 24px 24px;
+    padding: 16px 0 0;
     border-top: 1px solid #e5e7eb;
+}
+
+.content-mgmt-modal-actions-left,
+.content-mgmt-modal-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .content-mgmt-table tbody tr:last-child .content-mgmt-dropdown-menu {
     top: auto;
     bottom: calc(100% + 4px);
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.10); /* flips the shadow to point up */
+}
+
+@media (max-width: 768px) {
+    .content-mgmt-details-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
 }
