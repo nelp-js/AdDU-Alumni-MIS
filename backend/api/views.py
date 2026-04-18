@@ -220,7 +220,7 @@ def approve_user(request, user_id):
     user.is_approved = True; user.is_active = True; user.save()
     try:
         send_mail('Welcome to Ateneo Alumni - Account Approved',
-            f'Hi {user.first_name},\n\nYour account has been approved!\n\nLogin: http://addualumni.vervel.app/login',
+            f'Hi {user.first_name},\n\nYour account has been approved!\n\nLogin: http://addualumni.vercel.app/login',
             settings.EMAIL_HOST_USER, [user.email], fail_silently=False)
     except Exception as e: print(f"Email failed: {e}")
     ActivityLog.objects.create(action=f"User approved: {user.username}", module="User Management", user=request.user, status="Completed")
