@@ -73,10 +73,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # Explicit check so pending users always get a clear error (not a generic auth failure)
         if user_obj is not None and password and user_obj.check_password(password):
-            if not user_obj.is_active:
-                raise serializers.ValidationError(
-                    {"detail": "This account has been deactivated."}
-                )
+            # Prioritize pending-approval messaging for alumni so they don't get a
+            # misleading "deactivated" error while waiting for admin action.
             if not (user_obj.is_staff or user_obj.is_superuser) and not user_obj.is_approved:
                 raise serializers.ValidationError(
                     {
@@ -85,6 +83,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                             "You will be able to log in after an administrator approves your account."
                         )
                     }
+                )
+            if not user_obj.is_active:
+                raise serializers.ValidationError(
+                    {"detail": "This account does not exist or is pending approval."}
                 )
 
         return super().validate(attrs)
@@ -101,8 +103,6 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
                 user = User.objects.get(pk=user_id)
             except User.DoesNotExist:
                 raise serializers.ValidationError({"detail": "Invalid refresh token."})
-            if not user.is_active:
-                raise serializers.ValidationError({"detail": "This account has been deactivated."})
             if not (user.is_staff or user.is_superuser) and not user.is_approved:
                 raise serializers.ValidationError(
                     {
@@ -112,6 +112,8 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
                         )
                     }
                 )
+            if not user.is_active:
+                raise serializers.ValidationError({"detail": "This account does not exist or is pending approval."})
         return super().validate(attrs)
 
 
