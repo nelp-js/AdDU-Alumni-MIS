@@ -152,7 +152,6 @@ function Header() {
                                 <Link to="/jobs" onClick={() => setShowMoreDropdown(false)}>Jobs & Interships</Link>
                                 <Link to="/volunteer" onClick={() => setShowMoreDropdown(false)}>Volunteer</Link>
                                 <Link to="/alumni" onClick={() => setShowMoreDropdown(false)}>Find an Alumni</Link>
-                                <Link to="/" onClick={() => setShowMoreDropdown(false)}>Feedback & Surveys</Link>
                             </div>
                         )}
                     </div>
