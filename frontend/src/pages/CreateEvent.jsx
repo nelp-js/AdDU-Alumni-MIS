@@ -211,7 +211,7 @@ function CreateEvent() {
                                 </div>
                                 <div className="ce-field-group ce-field-half">
                                     <label className="ce-label-small">Event Capacity</label>
-                                    <input type="number" name="capacity" value={formData.capacity}
+                                    <input type="number" name="capacity" value={formData.capacity} min="1"
                                         onChange={handleChange} className="ce-input" placeholder="Max number of attendees" />
                                 </div>
                             </div>
@@ -231,9 +231,9 @@ function CreateEvent() {
 
                             <div className="ce-row">
                                 <div className="ce-field-group ce-field-half">
-                                    <label className="ce-label-small">Cost</label>
-                                    <input type="text" name="cost" value={formData.cost}
-                                        onChange={handleChange} className="ce-input" placeholder="Free or ₱3000" />
+                                    <label className="ce-label-small">Cost (₱)</label>
+                                    <input type="number" name="cost" value={formData.cost} min="0" step="0.01"
+                                        onChange={handleChange} className="ce-input" placeholder="e.g., 3000 (0 for Free)" />
                                 </div>
                                 <div className="ce-field-group ce-field-half">
                                     <div className="ce-label-row">
