@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticate
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 import random
 from django.core.mail import send_mail, EmailMultiAlternatives
 from .models import (
@@ -23,7 +23,7 @@ from .serializers import (
     EventSerializer, EventUpdateSerializer, EventRegistrationSerializer,
     JobSerializer, InternshipSerializer, VolunteerOpportunitySerializer, VolunteerRegistrationSerializer,
     CampaignSerializer, CampaignDonationSerializer,
-    CustomTokenObtainPairSerializer, ActivityLogSerializer,
+    CustomTokenObtainPairSerializer, CustomTokenRefreshSerializer, ActivityLogSerializer,
     ArticleSerializer, ArticleUpdateSerializer,
     UserProfileSerializer, ExperienceSerializer, EducationSerializer,
     PublicAlumniListSerializer, PublicAlumniDetailSerializer,
@@ -60,9 +60,29 @@ def dashboard_stats(request):
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
+
+class CustomTokenRefreshView(TokenRefreshView):
+    serializer_class = CustomTokenRefreshSerializer
+
+
+def _pending_alumni_response():
+    return Response(
+        {
+            "detail": (
+                "Your registration is still pending admin approval. "
+                "You will have full access after an administrator approves your account."
+            )
+        },
+        status=403,
+    )
+
+
 @api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
 def current_user(request):
+    u = request.user
+    if not u.is_staff and not u.is_superuser and not u.is_approved:
+        return _pending_alumni_response()
     if request.method == "GET":
         return Response(CurrentUserSerializer(request.user).data)
     serializer = CurrentUserSerializer(request.user, data=request.data, partial=True)

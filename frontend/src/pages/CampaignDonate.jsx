@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/Opportunities.css';
 import { useTitle } from '../Hooks/useTitle';
+
 const METHOD_OPTIONS = [
     { id: 'gcash', label: 'GCash', logo: 'G' },
     { id: 'maya', label: 'Maya', logo: 'M' },
@@ -12,7 +13,7 @@ const METHOD_OPTIONS = [
     { id: 'cash', label: 'Cash (University Cashier)', logo: '₱' },
 ];
 
-const PRESET_AMOUNTS = [50, 100, 200, 500, 1000];
+const PRESET_AMOUNTS = [100, 500, 1000];
 
 function formatMoney(n) {
     if (n == null || n === '') return '—';
@@ -36,25 +37,22 @@ function formatReceiptDate(isoDate) {
 }
 
 function CampaignDonate() {
-    useTitle('Donate to Campaign');
+    useTitle('Give Back');
     const { id } = useParams();
     const [campaign, setCampaign] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // Donation Setup States
     const [donationFrequency, setDonationFrequency] = useState('one-time');
-    const [donationAmount, setDonationAmount] = useState('500'); // Default preset
-    const [isOtherAmount, setIsOtherAmount] = useState(false);
-    
-    // Payment Method & Processing States
+    const [selectedPresetAmount, setSelectedPresetAmount] = useState(100);
+    const [customAmountInput, setCustomAmountInput] = useState('');
+
     const [paymentMethod, setPaymentMethod] = useState('gcash');
     const [submitting, setSubmitting] = useState(false);
     const [donationFeedback, setDonationFeedback] = useState('');
     const [showReceipt, setShowReceipt] = useState(false);
     const [receiptData, setReceiptData] = useState(null);
 
-    // Payment Info States
     const [ewalletAccount, setEwalletAccount] = useState('');
     const [cardFields, setCardFields] = useState({
         email: '',
@@ -81,8 +79,30 @@ function CampaignDonate() {
             .finally(() => setLoading(false));
     }, [id]);
 
-    const donationValue = Number(donationAmount || 0);
-    const safeDonation = Number.isFinite(donationValue) && donationValue > 0 ? donationValue : 0;
+    const customTrim = String(customAmountInput || '').replace(/,/g, '').trim();
+    const customParsed = parseFloat(customTrim);
+    const safeDonation =
+        customTrim === ''
+            ? selectedPresetAmount
+            : Number.isFinite(customParsed) && customParsed > 0
+              ? customParsed
+              : 0;
+
+    const presetMatchesAmount = (amt) => customTrim === '' && selectedPresetAmount === amt;
+
+    const handleCustomAmountChange = (e) => {
+        const raw = e.target.value;
+        if (raw === '' || raw === '.') {
+            setCustomAmountInput(raw);
+            setDonationFeedback('');
+            return;
+        }
+        if (/^\d*\.?\d{0,2}$/.test(raw)) {
+            setCustomAmountInput(raw);
+            setDonationFeedback('');
+        }
+    };
+
     const raised = Number(campaign?.raised_amount || 0);
     const goal = Number(campaign?.goal_amount || 0);
     const pct = clampPercent(raised, goal);
@@ -90,7 +110,6 @@ function CampaignDonate() {
     const handleDonateSubmit = async () => {
         if (safeDonation <= 0 || submitting) return;
 
-        // Validation Check
         if ((paymentMethod === 'gcash' || paymentMethod === 'maya') && !ewalletAccount.trim()) {
             setDonationFeedback(`Please enter your ${paymentMethod === 'gcash' ? 'GCash' : 'Maya'} Account Number.`);
             return;
@@ -105,7 +124,7 @@ function CampaignDonate() {
         try {
             const res = await api.post(`/api/campaigns/${id}/donate/`, {
                 amount: safeDonation,
-                frequency: donationFrequency, // Pass one-time vs monthly to backend
+                frequency: donationFrequency,
                 payment_method: paymentMethod,
                 first_name: cardFields.firstName || undefined,
                 last_name: cardFields.lastName || undefined,
@@ -114,11 +133,12 @@ function CampaignDonate() {
             });
 
             setCampaign((c) =>
-                c                    ? {
-                        ...c,
-                        raised_amount: res.data.campaign_raised_amount ?? c.raised_amount,
-                        donors_count: res.data.campaign_donors_count ?? c.donors_count,
-                    }
+                c
+                    ? {
+                          ...c,
+                          raised_amount: res.data.campaign_raised_amount ?? c.raised_amount,
+                          donors_count: res.data.campaign_donors_count ?? c.donors_count,
+                      }
                     : c
             );
 
@@ -176,83 +196,61 @@ function CampaignDonate() {
                         </div>
 
                         <div className="campaign-donate-modal campaign-donate-modal-page">
-                            
-                            {/* DONATION FREQUENCY & AMOUNT SELECTION */}
-                            <label className="campaign-donate-label" style={{ marginBottom: '12px', display: 'block' }}>
-                                Enter your contribution
-                            </label>
+                            <h2 className="campaign-donate-section-title">Give Back</h2>
+                            <p className="campaign-donate-section-hint">Enter your contribution</p>
 
-                            <div className="campaign-donate-freq">
-                                <label>
-                                    <input 
-                                        type="radio" 
-                                        name="frequency" 
-                                        value="one-time" 
-                                        checked={donationFrequency === 'one-time'} 
-                                        onChange={() => setDonationFrequency('one-time')} 
-                                    />
-                                    <span>One time</span>
-                                </label>
-                                <label>
-                                    <input 
-                                        type="radio" 
-                                        name="frequency" 
-                                        value="monthly" 
-                                        checked={donationFrequency === 'monthly'} 
-                                        onChange={() => setDonationFrequency('monthly')} 
-                                    />
-                                    <span>Monthly</span>
-                                </label>
+                            <div className="campaign-donate-segment" role="group" aria-label="Donation frequency">
+                                <button
+                                    type="button"
+                                    className={donationFrequency === 'one-time' ? 'active' : ''}
+                                    onClick={() => setDonationFrequency('one-time')}
+                                >
+                                    Give Once
+                                </button>
+                                <button
+                                    type="button"
+                                    className={donationFrequency === 'monthly' ? 'active' : ''}
+                                    onClick={() => setDonationFrequency('monthly')}
+                                >
+                                    Give Monthly
+                                </button>
                             </div>
 
-                            <div className="campaign-donate-amounts">
+                            <div className="campaign-donate-amounts campaign-donate-amounts-presets">
                                 {PRESET_AMOUNTS.map((amt) => (
                                     <button
                                         key={amt}
                                         type="button"
-                                        className={`campaign-donate-amount-btn ${!isOtherAmount && Number(donationAmount) === amt ? 'active' : ''}`}
+                                        className={`campaign-donate-amount-btn ${presetMatchesAmount(amt) ? 'active' : ''}`}
                                         onClick={() => {
-                                            setIsOtherAmount(false);
-                                            setDonationAmount(String(amt));
+                                            setSelectedPresetAmount(amt);
+                                            setCustomAmountInput('');
                                             setDonationFeedback('');
                                         }}
                                     >
-                                        ₱{amt}
+                                        ₱{amt.toLocaleString()}
                                     </button>
                                 ))}
-                                <button
-                                    type="button"
-                                    className={`campaign-donate-amount-btn ${isOtherAmount ? 'active' : ''}`}
-                                    onClick={() => {
-                                        setIsOtherAmount(true);
-                                        setDonationAmount(''); // Clear value so they can type
-                                        setDonationFeedback('');
-                                    }}
-                                >
-                                    Other
-                                </button>
                             </div>
 
-                            {/* CUSTOM AMOUNT INPUT (Only shows if 'Other' is clicked) */}
-                            {isOtherAmount && (
-                                <div className="campaign-donate-input-wrap custom-amount-wrap">
-                                    <span className="campaign-donate-currency">₱</span>
-                                    <input
-                                        id="campaign-donate-amount"
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={donationAmount}
-                                        onChange={(e) => {
-                                            setDonationAmount(e.target.value);
-                                            setDonationFeedback('');
-                                        }}
-                                        className="campaign-donate-input"
-                                        placeholder="0.00"
-                                        autoFocus
-                                    />
-                                </div>
-                            )}
+                            <div className="campaign-donate-custom-field">
+                                <span className="campaign-donate-custom-field-prefix" aria-hidden="true">
+                                    ₱
+                                </span>
+                                <input
+                                    id="campaign-donate-amount"
+                                    type="text"
+                                    inputMode="decimal"
+                                    autoComplete="off"
+                                    value={customAmountInput}
+                                    onChange={handleCustomAmountChange}
+                                    className="campaign-donate-custom-field-input"
+                                    placeholder="Enter amount"
+                                    aria-label="Contribution amount in pesos"
+                                />
+                            </div>
+
+                            <p className="campaign-donate-total-line">TOTAL: {formatMoney(safeDonation)}</p>
 
                             <div className="campaign-donate-methods">
                                 <p className="campaign-donate-label">Payment method</p>
@@ -270,7 +268,6 @@ function CampaignDonate() {
                                 ))}
                             </div>
 
-                            {/* DYNAMIC PAYMENT INPUTS */}
                             {(paymentMethod === 'gcash' || paymentMethod === 'maya') && (
                                 <div className="campaign-card-fields">
                                     <input
@@ -349,8 +346,14 @@ function CampaignDonate() {
                             )}
 
                             <div className="campaign-donate-summary">
-                                <p><span>Your contribution {donationFrequency === 'monthly' && '(Monthly)'}</span><strong>{formatMoney(safeDonation)}</strong></p>
-                                <p className="total"><span>Total due today</span><strong>{formatMoney(safeDonation)}</strong></p>
+                                <p>
+                                    <span>Your contribution {donationFrequency === 'monthly' && '(Monthly)'}</span>
+                                    <strong>{formatMoney(safeDonation)}</strong>
+                                </p>
+                                <p className="total">
+                                    <span>Total due today</span>
+                                    <strong>{formatMoney(safeDonation)}</strong>
+                                </p>
                             </div>
 
                             <button
@@ -359,11 +362,19 @@ function CampaignDonate() {
                                 disabled={safeDonation <= 0 || submitting}
                                 onClick={handleDonateSubmit}
                             >
-                                {submitting ? 'Processing...' : 'Donate'}
+                                {submitting ? 'Processing...' : 'Give Back Today'}
                             </button>
 
                             {donationFeedback && (
-                                <p className="campaign-donate-note" style={{ color: donationFeedback.includes('Please enter') || donationFeedback.includes('fill in') ? '#b91c1c' : '#6b7280' }}>
+                                <p
+                                    className="campaign-donate-note"
+                                    style={{
+                                        color:
+                                            donationFeedback.includes('Please enter') || donationFeedback.includes('fill in')
+                                                ? '#b91c1c'
+                                                : '#6b7280',
+                                    }}
+                                >
                                     {donationFeedback}
                                 </p>
                             )}
@@ -396,11 +407,7 @@ function CampaignDonate() {
                             <p className="campaign-receipt-row campaign-receipt-total"><strong>Total amount:</strong> {formatMoney(receiptData.totalAmount)}</p>
                         </div>
                         <div className="campaign-receipt-actions">
-                            <button
-                                type="button"
-                                className="campaign-receipt-close"
-                                onClick={() => setShowReceipt(false)}
-                            >
+                            <button type="button" className="campaign-receipt-close" onClick={() => setShowReceipt(false)}>
                                 Close
                             </button>
                         </div>

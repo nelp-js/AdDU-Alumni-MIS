@@ -1,6 +1,7 @@
 import re
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import (
     User, Event, EventRegistration, Job, Internship,
     VolunteerRegistration,
@@ -55,10 +56,62 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
         login_value = attrs.get("username", "").strip()
+        password = attrs.get("password") or ""
+
         if "@" in login_value:
-            user = User.objects.filter(email__iexact=login_value).first()
-            if user:
-                attrs["username"] = user.username
+            email_user = User.objects.filter(email__iexact=login_value).first()
+            if email_user:
+                attrs["username"] = email_user.username
+
+        username = attrs.get("username", "").strip()
+        user_obj = None
+        if username:
+            try:
+                user_obj = User.objects.get(username=username)
+            except User.DoesNotExist:
+                user_obj = None
+
+        # Explicit check so pending users always get a clear error (not a generic auth failure)
+        if user_obj is not None and password and user_obj.check_password(password):
+            if not user_obj.is_active:
+                raise serializers.ValidationError(
+                    {"detail": "This account has been deactivated."}
+                )
+            if not (user_obj.is_staff or user_obj.is_superuser) and not user_obj.is_approved:
+                raise serializers.ValidationError(
+                    {
+                        "detail": (
+                            "Your registration is still pending admin approval. "
+                            "You will be able to log in after an administrator approves your account."
+                        )
+                    }
+                )
+
+        return super().validate(attrs)
+
+
+class CustomTokenRefreshSerializer(TokenRefreshSerializer):
+    """Reject refresh if the user is pending approval (alumni only)."""
+
+    def validate(self, attrs):
+        refresh = RefreshToken(attrs["refresh"])
+        user_id = refresh.payload.get("user_id")
+        if user_id is not None:
+            try:
+                user = User.objects.get(pk=user_id)
+            except User.DoesNotExist:
+                raise serializers.ValidationError({"detail": "Invalid refresh token."})
+            if not user.is_active:
+                raise serializers.ValidationError({"detail": "This account has been deactivated."})
+            if not (user.is_staff or user.is_superuser) and not user.is_approved:
+                raise serializers.ValidationError(
+                    {
+                        "detail": (
+                            "Your registration is still pending admin approval. "
+                            "Please log in again after your account is approved."
+                        )
+                    }
+                )
         return super().validate(attrs)
 
 

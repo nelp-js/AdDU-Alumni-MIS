@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/UserManagement.css';
+import '../styles/ContentManagement.css';
 import { useTitle } from '../Hooks/useTitle';
 import LocationFields from '../components/LocationFields';
 import MarriageYearMonthFields from '../components/MarriageYearMonthFields';
@@ -268,9 +269,11 @@ function UserManagement() {
                                                         </button>
                                                     </span>
                                                 ) : (
-                                                    <button type="button" className="user-mgmt-edit-btn" onClick={() => openEdit(u)}>
-                                                        Edit
-                                                    </button>
+                                                    <span className="user-mgmt-actions user-mgmt-actions--single">
+                                                        <button type="button" className="user-mgmt-edit-btn" onClick={() => openEdit(u)}>
+                                                            Edit
+                                                        </button>
+                                                    </span>
                                                 )}
                                             </td>
                                         </tr>
@@ -335,9 +338,22 @@ function UserManagement() {
                                 <div className="user-details-grid">
                                     <DetailRow label="ID Type" value={detailsUser.id_type} />
                                     {detailsUser.valid_id_file && (
-                                        <div className="content-mgmt-detail-row">
+                                        <div className="user-details-valid-id-row">
                                             <span className="content-mgmt-detail-label">Valid ID</span>
-                                            <a href={detailsUser.valid_id_file} target="_blank" rel="noreferrer" className="user-details-file-link">View ID</a>
+                                            <div className="user-details-valid-id-media">
+                                                <a
+                                                    href={detailsUser.valid_id_file}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="user-details-valid-id-link"
+                                                >
+                                                    <img
+                                                        src={detailsUser.valid_id_file}
+                                                        alt="Valid ID"
+                                                        className="user-details-valid-id-img"
+                                                    />
+                                                </a>
+                                            </div>
                                         </div>
                                     )}
                                     {detailsUser.diploma_file && (
@@ -363,7 +379,13 @@ function UserManagement() {
                             </div>
                             <div className="content-mgmt-modal-actions">
                                 <div />
-                                <button type="button" className="content-mgmt-modal-close" onClick={() => setDetailsUser(null)}>Close</button>
+                                <button
+                                    type="button"
+                                    className="user-details-modal-close-deny"
+                                    onClick={() => setDetailsUser(null)}
+                                >
+                                    Close
+                                </button>
                             </div>
                         </div>
                     </div>

@@ -108,7 +108,7 @@ function CampaignView() {
                                     className="campaign-detail-donate-now"
                                     onClick={() => navigate(`/campaigns/${campaign.id}/donate`)}
                                 >
-                                    Show Support
+                                    Give Back Today
                                 </button>
                                 <button type="button" className="campaign-detail-share-btn">Share</button>
                             </aside>

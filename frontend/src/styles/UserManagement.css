@@ -286,20 +286,36 @@
     cursor: not-allowed;
 }
 
-/* Edit */
+/* Edit — same look as Event Management split "Edit" (.event-mgmt-split-main), full border, size matches Approve/Reject */
+.user-mgmt-actions--single {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 96px;
+}
+
+.user-mgmt-actions--single .user-mgmt-edit-btn {
+    width: 100%;
+    box-sizing: border-box;
+}
+
 .user-mgmt-edit-btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px solid #040354;
-    background: #f0f0f5;
-    color: #040354;
+    padding: 8px 14px;
+    min-width: 96px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: transparent;
+    color: #374151;
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
     white-space: nowrap;
+    text-align: center;
+    transition: all 0.15s;
 }
 
 .user-mgmt-edit-btn:hover {
-    background: #e8e8f0;
+    background: #f3f4f6;
 }
 
 /* Section labels inside edit modal */
@@ -352,6 +368,52 @@
     text-decoration: underline;
 }
 
+/* Valid ID: full image, label top-aligned (same pattern as Event details cover row) */
+.user-details-valid-id-row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px 28px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.user-details-valid-id-row .content-mgmt-detail-label {
+    flex: 0 0 auto;
+    width: 118px;
+    max-width: 100%;
+    margin: 0;
+    padding-top: 4px;
+}
+
+.user-details-valid-id-media {
+    flex: 1 1 280px;
+    min-width: 0;
+}
+
+.user-details-valid-id-link {
+    display: block;
+    line-height: 0;
+}
+
+.user-details-valid-id-link:focus-visible {
+    outline: 2px solid #040354;
+    outline-offset: 3px;
+    border-radius: 8px;
+}
+
+.user-details-valid-id-img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: min(70vh, 560px);
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
 .user-mgmt-page .user-details-row-block {
     display: flex;
     flex-direction: column;
@@ -370,18 +432,20 @@
     object-fit: contain;
 }
 
+/* Same as Event Management details Close: .event-mgmt-modal-neutral-btn + .event-mgmt-modal-close-deny */
 .user-details-modal-close-deny {
     padding: 8px 14px;
     min-width: 72px;
+    background: transparent;
     border: 1px solid #fca5a5;
     border-radius: 8px;
-    background: transparent;
-    color: #b91c1c;
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
+    color: #b91c1c;
     text-align: center;
     transition: all 0.15s;
+    white-space: nowrap;
 }
 
 .user-details-modal-close-deny:hover {

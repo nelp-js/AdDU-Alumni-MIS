@@ -829,7 +829,7 @@
     border: none;
     border-radius: 999px;
     padding: 11px 14px;
-    background: #111827;
+    background: #040354;
     color: #fff;
     font-size: 14px;
     font-weight: 700;
@@ -1364,6 +1364,104 @@
     border-color: #040354;
 }
 
+.campaign-donate-section-title {
+    margin: 0 0 6px;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.campaign-donate-section-hint {
+    margin: 0 0 18px;
+    font-size: 0.95rem;
+    color: #6b7280;
+}
+
+.campaign-donate-segment {
+    display: flex;
+    width: 100%;
+    margin-bottom: 18px;
+    padding: 4px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f9fafb;
+    gap: 4px;
+    box-sizing: border-box;
+}
+
+.campaign-donate-segment button {
+    flex: 1;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.campaign-donate-segment button:hover {
+    color: #374151;
+}
+
+.campaign-donate-segment button.active {
+    background: #040354;
+    color: #fff;
+}
+
+.campaign-donate-amounts-presets {
+    margin-bottom: 12px;
+}
+
+.campaign-donate-custom-field {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    margin-bottom: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.campaign-donate-custom-field-prefix {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    padding: 0 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+    background: #f3f4f6;
+    border-right: 1px solid #d1d5db;
+}
+
+.campaign-donate-custom-field-input {
+    flex: 1;
+    border: none;
+    padding: 12px 14px;
+    font-size: 16px;
+    color: #111827;
+    outline: none;
+    min-width: 0;
+}
+
+.campaign-donate-custom-field-input::placeholder {
+    color: #9ca3af;
+}
+
+.campaign-donate-total-line {
+    margin: 0 0 18px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
+}
+
 .custom-amount-wrap {
     margin-top: 14px;
     animation: fadeIn 0.2s ease-in-out;
@@ -1375,7 +1473,7 @@
 }
 
 @media (max-width: 480px) {
-    .campaign-donate-amounts {
+    .campaign-donate-amounts:not(.campaign-donate-amounts-presets) {
         grid-template-columns: repeat(2, 1fr);
     }
 }
