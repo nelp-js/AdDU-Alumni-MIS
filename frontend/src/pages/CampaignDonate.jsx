@@ -9,10 +9,11 @@ import { useTitle } from '../Hooks/useTitle';
 const METHOD_OPTIONS = [
     { id: 'gcash', label: 'GCash', logo: 'G' },
     { id: 'maya', label: 'Maya', logo: 'M' },
-    { id: 'qrph', label: 'QRPH', logo: 'QR' },
     { id: 'credit_debit', label: 'Credit or debit', logo: '💳' },
     { id: 'cash', label: 'Cash (University Cashier)', logo: '₱' },
 ];
+
+const PRESET_AMOUNTS = [50, 100, 200, 500, 1000];
 
 function formatMoney(n) {
     if (n == null || n === '') return '—';
@@ -42,13 +43,20 @@ function CampaignDonate() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    const [donationAmount, setDonationAmount] = useState('');
+    // Donation Setup States
+    const [donationFrequency, setDonationFrequency] = useState('one-time');
+    const [donationAmount, setDonationAmount] = useState('500'); // Default preset
+    const [isOtherAmount, setIsOtherAmount] = useState(false);
+    
+    // Payment Method & Processing States
     const [paymentMethod, setPaymentMethod] = useState('gcash');
     const [submitting, setSubmitting] = useState(false);
     const [donationFeedback, setDonationFeedback] = useState('');
     const [showReceipt, setShowReceipt] = useState(false);
     const [receiptData, setReceiptData] = useState(null);
 
+    // Payment Info States
+    const [ewalletAccount, setEwalletAccount] = useState('');
     const [cardFields, setCardFields] = useState({
         email: '',
         firstName: '',
@@ -80,6 +88,71 @@ function CampaignDonate() {
     const goal = Number(campaign?.goal_amount || 0);
     const pct = clampPercent(raised, goal);
 
+    const handleDonateSubmit = async () => {
+        if (safeDonation <= 0 || submitting) return;
+
+        // Validation Check
+        if ((paymentMethod === 'gcash' || paymentMethod === 'maya') && !ewalletAccount.trim()) {
+            setDonationFeedback(`Please enter your ${paymentMethod === 'gcash' ? 'GCash' : 'Maya'} Account Number.`);
+            return;
+        }
+        if (paymentMethod === 'credit_debit' && (!cardFields.cardNumber || !cardFields.expiry || !cardFields.cvv || !cardFields.cardName)) {
+            setDonationFeedback('Please fill in all credit card details.');
+            return;
+        }
+
+        setSubmitting(true);
+        setDonationFeedback('');
+        try {
+            const res = await api.post(`/api/campaigns/${id}/donate/`, {
+                amount: safeDonation,
+                frequency: donationFrequency, // Pass one-time vs monthly to backend
+                payment_method: paymentMethod,
+                first_name: cardFields.firstName || undefined,
+                last_name: cardFields.lastName || undefined,
+                email: cardFields.email || undefined,
+                payment_account: (paymentMethod === 'gcash' || paymentMethod === 'maya') ? ewalletAccount : undefined,
+            });
+
+            setCampaigns((prev) =>
+                prev.map((c) =>
+                    String(c.id) === String(id)
+                        ? {
+                            ...c,
+                            raised_amount: res.data.campaign_raised_amount ?? c.raised_amount,
+                            donors_count: res.data.campaign_donors_count ?? c.donors_count,
+                        }
+                        : c
+                )
+            );
+
+            const statusLabel = (res.data.payment_status || '').toLowerCase();
+            if (statusLabel === 'success') {
+                setDonationFeedback('Payment successful. Thank you for your donation!');
+                setReceiptData({
+                    status: statusLabel,
+                    donorName: res.data.donor_name || `${cardFields.firstName || 'Guest'} ${cardFields.lastName || 'Donor'}`.trim(),
+                    donationDate: res.data.donated_at || new Date().toISOString(),
+                    campaignTitle: campaign?.title || 'Campaign',
+                    receivedBy: campaign?.created_by_name || 'Campaign organizer',
+                    amount: safeDonation,
+                    totalAmount: safeDonation,
+                    frequency: donationFrequency,
+                });
+                setShowReceipt(true);
+            } else if (statusLabel === 'pending') {
+                setDonationFeedback('Payment is pending. Campaign progress updates after success.');
+            } else {
+                setDonationFeedback('Payment failed. Campaign progress was not updated.');
+            }
+        } catch (err) {
+            const message = err.response?.data?.detail || 'Donation failed. Please try again.';
+            setDonationFeedback(message);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     return (
         <div className="opp-page">
             <Header />
@@ -107,25 +180,83 @@ function CampaignDonate() {
                         </div>
 
                         <div className="campaign-donate-modal campaign-donate-modal-page">
-                            <label className="campaign-donate-label" htmlFor="campaign-donate-amount">
+                            
+                            {/* DONATION FREQUENCY & AMOUNT SELECTION */}
+                            <label className="campaign-donate-label" style={{ marginBottom: '12px', display: 'block' }}>
                                 Enter your contribution
                             </label>
-                            <div className="campaign-donate-input-wrap">
-                                <span className="campaign-donate-currency">₱</span>
-                                <input
-                                    id="campaign-donate-amount"
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={donationAmount}
-                                    onChange={(e) => {
-                                        setDonationAmount(e.target.value);
+
+                            <div className="campaign-donate-freq">
+                                <label>
+                                    <input 
+                                        type="radio" 
+                                        name="frequency" 
+                                        value="one-time" 
+                                        checked={donationFrequency === 'one-time'} 
+                                        onChange={() => setDonationFrequency('one-time')} 
+                                    />
+                                    <span>One time</span>
+                                </label>
+                                <label>
+                                    <input 
+                                        type="radio" 
+                                        name="frequency" 
+                                        value="monthly" 
+                                        checked={donationFrequency === 'monthly'} 
+                                        onChange={() => setDonationFrequency('monthly')} 
+                                    />
+                                    <span>Monthly</span>
+                                </label>
+                            </div>
+
+                            <div className="campaign-donate-amounts">
+                                {PRESET_AMOUNTS.map((amt) => (
+                                    <button
+                                        key={amt}
+                                        type="button"
+                                        className={`campaign-donate-amount-btn ${!isOtherAmount && Number(donationAmount) === amt ? 'active' : ''}`}
+                                        onClick={() => {
+                                            setIsOtherAmount(false);
+                                            setDonationAmount(String(amt));
+                                            setDonationFeedback('');
+                                        }}
+                                    >
+                                        ₱{amt}
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    className={`campaign-donate-amount-btn ${isOtherAmount ? 'active' : ''}`}
+                                    onClick={() => {
+                                        setIsOtherAmount(true);
+                                        setDonationAmount(''); // Clear value so they can type
                                         setDonationFeedback('');
                                     }}
-                                    className="campaign-donate-input"
-                                    placeholder="0.00"
-                                />
+                                >
+                                    Other
+                                </button>
                             </div>
+
+                            {/* CUSTOM AMOUNT INPUT (Only shows if 'Other' is clicked) */}
+                            {isOtherAmount && (
+                                <div className="campaign-donate-input-wrap custom-amount-wrap">
+                                    <span className="campaign-donate-currency">₱</span>
+                                    <input
+                                        id="campaign-donate-amount"
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={donationAmount}
+                                        onChange={(e) => {
+                                            setDonationAmount(e.target.value);
+                                            setDonationFeedback('');
+                                        }}
+                                        className="campaign-donate-input"
+                                        placeholder="0.00"
+                                        autoFocus
+                                    />
+                                </div>
+                            )}
 
                             <div className="campaign-donate-methods">
                                 <p className="campaign-donate-label">Payment method</p>
@@ -142,6 +273,19 @@ function CampaignDonate() {
                                     </label>
                                 ))}
                             </div>
+
+                            {/* DYNAMIC PAYMENT INPUTS */}
+                            {(paymentMethod === 'gcash' || paymentMethod === 'maya') && (
+                                <div className="campaign-card-fields">
+                                    <input
+                                        type="text"
+                                        placeholder={`${paymentMethod === 'gcash' ? 'GCash' : 'Maya'} Account Number * (09XX XXX XXXX)`}
+                                        maxLength="11"
+                                        value={ewalletAccount}
+                                        onChange={(e) => setEwalletAccount(e.target.value)}
+                                    />
+                                </div>
+                            )}
 
                             {paymentMethod === 'credit_debit' && (
                                 <div className="campaign-card-fields">
@@ -167,27 +311,27 @@ function CampaignDonate() {
                                     </div>
                                     <input
                                         type="text"
-                                        placeholder="Card number"
+                                        placeholder="Card number *"
                                         value={cardFields.cardNumber}
                                         onChange={(e) => setCardFields((p) => ({ ...p, cardNumber: e.target.value }))}
                                     />
                                     <div className="campaign-card-fields-two">
                                         <input
                                             type="text"
-                                            placeholder="MM/YY"
+                                            placeholder="MM/YY *"
                                             value={cardFields.expiry}
                                             onChange={(e) => setCardFields((p) => ({ ...p, expiry: e.target.value }))}
                                         />
                                         <input
                                             type="text"
-                                            placeholder="CVV"
+                                            placeholder="CVV *"
                                             value={cardFields.cvv}
                                             onChange={(e) => setCardFields((p) => ({ ...p, cvv: e.target.value }))}
                                         />
                                     </div>
                                     <input
                                         type="text"
-                                        placeholder="Name on card"
+                                        placeholder="Name on card *"
                                         value={cardFields.cardName}
                                         onChange={(e) => setCardFields((p) => ({ ...p, cardName: e.target.value }))}
                                     />
@@ -209,7 +353,7 @@ function CampaignDonate() {
                             )}
 
                             <div className="campaign-donate-summary">
-                                <p><span>Your contribution</span><strong>{formatMoney(safeDonation)}</strong></p>
+                                <p><span>Your contribution {donationFrequency === 'monthly' && '(Monthly)'}</span><strong>{formatMoney(safeDonation)}</strong></p>
                                 <p className="total"><span>Total due today</span><strong>{formatMoney(safeDonation)}</strong></p>
                             </div>
 
@@ -217,62 +361,13 @@ function CampaignDonate() {
                                 type="button"
                                 className="campaign-donate-submit"
                                 disabled={safeDonation <= 0 || submitting}
-                                onClick={async () => {
-                                    if (safeDonation <= 0 || submitting) return;
-                                    setSubmitting(true);
-                                    setDonationFeedback('');
-                                    try {
-                                        const res = await api.post(`/api/campaigns/${id}/donate/`, {
-                                            amount: safeDonation,
-                                            payment_method: paymentMethod,
-                                            first_name: cardFields.firstName || undefined,
-                                            last_name: cardFields.lastName || undefined,
-                                            email: cardFields.email || undefined,
-                                        });
-
-                                        setCampaigns((prev) =>
-                                            prev.map((c) =>
-                                                String(c.id) === String(id)
-                                                    ? {
-                                                        ...c,
-                                                        raised_amount: res.data.campaign_raised_amount ?? c.raised_amount,
-                                                        donors_count: res.data.campaign_donors_count ?? c.donors_count,
-                                                    }
-                                                    : c
-                                            )
-                                        );
-
-                                        const statusLabel = (res.data.payment_status || '').toLowerCase();
-                                        if (statusLabel === 'success') {
-                                            setDonationFeedback('Payment successful. Thank you for your donation!');
-                                            setReceiptData({
-                                                status: statusLabel,
-                                                donorName: res.data.donor_name || `${cardFields.firstName || 'Guest'} ${cardFields.lastName || 'Donor'}`.trim(),
-                                                donationDate: res.data.donated_at || new Date().toISOString(),
-                                                campaignTitle: campaign?.title || 'Campaign',
-                                                receivedBy: campaign?.created_by_name || 'Campaign organizer',
-                                                amount: safeDonation,
-                                                totalAmount: safeDonation,
-                                            });
-                                            setShowReceipt(true);
-                                        } else if (statusLabel === 'pending') {
-                                            setDonationFeedback('Payment is pending. Campaign progress updates after success.');
-                                        } else {
-                                            setDonationFeedback('Payment failed. Campaign progress was not updated.');
-                                        }
-                                    } catch (err) {
-                                        const message = err.response?.data?.detail || 'Donation failed. Please try again.';
-                                        setDonationFeedback(message);
-                                    } finally {
-                                        setSubmitting(false);
-                                    }
-                                }}
+                                onClick={handleDonateSubmit}
                             >
-                                {submitting ? 'Processing...' : 'Continue'}
+                                {submitting ? 'Processing...' : 'Donate'}
                             </button>
 
                             {donationFeedback && (
-                                <p className="campaign-donate-note">
+                                <p className="campaign-donate-note" style={{ color: donationFeedback.includes('Please enter') || donationFeedback.includes('fill in') ? '#b91c1c' : '#6b7280' }}>
                                     {donationFeedback}
                                 </p>
                             )}
@@ -294,6 +389,7 @@ function CampaignDonate() {
                             <h3 className="campaign-receipt-subtitle">Here is your donation receipt:</h3>
 
                             <p className="campaign-receipt-row"><strong>Donor name:</strong> {receiptData.donorName || '—'}</p>
+                            <p className="campaign-receipt-row"><strong>Frequency:</strong> {receiptData.frequency === 'monthly' ? 'Monthly Pledge' : 'One-time Donation'}</p>
                             <p className="campaign-receipt-row"><strong>Donation date:</strong> {formatReceiptDate(receiptData.donationDate)}</p>
                             <p className="campaign-receipt-row"><strong>Donation to:</strong> {receiptData.campaignTitle}</p>
 

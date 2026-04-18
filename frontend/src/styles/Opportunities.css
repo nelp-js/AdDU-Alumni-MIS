@@ -1309,3 +1309,73 @@
         margin: 0 auto 16px;
     }
 }
+
+/* ── Donation Frequency & Amounts ── */
+.campaign-donate-freq {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 16px;
+}
+
+.campaign-donate-freq label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #374151;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.campaign-donate-freq input[type="radio"] {
+    accent-color: #040354;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.campaign-donate-amounts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.campaign-donate-amount-btn {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    border-radius: 8px;
+    padding: 12px 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.campaign-donate-amount-btn:hover {
+    border-color: #040354;
+    background: #f9fafb;
+}
+
+.campaign-donate-amount-btn.active {
+    background: #040354;
+    color: #fff;
+    border-color: #040354;
+}
+
+.custom-amount-wrap {
+    margin-top: 14px;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 480px) {
+    .campaign-donate-amounts {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
