@@ -15,7 +15,6 @@
     box-sizing: border-box;
 }
 
-/* Calendar trigger: invisible <input type="date"> stacked on the glyph so the browser opens the native picker from a genuine tap/click (not an off-screen programmatic click). */
 .birth-date-cal-slot {
     position: absolute;
     top: 50%;
