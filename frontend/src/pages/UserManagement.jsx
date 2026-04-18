@@ -1,39 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/UserManagement.css';
 import { useTitle } from '../Hooks/useTitle';
+import LocationFields from '../components/LocationFields';
+import { useCountries } from '../Hooks/useCountries';
 
 // ─── Static option lists ────────────────────────────────────────────────────
-
-const COUNTRIES = [
-    'Philippines','United States','Canada','United Kingdom','Australia','Japan',
-    'South Korea','Singapore','Malaysia','Thailand','Vietnam','Indonesia','China',
-    'Hong Kong','Taiwan','United Arab Emirates','Saudi Arabia','Qatar','Kuwait',
-    'New Zealand','Germany','France','Italy','Spain','Netherlands','Switzerland',
-    'Norway','Sweden','Other',
-];
-
-const REGIONS = [
-    { value: 'region-11', label: 'Region XI - Davao Region' },
-    { value: 'ncr',       label: 'NCR' },
-    { value: 'region-1',  label: 'Region I - Ilocos Region' },
-    { value: 'region-2',  label: 'Region II - Cagayan Valley' },
-    { value: 'region-3',  label: 'Region III - Central Luzon' },
-    { value: 'region-4a', label: 'Region IV-A - CALABARZON' },
-    { value: 'region-5',  label: 'Region V - Bicol Region' },
-    { value: 'region-6',  label: 'Region VI - Western Visayas' },
-    { value: 'region-7',  label: 'Region VII - Central Visayas' },
-    { value: 'region-8',  label: 'Region VIII - Eastern Visayas' },
-    { value: 'region-9',  label: 'Region IX - Zamboanga Peninsula' },
-    { value: 'region-10', label: 'Region X - Northern Mindanao' },
-    { value: 'region-12', label: 'Region XII - SOCCSKSARGEN' },
-    { value: 'region-13', label: 'Region XIII - Caraga' },
-    { value: 'barmm',     label: 'BARMM' },
-    { value: 'car',       label: 'CAR - Cordillera Administrative Region' },
-];
 
 const RELIGIONS = [
     { value: 'roman_catholic',       label: 'Roman Catholic' },
@@ -69,7 +44,7 @@ const EMPTY_FORM = {
     username: '', email: '',
     phone_number: '', telephone_number: '',
     current_address: '', country: 'Philippines', geocode: '',
-    region: '', province: '', city: '',
+    regionCode: '', region: '', provinceCode: '', province: '', city: '',
     religion: '', religion_other: '',
     marital_status: '', marriage_date: '',
     intend_to_marry: '', intended_marriage_age: '', no_marriage_reason: '',
@@ -108,56 +83,6 @@ const SelectInput = ({ name, value, onChange, placeholder, options }) => (
     </select>
 );
 
-function UserSplitDropdown({ onEdit, onDelete, deleting }) {
-    const [open, setOpen] = useState(false);
-    const ref = useRef(null);
-
-    useEffect(() => {
-        if (!open) return;
-        const handler = (e) => {
-            if (ref.current && !ref.current.contains(e.target)) {
-                setOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, [open]);
-
-    return (
-        <div className="user-mgmt-btn-group" ref={ref}>
-            <button
-                type="button"
-                className="user-mgmt-split-main"
-                onClick={() => { setOpen(false); onEdit(); }}
-            >
-                Edit
-            </button>
-            <button
-                type="button"
-                className="user-mgmt-split-toggle"
-                onClick={() => setOpen((v) => !v)}
-                aria-expanded={open}
-            >
-                ▾
-            </button>
-            {open && (
-                <ul className="user-mgmt-dropdown-menu" role="menu">
-                    <li>
-                        <button
-                            type="button"
-                            className="user-mgmt-dropdown-item item-delete"
-                            onClick={() => { setOpen(false); onDelete(); }}
-                            disabled={deleting}
-                        >
-                            {deleting ? '…' : 'Delete'}
-                        </button>
-                    </li>
-                </ul>
-            )}
-        </div>
-    );
-}
-
 // ─── Main component ──────────────────────────────────────────────────────────
 
 function UserManagement() {
@@ -177,6 +102,7 @@ function UserManagement() {
 
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: currentYear - 1948 + 1 }, (_, i) => currentYear - i);
+    const { countries, loading: loadingCountries } = useCountries();
 
     // ── Fetch ────────────────────────────────────────────────────────────────
 
@@ -238,7 +164,8 @@ function UserManagement() {
             username: u.username || '', email: u.email || '',
             phone_number: u.phone_number || '', telephone_number: u.telephone_number || '',
             current_address: u.current_address || '', country: u.country || 'Philippines', geocode: u.geocode || '',
-            region: u.region || '', province: u.province || '', city: u.city || '',
+            regionCode: u.regionCode || '', region: u.region || '',
+            provinceCode: u.provinceCode || '', province: u.province || '', city: u.city || '',
             religion: u.religion || '', religion_other: u.religion_other || '',
             marital_status: u.marital_status || '', marriage_date: u.marriage_date || '',
             intend_to_marry: u.intend_to_marry || '', intended_marriage_age: u.intended_marriage_age || '',
@@ -340,11 +267,9 @@ function UserManagement() {
                                                         </button>
                                                     </span>
                                                 ) : (
-                                                    <UserSplitDropdown
-                                                        onEdit={() => openEdit(u)}
-                                                        onDelete={() => handleDelete(u.id)}
-                                                        deleting={deletingId === u.id}
-                                                    />
+                                                    <button type="button" className="user-mgmt-edit-btn" onClick={() => openEdit(u)}>
+                                                        Edit
+                                                    </button>
                                                 )}
                                             </td>
                                         </tr>
@@ -409,13 +334,9 @@ function UserManagement() {
                                 <div className="user-details-grid">
                                     <DetailRow label="ID Type" value={detailsUser.id_type} />
                                     {detailsUser.valid_id_file && (
-                                        <div className="content-mgmt-detail-row user-details-row-block">
+                                        <div className="content-mgmt-detail-row">
                                             <span className="content-mgmt-detail-label">Valid ID</span>
-                                            <img
-                                                src={detailsUser.valid_id_file}
-                                                alt="Valid ID"
-                                                className="user-details-doc-image"
-                                            />
+                                            <a href={detailsUser.valid_id_file} target="_blank" rel="noreferrer" className="user-details-file-link">View ID</a>
                                         </div>
                                     )}
                                     {detailsUser.diploma_file && (
@@ -441,7 +362,7 @@ function UserManagement() {
                             </div>
                             <div className="content-mgmt-modal-actions">
                                 <div />
-                                <button type="button" className="user-details-modal-close-deny" onClick={() => setDetailsUser(null)}>Close</button>
+                                <button type="button" className="content-mgmt-modal-close" onClick={() => setDetailsUser(null)}>Close</button>
                             </div>
                         </div>
                     </div>
@@ -475,17 +396,28 @@ function UserManagement() {
                                 <Field label="Current Address *"><input name="current_address" value={editForm.current_address} onChange={handleEditChange} /></Field>
                                 <div className="user-mgmt-modal-row">
                                     <Field label="Country *">
-                                        <SelectInput name="country" value={editForm.country} onChange={handleEditChange} options={COUNTRIES} />
+                                        <select name="country" value={editForm.country} onChange={handleEditChange}>
+                                            <option value="">{loadingCountries ? 'Loading countries...' : 'Select country'}</option>
+                                            {countries.map((c) => (
+                                                <option key={c.value} value={c.value}>{c.label}</option>
+                                            ))}
+                                        </select>
                                     </Field>
                                     <Field label="Zipcode *"><input name="geocode" value={editForm.geocode} onChange={handleEditChange} /></Field>
                                 </div>
                                 {editForm.country === 'Philippines' && (
                                     <div className="user-mgmt-modal-row">
-                                        <Field label="Region *">
-                                            <SelectInput name="region" value={editForm.region} onChange={handleEditChange} placeholder="Select region" options={REGIONS} />
-                                        </Field>
-                                        <Field label="Province *"><input name="province" value={editForm.province} onChange={handleEditChange} placeholder="e.g., Davao del Sur" /></Field>
-                                        <Field label="City / Town *"><input name="city" value={editForm.city} onChange={handleEditChange} placeholder="e.g., Davao City" /></Field>
+                                        <LocationFields
+                                            regionCode={editForm.regionCode}
+                                            provinceCode={editForm.provinceCode}
+                                            cityName={editForm.city}
+                                            onChange={(field, value) =>
+                                                setEditForm((prev) => ({ ...prev, [field]: value }))
+                                            }
+                                            fieldClass="user-mgmt-modal-field"
+                                            labelClass=""
+                                            inputClass=""
+                                        />
                                     </div>
                                 )}
 

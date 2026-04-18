@@ -57,9 +57,14 @@ function App() {
         <Route path="/stories" element={<Stories />} />
         <Route path="/stories/:id" element={<ArticleView />} />
         <Route path="/events" element={<Events />} />
+        
+        {/* User Job Routes */}
         <Route path="/jobs" element={<ProtectedRoute><JobsInternships /></ProtectedRoute>} />
-        <Route path="/volunteer" element={<Volunteer />} />
+        <Route path="/jobs/create" element={<ProtectedRoute><CreateJob /></ProtectedRoute>} />
+        <Route path="/jobs/create/:kind" element={<ProtectedRoute><CreateJob /></ProtectedRoute>} />
         <Route path="/jobs/:kind/:id" element={<ProtectedRoute><JobOpportunityView /></ProtectedRoute>} />
+        
+        <Route path="/volunteer" element={<Volunteer />} />
         <Route path="/volunteer/:id" element={<VolunteerView />} />
         <Route path="/campaigns" element={<Campaigns />} />
         <Route path="/campaigns/:id" element={<CampaignView />} />
@@ -72,12 +77,15 @@ function App() {
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<RegisterAndLogout />} />
+        
+        {/* Admin Dashboard Routes */}
         <Route path="/dashboard" element={<AdminProtectedRoute><Dashboard /></AdminProtectedRoute>} />
         <Route path="/dashboard/users" element={<AdminProtectedRoute><UserManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/events" element={<AdminProtectedRoute><EventManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/events/edit/:id" element={<AdminProtectedRoute><EditEvent /></AdminProtectedRoute>} />
         <Route path="/dashboard/events/registrations" element={<AdminProtectedRoute><EventRegistrations /></AdminProtectedRoute>} />
         <Route path="/dashboard/jobs/create" element={<AdminProtectedRoute><CreateJob /></AdminProtectedRoute>} />
+        <Route path="/dashboard/jobs/create/:kind" element={<AdminProtectedRoute><CreateJob /></AdminProtectedRoute>} />
         <Route path="/dashboard/jobs/edit/:kind/:id" element={<AdminProtectedRoute><CreateJob /></AdminProtectedRoute>} />
         <Route path="/dashboard/jobs" element={<AdminProtectedRoute><JobManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/volunteers" element={<AdminProtectedRoute><VolunteerManagement /></AdminProtectedRoute>} />

@@ -59,6 +59,10 @@ function CreateJob() {
     const isEditMode = Boolean(routeType && id);
     useTitle(isEditMode ? `Edit ${routeType === 'job' ? 'Job' : 'Internship'}` : 'Create Job & Internship');
     const navigate  = useNavigate();
+    
+    // Check if the current URL contains "dashboard" to know where to redirect later
+    const returnPath = window.location.pathname.includes('dashboard') ? '/dashboard/jobs' : '/jobs';
+
     const [type, setType]       = useState(routeType); // 'job' | 'internship'
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -196,7 +200,7 @@ function CreateJob() {
                 await api.post(endpoint, payload);
             }
             setSuccess(true);
-            setTimeout(() => navigate('/dashboard/jobs'), 2200);
+            setTimeout(() => navigate(returnPath), 2200);
         } catch (err) {
             const data = err.response?.data;
             if (typeof data === 'string') setSubmitError(data);
@@ -237,7 +241,9 @@ function CreateJob() {
                         </div>
                     </div>
                     <div className="cj-back-row">
-                        <Link to="/dashboard" className="content-mgmt-back-link">← Back to Dashboard</Link>
+                        <Link to={returnPath} className="content-mgmt-back-link">
+                            ← Back to {window.location.pathname.includes('dashboard') ? 'Dashboard' : 'Jobs'}
+                        </Link>
                     </div>
                 </main>
                 <Footer />
@@ -258,7 +264,7 @@ function CreateJob() {
                                     ? `Your ${type === 'job' ? 'job posting' : 'internship'} has been updated successfully.`
                                     : `Your ${type === 'job' ? 'job posting' : 'internship'} has been submitted and is pending approval.`}
                             </p>
-                            <p>Redirecting to dashboard...</p>
+                            <p>Redirecting to {window.location.pathname.includes('dashboard') ? 'dashboard' : 'jobs'}...</p>
                         </div>
                     </div>
                 </main>
@@ -493,7 +499,7 @@ function CreateJob() {
                         </div>
 
                         <div className="ce-actions">
-                            <button type="button" className="ce-cancel-btn" onClick={() => navigate('/dashboard/jobs')}>
+                            <button type="button" className="ce-cancel-btn" onClick={() => navigate(returnPath)}>
                                 Cancel
                             </button>
                             <button type="submit" className="ce-submit-btn" disabled={loading}>
