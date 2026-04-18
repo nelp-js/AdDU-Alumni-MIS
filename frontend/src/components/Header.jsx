@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import '../styles/Layout.css';
 import { ACCESS_TOKEN, USER_IS_ADMIN, USER_PROFILE_CACHE } from '../constants';
-import api from '../api';
+import api, { clearClientAuthSession } from '../api';
 import { FiInfo, FiLogOut, FiChevronDown, FiUser } from 'react-icons/fi';
 import { useNotifications } from '../Hooks/NotificationContext';
 
@@ -31,6 +31,8 @@ function initialAuthFromStorage() {
 
 function Header() {
     const [{ user, isAdmin }, setAuth] = useState(initialAuthFromStorage);
+    /** False until first /api/user/me/ attempt finishes (success or failure). */
+    const [authResolved, setAuthResolved] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [showMoreDropdown, setShowMoreDropdown] = useState(false);
     const moreDropdownRef = useRef(null);
@@ -54,6 +56,7 @@ function Header() {
         const token = localStorage.getItem(ACCESS_TOKEN);
         if (!token) {
             setAuth({ user: null, isAdmin: false });
+            setAuthResolved(true);
             return;
         }
 
@@ -78,9 +81,10 @@ function Header() {
                 setAuth({ user: userData, isAdmin: adminStatus });
             })
             .catch(() => {
-                localStorage.removeItem(USER_PROFILE_CACHE);
+                clearClientAuthSession();
                 setAuth({ user: null, isAdmin: false });
-            });
+            })
+            .finally(() => setAuthResolved(true));
     }, []);
 
     const handleLogout = () => {
@@ -95,14 +99,18 @@ function Header() {
     };
 
     const hasToken = !!localStorage.getItem(ACCESS_TOKEN);
-    const sessionPending = hasToken && !user;
+    const sessionPending = hasToken && !user && !authResolved;
 
     const handleProfileClick = () => {
-        if (!localStorage.getItem(ACCESS_TOKEN)) {
+        const token = localStorage.getItem(ACCESS_TOKEN);
+        if (!token) {
             navigate('/login');
             return;
         }
-        if (!user) return;
+        if (!user) {
+            navigate('/login');
+            return;
+        }
         setShowDropdown(!showDropdown);
     };
 

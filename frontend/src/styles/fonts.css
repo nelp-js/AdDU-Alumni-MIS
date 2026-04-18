@@ -94,3 +94,7 @@ textarea::placeholder {
     color: #9199a3;
     opacity: 1;
 }
+
+html {
+    overflow-x: hidden;
+}
