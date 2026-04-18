@@ -6,7 +6,7 @@ import {
     useImperativeHandle,
     forwardRef,
 } from 'react';
-import './BirthDateInput.css';
+import '../styles/BirthDateInput.css';
 import { BIRTH_DATE_MIN_YEAR, birthDateInputMax } from '../utils/birthDate';
 
 /** API / parent: YYYY-MM-DD → display mm/dd/yyyy */
