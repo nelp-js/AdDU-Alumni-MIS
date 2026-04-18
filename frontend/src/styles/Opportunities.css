@@ -1003,23 +1003,6 @@
     color: #4b5563;
 }
 
-.opp-card-view {
-    margin-top: auto;
-    align-self: flex-start;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    background: #fff;
-    color: #374151;
-    padding: 8px 12px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.opp-card-view:hover {
-    background: #f9fafb;
-}
-
 .opp-card-apply {
     margin-top: auto;
     text-decoration: none;

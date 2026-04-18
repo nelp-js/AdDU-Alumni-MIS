@@ -210,8 +210,10 @@ body {
 }
 
 /* Submit Button */
-.submit-btn {
+.login-form .submit-btn {
     width: 100%;
+    max-width: none;
+    display: block;
     padding: 14px;
     background: #040354;
     color: white;
@@ -221,16 +223,17 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-top: 10px;
+    margin: 10px auto 0;
+    text-align: center;
 }
 
-.submit-btn:hover {
+.login-form .submit-btn:hover {
     background: #050465;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(4, 3, 84, 0.3);
 }
 
-.submit-btn:disabled {
+.login-form .submit-btn:disabled {
     background: #cccccc;
     cursor: not-allowed;
     transform: none;
@@ -331,7 +334,7 @@ body {
         font-size: 16px; /* prevents zoom on iOS */
     }
 
-    .submit-btn {
+    .login-form .submit-btn {
         padding: 14px;
         font-size: 16px;
     }
@@ -386,7 +389,7 @@ body {
         padding-right: 44px;
     }
 
-    .submit-btn {
+    .login-form .submit-btn {
         padding: 12px;
         font-size: 15px;
     }
@@ -571,7 +574,7 @@ body {
         font-size: 14px;
     }
 
-    .submit-btn {
+    .login-form .submit-btn {
         padding: 12px;
         font-size: 15px;
     }

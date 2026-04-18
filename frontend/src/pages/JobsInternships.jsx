@@ -218,13 +218,6 @@ function JobsInternships() {
                                     {tab === 'jobs' ? (item.employment_type || 'Not specified') : (item.allowance || 'Not specified')}
                                 </p>
                                 <p className="opp-card-dates">From {formatDate(item.start_date)} to {formatDate(item.end_date)}</p>
-                                <button
-                                    type="button"
-                                    className="opp-card-view"
-                                    onClick={() => navigate(`/jobs/${tab}/${item.id}`)}
-                                >
-                                    View details
-                                </button>
                             </article>
                         ))}
                     </div>
