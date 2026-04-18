@@ -316,9 +316,10 @@ def register_for_event(request, event_id):
     serializer = EventRegistrationSerializer(data={**request.data, 'event': event.id})
     if serializer.is_valid():
         payment_method = (serializer.validated_data.get('payment_method') or '').strip().lower()
+        # Align with frontend: GCash confirms immediately; Maya / card are treated as pending; unknown → failed.
         if payment_method == 'gcash':
             payment_status = 'success'
-        elif payment_method == 'maya':
+        elif payment_method in ('maya', 'card'):
             payment_status = 'pending'
         else:
             payment_status = 'failed'
@@ -738,6 +739,14 @@ def volunteer_register(request, volunteer_id):
     }, status=201)
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def my_volunteer_registrations(request):
+    """List current user's volunteer sign-ups (sync with frontend profile / history)."""
+    regs = VolunteerRegistration.objects.filter(user=request.user).select_related('volunteer')
+    return Response(VolunteerRegistrationSerializer(regs, many=True).data)
+
+
 # --- CAMPAIGN VIEWS ---
 
 @api_view(['GET', 'POST'])
@@ -767,7 +776,16 @@ def campaign_list_create(request):
         campaign = serializer.save(created_by=request.user, status='pending', remarks=None)
         ActivityLog.objects.create(action=f"Campaign submitted: {campaign.title}", module="Fundraising", user=request.user, status="Pending")
         return Response(serializer.data, status=201)
-    return Response(serializer.errors, status=400)
+        return Response(serializer.errors, status=400)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def campaign_public_detail(request, campaign_id):
+    """Public read of a single approved, active campaign (avoids fetching the full list on the frontend)."""
+    campaign = get_object_or_404(Campaign, pk=campaign_id, is_active=True, status='approved')
+    return Response(CampaignSerializer(campaign).data)
+
 
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated, IsAdminUser])
@@ -838,9 +856,10 @@ def campaign_donate(request, campaign_id):
     if not normalized_method:
         return Response({'payment_method': ['Unsupported payment method.']}, status=400)
 
-    if normalized_method in ('gcash', 'maya', 'cash'):
+    # Demo-style rules: instant success for GCash/cash; pending for others (card/Maya/QRPH).
+    if normalized_method in ('gcash', 'cash'):
         payment_status = 'success'
-    elif normalized_method == 'qrph':
+    elif normalized_method in ('maya', 'qrph', 'credit_debit'):
         payment_status = 'pending'
     else:
         payment_status = 'failed'
@@ -856,13 +875,19 @@ def campaign_donate(request, campaign_id):
         email = (request.data.get('email') or '').strip() or 'guest@example.com'
         donor_user = None
 
+    freq_raw = str(request.data.get('frequency') or 'one-time').strip().lower()
+    donation_frequency = 'monthly' if freq_raw in ('monthly', 'recurring') else 'one-time'
+    payment_account = (request.data.get('payment_account') or '')[:64]
+
     payload = {
-        **request.data,
+        'amount': request.data.get('amount'),
         'campaign': campaign.id,
         'payment_method': normalized_method,
         'first_name': first_name,
         'last_name': last_name,
         'email': email,
+        'frequency': donation_frequency,
+        'payment_account': payment_account,
     }
     serializer = CampaignDonationSerializer(data=payload)
     if serializer.is_valid():

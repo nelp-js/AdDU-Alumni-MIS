@@ -330,6 +330,9 @@ class CampaignDonation(models.Model):
     amount         = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='gcash')
     payment_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='success')
+    # Optional fields aligned with public donate UI (stored for record-keeping; no recurring billing engine).
+    frequency = models.CharField(max_length=20, blank=True, default='one-time')
+    payment_account = models.CharField(max_length=64, blank=True, default='')
     donated_at     = models.DateTimeField(auto_now_add=True)
 
     class Meta:

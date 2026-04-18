@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/Opportunities.css';
 import { useTitle } from '../Hooks/useTitle';
-
 function formatMoney(n) {
     if (n == null || n === '') return '—';
     const num = Number(n);
@@ -35,22 +34,22 @@ function CampaignView() {
     useTitle('Campaign Details');
     const navigate = useNavigate();
     const { id } = useParams();
-    const [campaigns, setCampaigns] = useState([]);
+    const [campaign, setCampaign] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
+        if (!id) return;
         setLoading(true);
-        api.get('/api/campaigns/')
-            .then((res) => setCampaigns(Array.isArray(res.data) ? res.data : []))
-            .catch(() => setError('Failed to load campaign.'))
+        setError('');
+        api.get(`/api/campaigns/public/${id}/`)
+            .then((res) => setCampaign(res.data))
+            .catch(() => {
+                setCampaign(null);
+                setError('Failed to load campaign.');
+            })
             .finally(() => setLoading(false));
-    }, []);
-
-    const campaign = useMemo(
-        () => campaigns.find((c) => String(c.id) === String(id)) || null,
-        [campaigns, id]
-    );
+    }, [id]);
 
     const raised = Number(campaign?.raised_amount || 0);
     const goal = Number(campaign?.goal_amount || 0);
@@ -109,7 +108,7 @@ function CampaignView() {
                                     className="campaign-detail-donate-now"
                                     onClick={() => navigate(`/campaigns/${campaign.id}/donate`)}
                                 >
-                                    Support
+                                    Show Support
                                 </button>
                                 <button type="button" className="campaign-detail-share-btn">Share</button>
                             </aside>

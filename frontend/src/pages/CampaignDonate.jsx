@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/Opportunities.css';
 import { useTitle } from '../Hooks/useTitle';
-
 const METHOD_OPTIONS = [
     { id: 'gcash', label: 'GCash', logo: 'G' },
     { id: 'maya', label: 'Maya', logo: 'M' },
@@ -39,7 +38,7 @@ function formatReceiptDate(isoDate) {
 function CampaignDonate() {
     useTitle('Donate to Campaign');
     const { id } = useParams();
-    const [campaigns, setCampaigns] = useState([]);
+    const [campaign, setCampaign] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -70,17 +69,17 @@ function CampaignDonate() {
     });
 
     useEffect(() => {
+        if (!id) return;
         setLoading(true);
-        api.get('/api/campaigns/')
-            .then((res) => setCampaigns(Array.isArray(res.data) ? res.data : []))
-            .catch(() => setError('Failed to load campaign.'))
+        setError('');
+        api.get(`/api/campaigns/public/${id}/`)
+            .then((res) => setCampaign(res.data))
+            .catch(() => {
+                setCampaign(null);
+                setError('Failed to load campaign.');
+            })
             .finally(() => setLoading(false));
-    }, []);
-
-    const campaign = useMemo(
-        () => campaigns.find((c) => String(c.id) === String(id)) || null,
-        [campaigns, id]
-    );
+    }, [id]);
 
     const donationValue = Number(donationAmount || 0);
     const safeDonation = Number.isFinite(donationValue) && donationValue > 0 ? donationValue : 0;
@@ -114,16 +113,13 @@ function CampaignDonate() {
                 payment_account: (paymentMethod === 'gcash' || paymentMethod === 'maya') ? ewalletAccount : undefined,
             });
 
-            setCampaigns((prev) =>
-                prev.map((c) =>
-                    String(c.id) === String(id)
-                        ? {
-                            ...c,
-                            raised_amount: res.data.campaign_raised_amount ?? c.raised_amount,
-                            donors_count: res.data.campaign_donors_count ?? c.donors_count,
-                        }
-                        : c
-                )
+            setCampaign((c) =>
+                c                    ? {
+                        ...c,
+                        raised_amount: res.data.campaign_raised_amount ?? c.raised_amount,
+                        donors_count: res.data.campaign_donors_count ?? c.donors_count,
+                    }
+                    : c
             );
 
             const statusLabel = (res.data.payment_status || '').toLowerCase();

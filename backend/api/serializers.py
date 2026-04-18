@@ -440,7 +440,9 @@ class CampaignDonationSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'campaign', 'user', 'donor_name',
             'first_name', 'last_name', 'email',
-            'amount', 'payment_method', 'payment_status', 'donated_at',
+            'amount', 'payment_method', 'payment_status',
+            'frequency', 'payment_account',
+            'donated_at',
         ]
         read_only_fields = ['id', 'user', 'donor_name', 'payment_status', 'donated_at']
 
@@ -470,6 +472,20 @@ class CampaignDonationSerializer(serializers.ModelSerializer):
         if not normalized:
             raise serializers.ValidationError("Unsupported payment method.")
         return normalized
+
+    def validate_frequency(self, value):
+        raw = (value or 'one-time').strip().lower()
+        if raw in ('monthly', 'recurring'):
+            return 'monthly'
+        return 'one-time'
+
+    def validate_payment_account(self, value):
+        if value is None:
+            return ''
+        s = str(value).strip()
+        if len(s) > 64:
+            raise serializers.ValidationError('Payment account reference is too long.')
+        return s
 
 
 class CampaignSerializer(serializers.ModelSerializer):
