@@ -5,14 +5,17 @@ import Footer from '../components/Footer';
 import { useTitle } from '../Hooks/useTitle';
 import { useNavigate } from 'react-router-dom';
 import LocationFields from '../components/LocationFields';
+import MarriageYearMonthFields from '../components/MarriageYearMonthFields';
+import BirthDateInput from '../components/BirthDateInput';
 import { useCountries } from '../Hooks/useCountries';
 
 function Register() {
     useTitle('Register');
     const navigate = useNavigate();
     
-    const idInputRef = useRef(null); 
-    const diplomaInputRef = useRef(null); 
+    const idInputRef = useRef(null);
+    const diplomaInputRef = useRef(null);
+    const birthDateRef = useRef(null); 
 
     const [formData, setFormData] = useState({
         first_name: '', middle_name: '', last_name: '',
@@ -73,6 +76,19 @@ function Register() {
             return;
         }
 
+        const birthCommit = birthDateRef.current?.commit?.();
+        if (birthCommit?.success === false) {
+            return;
+        }
+        let birthDateIso = formData.birth_date;
+        if (birthCommit?.success) {
+            birthDateIso = birthCommit.iso;
+        }
+        if (!birthDateIso) {
+            setErrors({ birth_date: 'Birth date is required.' });
+            return;
+        }
+
         setLoading(true);
 
         const dataToSend = new FormData();
@@ -81,6 +97,10 @@ function Register() {
 
         Object.keys(formData).forEach(key => {
             if (formData[key] !== null && formData[key] !== '' && key !== 'valid_id_file' && key !== 'diploma_file' && key !== 'confirm_password') {
+                if (key === 'birth_date') {
+                    dataToSend.append('birth_date', birthDateIso);
+                    return;
+                }
                 dataToSend.append(key, formData[key]);
             }
         });
@@ -198,7 +218,19 @@ function Register() {
                             <div className="batch-program-fields">
                                 <div className="form-group">
                                     <label>Birth Date <span className="required-star">*</span></label>
-                                    <input type="date" name="birth_date" value={formData.birth_date} onChange={handleChange} required />
+                                    <BirthDateInput
+                                        ref={birthDateRef}
+                                        id="register-birth-date"
+                                        value={formData.birth_date}
+                                        onChange={(iso) => {
+                                            setFormData((prev) => ({ ...prev, birth_date: iso }));
+                                            if (errors.birth_date) setErrors((prev) => ({ ...prev, birth_date: '' }));
+                                        }}
+                                        required
+                                    />
+                                    {errors.birth_date && (
+                                        <span className="field-error">{errors.birth_date}</span>
+                                    )}
                                 </div>
                                 <div className="form-group">
                                     <label>Sex <span className="required-star">*</span></label>
@@ -282,51 +314,60 @@ function Register() {
                                 )}
                             </div>
 
-                            <div className="form-group">
-                                <label>Marital Status <span className="required-star">*</span></label>
-                                <select name="marital_status" value={formData.marital_status} onChange={handleChange} required>
-                                    <option value="">Select Marital Status</option>
-                                    <option value="single">Single</option>
-                                    <option value="married">Married</option>
-                                    <option value="living_in">Living In</option>
-                                    <option value="separated">Separated</option>
-                                    <option value="annulled">Annulled</option>
-                                    <option value="divorced">Divorced</option>
-                                    <option value="widowed">Widowed</option>
-                                </select>
-                            </div>
-
-                            {['married', 'separated', 'annulled', 'divorced', 'widowed'].includes(formData.marital_status) && (
+                            <div className="register-form-half">
                                 <div className="form-group">
-                                    <label>Date of Marriage (YYYY-MM) <span className="required-star">*</span></label>
-                                    <input type="month" name="marriage_date" value={formData.marriage_date} onChange={handleChange} required />
-                                </div>
-                            )}
-
-                            {formData.marital_status === 'single' && (
-                                <div className="form-group">
-                                    <label>Do you intend to marry? <span className="required-star">*</span></label>
-                                    <select name="intend_to_marry" value={formData.intend_to_marry} onChange={handleChange} required>
-                                        <option value="">Select Option</option>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
+                                    <label>Marital Status <span className="required-star">*</span></label>
+                                    <select name="marital_status" value={formData.marital_status} onChange={handleChange} required>
+                                        <option value="">Select Marital Status</option>
+                                        <option value="single">Single</option>
+                                        <option value="married">Married</option>
+                                        <option value="living_in">Living In</option>
+                                        <option value="separated">Separated</option>
+                                        <option value="annulled">Annulled</option>
+                                        <option value="divorced">Divorced</option>
+                                        <option value="widowed">Widowed</option>
                                     </select>
                                 </div>
-                            )}
 
-                            {formData.intend_to_marry === 'yes' && formData.marital_status === 'single' && (
-                                <div className="form-group">
-                                    <label>Intended Marriage Age (18+) <span className="required-star">*</span></label>
-                                    <input type="number" name="intended_marriage_age" value={formData.intended_marriage_age} onChange={handleChange} min="18" max="100" required />
-                                </div>
-                            )}
+                                {['married', 'separated', 'annulled', 'divorced', 'widowed'].includes(formData.marital_status) && (
+                                    <div className="form-group">
+                                        <label>Date of marriage <span className="required-star">*</span></label>
+                                        <MarriageYearMonthFields
+                                            value={formData.marriage_date}
+                                            onChange={(v) => {
+                                                setFormData((prev) => ({ ...prev, marriage_date: v }));
+                                                if (errors.marriage_date) setErrors((prev) => ({ ...prev, marriage_date: '' }));
+                                            }}
+                                            required
+                                        />
+                                    </div>
+                                )}
 
-                            {formData.intend_to_marry === 'no' && formData.marital_status === 'single' && (
-                                <div className="form-group">
-                                    <label>Reason (Optional)</label>
-                                    <input type="text" name="no_marriage_reason" value={formData.no_marriage_reason} onChange={handleChange} />
-                                </div>
-                            )}
+                                {formData.marital_status === 'single' && (
+                                    <div className="form-group">
+                                        <label>Do you intend to marry? <span className="required-star">*</span></label>
+                                        <select name="intend_to_marry" value={formData.intend_to_marry} onChange={handleChange} required>
+                                            <option value="">Select Option</option>
+                                            <option value="yes">Yes</option>
+                                            <option value="no">No</option>
+                                        </select>
+                                    </div>
+                                )}
+
+                                {formData.intend_to_marry === 'yes' && formData.marital_status === 'single' && (
+                                    <div className="form-group">
+                                        <label>Intended Marriage Age (18+) <span className="required-star">*</span></label>
+                                        <input type="number" name="intended_marriage_age" value={formData.intended_marriage_age} onChange={handleChange} min="18" max="100" required />
+                                    </div>
+                                )}
+
+                                {formData.intend_to_marry === 'no' && formData.marital_status === 'single' && (
+                                    <div className="form-group">
+                                        <label>Reason (Optional)</label>
+                                        <input type="text" name="no_marriage_reason" value={formData.no_marriage_reason} onChange={handleChange} />
+                                    </div>
+                                )}
+                            </div>
                             
                             <div className="batch-program-fields">
                                 <div className="form-group">
@@ -348,8 +389,7 @@ function Register() {
                             </div>
                             
                             <div className="form-group">
-                                <label>Do you have a diploma?</label>
-                                <span style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Upload Diploma (Optional, JPG/PNG, Max 10MB)</span>
+                                <label>Upload Diploma (Optional, JPG/PNG, Max 10MB)</label>
                                 <input type="file" ref={diplomaInputRef} onChange={(e) => handleFileChange(e, 'diploma')} style={{ display: "none" }} accept="image/png, image/jpeg, image/jpg" />
                                 <button type="button" className="upload-btn" onClick={() => diplomaInputRef.current.click()}>
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

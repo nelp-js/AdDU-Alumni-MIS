@@ -156,38 +156,37 @@ function JobsInternships() {
                 </div>
 
                 <div className="opp-tabs-container">
-                    <div className="opp-tabs">
-                        <button
-                            type="button"
-                            className={`opp-tab ${tab === 'jobs' ? 'active' : ''}`}
-                            onClick={() => {
-                                setTab('jobs');
-                                setPage(1);
-                            }}
-                        >
-                            Jobs
-                        </button>
-                        <button
-                            type="button"
-                            className={`opp-tab ${tab === 'internships' ? 'active' : ''}`}
-                            onClick={() => {
-                                setTab('internships');
-                                setPage(1);
-                            }}
-                        >
-                            Internships
-                        </button>
-                    </div>
-
-                    {tab === 'jobs' && (
+                    <div className="opp-tabs-row">
+                        <div className="opp-tabs">
+                            <button
+                                type="button"
+                                className={`opp-tab ${tab === 'jobs' ? 'active' : ''}`}
+                                onClick={() => {
+                                    setTab('jobs');
+                                    setPage(1);
+                                }}
+                            >
+                                Jobs
+                            </button>
+                            <button
+                                type="button"
+                                className={`opp-tab ${tab === 'internships' ? 'active' : ''}`}
+                                onClick={() => {
+                                    setTab('internships');
+                                    setPage(1);
+                                }}
+                            >
+                                Internships
+                            </button>
+                        </div>
                         <button
                             type="button"
                             className="opp-post-job-btn"
-                            onClick={() => navigate('/jobs/create/job')}
+                            onClick={() => navigate('/jobs/create')}
                         >
-                            Post a Job
+                            Post a Job/Internship
                         </button>
-                    )}
+                    </div>
                 </div>
 
                 {loading && <div className="opp-state">Loading...</div>}

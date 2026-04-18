@@ -50,7 +50,6 @@ urlpatterns = [
     path("internships/<int:internship_id>/toggle-hide/",    views.internship_toggle_hide,    name="internship-toggle-hide"),
 
     # --- VOLUNTEER VIEWS ---
-    path("volunteers/registrations/mine/",             views.my_volunteer_registrations, name="volunteer-registrations-mine"),
     path("volunteers/",                                  views.volunteer_list_create,   name="volunteer-list"),
     path("volunteers/admin/",                            views.volunteer_admin_list,    name="volunteer-admin-list"),
     path("volunteers/public/<int:volunteer_id>/",        views.volunteer_public_detail, name="volunteer-public-detail"),

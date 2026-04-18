@@ -1,0 +1,108 @@
+.birth-date-input-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.birth-date-field-shell {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.birth-date-input {
+    width: 100%;
+    padding: 12px 44px 12px 15px;
+    box-sizing: border-box;
+}
+
+/* Calendar trigger: invisible <input type="date"> stacked on the glyph so the browser opens the native picker from a genuine tap/click (not an off-screen programmatic click). */
+.birth-date-cal-slot {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    z-index: 2;
+}
+
+.birth-date-cal-visual {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    color: #4b5563;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
+}
+
+.birth-date-cal-slot:hover:not(:has(input:disabled)) .birth-date-cal-visual {
+    background: #f3f4f6;
+    color: #040354;
+    border-radius: 6px;
+}
+
+.birth-date-cal-slot:has(.birth-date-native-overlay:focus-visible) {
+    outline: 2px solid #040354;
+    outline-offset: 2px;
+}
+
+.birth-date-cal-slot:has(.birth-date-native-overlay:focus-visible) .birth-date-cal-visual {
+    background: #eef2ff;
+    color: #040354;
+}
+
+.birth-date-native-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    opacity: 0;
+    cursor: pointer;
+    box-sizing: border-box;
+    font-size: 16px;
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    color: transparent;
+}
+
+.birth-date-native-overlay:disabled {
+    cursor: not-allowed;
+}
+
+.birth-date-native-overlay::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    opacity: 0;
+}
+
+.birth-date-input-error {
+    margin: 6px 0 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #b91c1c;
+}
+
+/* Register: match .form-group input + room for calendar icon */
+.form-group .birth-date-input {
+    padding: 12px 44px 12px 15px;
+}
+
+/* Profile modal */
+.profile-form-input.birth-date-input {
+    padding: 10px 40px 10px 12px;
+}

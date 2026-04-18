@@ -1382,10 +1382,12 @@
 
 /* ── Post a Job Button & Layout ── */
 .opp-tabs-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-bottom: 20px;
+}
+
+.opp-tabs-row {
+    display: flex;
+    align-items: center;
     flex-wrap: wrap;
     gap: 12px;
 }
@@ -1394,21 +1396,29 @@
     margin-bottom: 0;
 }
 
+/* Align with dashboard "Create Event" (.dashboard-module-btn.secondary) */
 .opp-post-job-btn {
-    background: #040354;
-    color: #fff;
+    background-color: #fff;
+    color: #040354;
     border: 1px solid #040354;
-    border-radius: 999px;
-    padding: 8px 14px;
+    border-radius: 8px;
+    padding: 10px 14px;
     font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition:
+        background-color 0.15s ease,
+        opacity 0.15s ease;
     display: inline-flex;
     align-items: center;
     gap: 6px;
 }
 
-.opp-post-job-btn:hover {
-    background: #1e3a8a;
-    border-color: #1e3a8a;
+.opp-post-job-btn:hover:not(:disabled) {
+    background-color: #f3f4f6;
+}
+
+.opp-post-job-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }

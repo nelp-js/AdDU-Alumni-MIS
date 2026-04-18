@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -7,11 +7,14 @@ import ExperienceSection from '../components/ExperienceSection';
 import EducationSection from '../components/EducationSection';
 import EditModal from '../components/EditModal';
 import LocationFields from '../components/LocationFields';
+import MarriageYearMonthFields from '../components/MarriageYearMonthFields';
+import BirthDateInput from '../components/BirthDateInput';
 import api from '../api';
 import { useTitle } from '../Hooks/useTitle';
 import { useCountries } from '../Hooks/useCountries';
 import '../styles/Profile.css';
 import '../styles/ProfileSection.css';
+import { normalizeStoredBirthDate } from '../utils/birthDate';
 
 const BIO_MAX = 500;
 const MARRIED_STATUSES = ['married', 'separated', 'annulled', 'divorced', 'widowed'];
@@ -66,6 +69,7 @@ const ModalSection = ({ children }) => (
 function Profile() {
     useTitle('Profile');
     const navigate = useNavigate();
+    const birthDateRef = useRef(null);
 
     const { countries, loading: loadingCountries } = useCountries();
 
@@ -123,7 +127,7 @@ function Profile() {
                     provinceCode:          u.provinceCode       || '',
                     province:              u.province           || '',
                     city:                  u.city               || '',
-                    birth_date:            u.birth_date         || '',
+                    birth_date:            normalizeStoredBirthDate(u.birth_date),
                     sex:                   u.sex                || '',
                     religion:              u.religion           || '',
                     religion_other:        u.religion_other     || '',
@@ -168,7 +172,18 @@ function Profile() {
         e.preventDefault();
         setSavingInfo(true);
         setInfoError('');
-        const f = infoForm;
+
+        const birthCommit = birthDateRef.current?.commit?.();
+        if (birthCommit?.success === false) {
+            setSavingInfo(false);
+            return;
+        }
+        let birthIso = infoForm.birth_date;
+        if (birthCommit?.success) {
+            birthIso = birthCommit.iso;
+        }
+
+        const f = { ...infoForm, birth_date: birthIso };
         const isSingle  = f.marital_status === 'single';
         const isMarried = MARRIED_STATUSES.includes(f.marital_status);
 
@@ -292,7 +307,12 @@ function Profile() {
                             <input type="text" value={infoForm.last_name} onChange={set('last_name')} className="profile-form-input" required />
                         </FormRow>
                         <FormRow label="Birth Date">
-                            <input type="date" value={infoForm.birth_date} onChange={set('birth_date')} className="profile-form-input" />
+                            <BirthDateInput
+                                ref={birthDateRef}
+                                value={infoForm.birth_date}
+                                onChange={(iso) => setInfoForm((p) => ({ ...p, birth_date: iso }))}
+                                className="profile-form-input"
+                            />
                         </FormRow>
                         <FormRow label="Sex">
                             <FormSelect value={infoForm.sex} onChange={set('sex')} placeholder="Select sex"
@@ -381,8 +401,12 @@ function Profile() {
                                 ]} />
                         </FormRow>
                         {MARRIED_STATUSES.includes(infoForm.marital_status) && (
-                            <FormRow label="Date of Marriage (YYYY-MM)">
-                                <input type="month" value={infoForm.marriage_date} onChange={set('marriage_date')} className="profile-form-input" />
+                            <FormRow label="Date of marriage (YYYY-MM)">
+                                <MarriageYearMonthFields
+                                    value={infoForm.marriage_date}
+                                    onChange={(v) => setInfoForm((p) => ({ ...p, marriage_date: v }))}
+                                    inputClassName="profile-form-input"
+                                />
                             </FormRow>
                         )}
                         {infoForm.marital_status === 'single' && (

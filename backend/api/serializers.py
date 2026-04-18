@@ -337,7 +337,10 @@ class JobSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'posted_by', 'posted_by_name', 'created_at', 'updated_at']
 
     def get_posted_by_name(self, obj):
-        return f"{obj.posted_by.first_name} {obj.posted_by.last_name}".strip() or obj.posted_by.username
+        if not obj.posted_by_id:
+            return 'Guest'
+        u = obj.posted_by
+        return f"{u.first_name} {u.last_name}".strip() or u.username
 
     def validate_position(self, value):
         if value and len(value) > 140:
@@ -358,7 +361,10 @@ class InternshipSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'posted_by', 'posted_by_name', 'created_at', 'updated_at']
 
     def get_posted_by_name(self, obj):
-        return f"{obj.posted_by.first_name} {obj.posted_by.last_name}".strip() or obj.posted_by.username
+        if not obj.posted_by_id:
+            return 'Guest'
+        u = obj.posted_by
+        return f"{u.first_name} {u.last_name}".strip() or u.username
 
     def validate_position(self, value):
         if value and len(value) > 140:

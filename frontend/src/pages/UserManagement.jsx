@@ -6,6 +6,7 @@ import api from '../api';
 import '../styles/UserManagement.css';
 import { useTitle } from '../Hooks/useTitle';
 import LocationFields from '../components/LocationFields';
+import MarriageYearMonthFields from '../components/MarriageYearMonthFields';
 import { useCountries } from '../Hooks/useCountries';
 
 // ─── Static option lists ────────────────────────────────────────────────────
@@ -434,8 +435,15 @@ function UserManagement() {
                                     <SelectInput name="marital_status" value={editForm.marital_status} onChange={handleEditChange} placeholder="Select Marital Status" options={MARITAL_STATUSES} />
                                 </Field>
                                 {MARRIED_STATUSES.includes(editForm.marital_status) && (
-                                    <Field label="Date of Marriage (YYYY-MM) *">
-                                        <input type="month" name="marriage_date" value={editForm.marriage_date} onChange={handleEditChange} />
+                                    <Field label="Date of marriage (year & month) *">
+                                        <MarriageYearMonthFields
+                                            key={editingUser}
+                                            value={editForm.marriage_date}
+                                            onChange={(v) =>
+                                                setEditForm((prev) => ({ ...prev, marriage_date: v }))
+                                            }
+                                            required
+                                        />
                                     </Field>
                                 )}
                                 {editForm.marital_status === 'single' && (

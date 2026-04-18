@@ -192,7 +192,7 @@ class Job(models.Model):
     status          = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     remarks         = models.TextField(blank=True, null=True)
     is_hidden       = models.BooleanField(default=False)
-    posted_by       = models.ForeignKey(User, on_delete=models.CASCADE, related_name='job_postings')
+    posted_by       = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='job_postings')
     created_at      = models.DateTimeField(auto_now_add=True)
     updated_at      = models.DateTimeField(auto_now=True)
 
@@ -219,7 +219,7 @@ class Internship(models.Model):
     status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     remarks     = models.TextField(blank=True, null=True)
     is_hidden   = models.BooleanField(default=False)
-    posted_by   = models.ForeignKey(User, on_delete=models.CASCADE, related_name='internship_postings')
+    posted_by   = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='internship_postings')
     created_at  = models.DateTimeField(auto_now_add=True)
     updated_at  = models.DateTimeField(auto_now=True)
 

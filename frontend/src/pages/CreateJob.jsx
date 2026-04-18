@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -7,7 +7,6 @@ import '../styles/CreateEvent.css';
 import '../styles/CreateJob.css';
 import '../styles/ContentManagement.css';
 import { useTitle } from '../Hooks/useTitle';
-import { USER_IS_ADMIN } from '../constants';
 
 const MAX_TEXT_60 = 60;
 const MAX_DESCRIPTION_WORDS = 1200;
@@ -56,20 +55,19 @@ function trimToWordLimit(text, maxWords) {
 
 function CreateJob() {
     const { kind, id } = useParams();
+    const location = useLocation();
     const routeType = kind === 'job' || kind === 'internship' ? kind : null;
     const isEditMode = Boolean(routeType && id);
     useTitle(isEditMode ? `Edit ${routeType === 'job' ? 'Job' : 'Internship'}` : 'Create Job & Internship');
     const navigate = useNavigate();
 
-    const isAdmin = localStorage.getItem(USER_IS_ADMIN) === 'true';
+    const isDashboardJobs = location.pathname.includes('/dashboard/jobs');
+    const returnPath = isDashboardJobs ? '/dashboard/jobs' : '/jobs';
+    const createPickerPath = isDashboardJobs ? '/dashboard/jobs/create' : '/jobs/create';
+    const jobCreatePath = `${createPickerPath}/job`;
+    const internshipCreatePath = `${createPickerPath}/internship`;
 
-    // Check if the current URL contains "dashboard" to know where to redirect later
-    const returnPath = window.location.pathname.includes('dashboard') ? '/dashboard/jobs' : '/jobs';
-
-    const [type, setType] = useState(() => {
-        if (routeType) return routeType;
-        return isAdmin ? null : 'job';
-    });
+    const [type, setType] = useState(() => (routeType || null));
 
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -81,12 +79,13 @@ function CreateJob() {
         return { ...JOB_FIELDS };
     });
 
-    // Block non-admin users from internship create/edit routes
     useEffect(() => {
-        if (!isAdmin && routeType === 'internship') {
-            navigate('/jobs/create/job', { replace: true });
+        if (kind === 'job' || kind === 'internship') {
+            setType(kind);
+        } else if (!isEditMode) {
+            setType(null);
         }
-    }, [isAdmin, routeType, navigate]);
+    }, [kind, isEditMode]);
 
     // Keep form fields in sync when type changes on create mode
     useEffect(() => {
@@ -109,12 +108,6 @@ function CreateJob() {
     const contactNameCount = (formData.contactName || '').length;
     const contactPositionCount = (formData.contactPosition || '').length;
     const emailCount = (formData.email || '').length;
-
-    const handleSelectType = (t) => {
-        if (!isAdmin && t === 'internship') return;
-        setType(t);
-        setFormData(t === 'job' ? { ...JOB_FIELDS } : { ...INTERNSHIP_FIELDS });
-    };
 
     useEffect(() => {
         if (!isEditMode || !routeType || !id) return;
@@ -197,11 +190,6 @@ function CreateJob() {
             return;
         }
 
-        if (type === 'internship' && !isAdmin) {
-            setSubmitError('Only admins can create internship posts.');
-            return;
-        }
-
         if (type === 'internship' && (!formData.internshipStartDate || !formData.internshipEndDate)) {
             setSubmitError('Please fill in the internship duration dates.');
             return;
@@ -262,7 +250,7 @@ function CreateJob() {
         }
     };
 
-    if (isAdmin && !type && !isEditMode) {
+    if (!isEditMode && !routeType) {
         return (
             <div className="create-event-page">
                 <Header />
@@ -271,7 +259,7 @@ function CreateJob() {
                     <div className="create-event-form-box">
                         <p className="cj-picker-label">What would you like to post?</p>
                         <div className="cj-type-grid">
-                            <button type="button" className="cj-type-card" onClick={() => handleSelectType('job')}>
+                            <button type="button" className="cj-type-card" onClick={() => navigate(jobCreatePath)}>
                                 <svg className="cj-type-icon" viewBox="0 0 24 24" fill="none" stroke="#040354" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                     <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
                                     <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
@@ -282,7 +270,7 @@ function CreateJob() {
                                 <span className="cj-type-desc">Full-time, part-time, or contract position</span>
                             </button>
 
-                            <button type="button" className="cj-type-card" onClick={() => handleSelectType('internship')}>
+                            <button type="button" className="cj-type-card" onClick={() => navigate(internshipCreatePath)}>
                                 <svg className="cj-type-icon" viewBox="0 0 24 24" fill="none" stroke="#040354" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
                                     <path d="M6 12v5c3 3 9 3 12 0v-5" />
@@ -295,7 +283,7 @@ function CreateJob() {
 
                     <div className="cj-back-row">
                         <Link to={returnPath} className="content-mgmt-back-link">
-                            ← Back to {window.location.pathname.includes('dashboard') ? 'Dashboard' : 'Jobs'}
+                            ← Back to {isDashboardJobs ? 'Dashboard' : 'Jobs'}
                         </Link>
                     </div>
                 </main>
@@ -316,7 +304,7 @@ function CreateJob() {
                                     ? `Your ${type === 'job' ? 'job posting' : 'internship'} has been updated successfully.`
                                     : `Your ${type === 'job' ? 'job posting' : 'internship'} has been submitted and is pending approval.`}
                             </p>
-                            <p>Redirecting to {window.location.pathname.includes('dashboard') ? 'dashboard' : 'jobs'}...</p>
+                            <p>Redirecting to {isDashboardJobs ? 'dashboard' : 'jobs'}...</p>
                         </div>
                     </div>
                 </main>
@@ -334,8 +322,8 @@ function CreateJob() {
                 </h1>
 
                 <div className="create-event-form-box">
-                    {!isEditMode && isAdmin && (
-                        <button type="button" className="cj-back-type" onClick={() => setType(null)}>
+                    {!isEditMode && (
+                        <button type="button" className="cj-back-type" onClick={() => navigate(createPickerPath)}>
                             ← Change type
                         </button>
                     )}
@@ -490,7 +478,7 @@ function CreateJob() {
                             <div className="ce-row">
                                 <div className="ce-field-group ce-field-half">
                                     <label className="ce-label-small">
-                                        {type === 'job' ? 'Start Date' : 'Posting Start Date'} <span className="ce-required">*</span>
+                                        Posting Start Date <span className="ce-required">*</span>
                                     </label>
                                     <input
                                         type="date"
@@ -505,7 +493,7 @@ function CreateJob() {
 
                                 <div className="ce-field-group ce-field-half">
                                     <label className="ce-label-small">
-                                        {type === 'job' ? 'End Date' : 'Posting End Date'} <span className="ce-required">*</span>
+                                        Posting End Date <span className="ce-required">*</span>
                                     </label>
                                     <input
                                         type="date"

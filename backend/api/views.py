@@ -498,15 +498,21 @@ def _serialize_campaign_listing(request, queryset):
     })
 
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticatedOrReadOnly])
+@permission_classes([AllowAny])
 def job_list_create(request):
     if request.method == 'GET':
         queryset = Job.objects.filter(status='approved', is_hidden=False)
         return _serialize_public_postings(request, queryset, JobSerializer)
     serializer = JobSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save(posted_by=request.user, status='pending')
-        ActivityLog.objects.create(action=f"Job submitted: {request.data.get('position', '')} at {request.data.get('company', '')}", module="Job & Internship", user=request.user, status="Pending")
+        poster = request.user if request.user.is_authenticated else None
+        serializer.save(posted_by=poster, status='pending')
+        ActivityLog.objects.create(
+            action=f"Job submitted: {request.data.get('position', '')} at {request.data.get('company', '')}",
+            module="Job & Internship",
+            user=poster,
+            status="Pending",
+        )
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
 
@@ -556,15 +562,21 @@ def job_toggle_hide(request, job_id):
 # --- INTERNSHIP VIEWS ---
 
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticatedOrReadOnly])
+@permission_classes([AllowAny])
 def internship_list_create(request):
     if request.method == 'GET':
         queryset = Internship.objects.filter(status='approved', is_hidden=False)
         return _serialize_public_postings(request, queryset, InternshipSerializer)
     serializer = InternshipSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save(posted_by=request.user, status='pending')
-        ActivityLog.objects.create(action=f"Internship submitted: {request.data.get('position', '')} at {request.data.get('company', '')}", module="Job & Internship", user=request.user, status="Pending")
+        poster = request.user if request.user.is_authenticated else None
+        serializer.save(posted_by=poster, status='pending')
+        ActivityLog.objects.create(
+            action=f"Internship submitted: {request.data.get('position', '')} at {request.data.get('company', '')}",
+            module="Job & Internship",
+            user=poster,
+            status="Pending",
+        )
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
 
@@ -739,14 +751,6 @@ def volunteer_register(request, volunteer_id):
     }, status=201)
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def my_volunteer_registrations(request):
-    """List current user's volunteer sign-ups (sync with frontend profile / history)."""
-    regs = VolunteerRegistration.objects.filter(user=request.user).select_related('volunteer')
-    return Response(VolunteerRegistrationSerializer(regs, many=True).data)
-
-
 # --- CAMPAIGN VIEWS ---
 
 @api_view(['GET', 'POST'])
@@ -776,7 +780,7 @@ def campaign_list_create(request):
         campaign = serializer.save(created_by=request.user, status='pending', remarks=None)
         ActivityLog.objects.create(action=f"Campaign submitted: {campaign.title}", module="Fundraising", user=request.user, status="Pending")
         return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+    return Response(serializer.errors, status=400)
 
 
 @api_view(['GET'])

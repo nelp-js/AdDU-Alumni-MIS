@@ -143,6 +143,15 @@
     color: #040354;
 }
 
+/* One column of the two-column row (same width as Birth Date / Sex cells) */
+.register-form-half {
+    width: 100%;
+    max-width: calc(50% - 7.5px);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
 /* Grid Layouts for Multiple Fields */
 .name-fields,
 .email-fields,
@@ -278,6 +287,10 @@
     .email-fields,
     .batch-program-fields {
         grid-template-columns: 1fr;
+    }
+
+    .register-form-half {
+        max-width: 100%;
     }
 }
 

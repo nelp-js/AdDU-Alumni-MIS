@@ -58,11 +58,11 @@ function App() {
         <Route path="/stories/:id" element={<ArticleView />} />
         <Route path="/events" element={<Events />} />
         
-        {/* User Job Routes */}
-        <Route path="/jobs" element={<ProtectedRoute><JobsInternships /></ProtectedRoute>} />
-        <Route path="/jobs/create" element={<ProtectedRoute><CreateJob /></ProtectedRoute>} />
-        <Route path="/jobs/create/:kind" element={<ProtectedRoute><CreateJob /></ProtectedRoute>} />
-        <Route path="/jobs/:kind/:id" element={<ProtectedRoute><JobOpportunityView /></ProtectedRoute>} />
+        {/* Jobs: public browse, detail, and create (guest posts show Posted By: Guest) */}
+        <Route path="/jobs" element={<JobsInternships />} />
+        <Route path="/jobs/create" element={<CreateJob />} />
+        <Route path="/jobs/create/:kind" element={<CreateJob />} />
+        <Route path="/jobs/:kind/:id" element={<JobOpportunityView />} />
         
         <Route path="/volunteer" element={<Volunteer />} />
         <Route path="/volunteer/:id" element={<VolunteerView />} />
