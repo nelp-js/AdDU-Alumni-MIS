@@ -136,7 +136,7 @@ function Header() {
                     <Link to="/">Home</Link>
                     <Link to="/stories">News &amp; Stories</Link>
                     <Link to="/events">Events</Link>
-                    <Link to="/campaigns">Support</Link>
+                    <Link to="/campaigns">Give Back</Link>
                     <div className="header-more" ref={moreDropdownRef}>
                         <button
                             type="button"

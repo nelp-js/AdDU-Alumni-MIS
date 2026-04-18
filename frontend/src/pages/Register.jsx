@@ -16,14 +16,14 @@ function Register() {
 
     const [formData, setFormData] = useState({
         first_name: '', middle_name: '', last_name: '',
-        email: '', username: '', password: '', role: 'alumni', 
+        email: '', username: '', password: '', confirm_password: '', role: 'alumni', 
         birth_date: '', sex: '',
         phone_number: '', telephone_number: '', current_address: '', 
         country: 'Philippines', geocode: '',
         regionCode: '', region: '', provinceCode: '', province: '', city: '',
         religion: '', religion_other: '', marital_status: '', 
         marriage_date: '', intend_to_marry: '', intended_marriage_age: '', no_marriage_reason: '',
-        course: '', batch_year: '', has_diploma: '',
+        course: '', batch_year: '',
         id_type: '', valid_id_file: null, diploma_file: null
     });
 
@@ -32,6 +32,7 @@ function Register() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: currentYear - 1948 + 1 }, (_, i) => currentYear - i);
@@ -65,6 +66,13 @@ function Register() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrors({});
+
+        // Frontend password validation
+        if (formData.password !== formData.confirm_password) {
+            setErrors({ confirm_password: 'Passwords do not match.' });
+            return;
+        }
+
         setLoading(true);
 
         const dataToSend = new FormData();
@@ -72,13 +80,13 @@ function Register() {
         dataToSend.append('name', computedName);
 
         Object.keys(formData).forEach(key => {
-            if (formData[key] !== null && formData[key] !== '' && key !== 'valid_id_file' && key !== 'diploma_file') {
+            if (formData[key] !== null && formData[key] !== '' && key !== 'valid_id_file' && key !== 'diploma_file' && key !== 'confirm_password') {
                 dataToSend.append(key, formData[key]);
             }
         });
 
         if (formData.valid_id_file) dataToSend.append('valid_id_file', formData.valid_id_file);
-        if (formData.has_diploma === 'yes' && formData.diploma_file) dataToSend.append('diploma_file', formData.diploma_file);
+        if (formData.diploma_file) dataToSend.append('diploma_file', formData.diploma_file);
 
         try {
             const response = await fetch('https://sia-2.onrender.com/api/user/register/', {
@@ -132,7 +140,7 @@ function Register() {
                                 </div>
                             </div>
                             
-                            <div className="name-fields">
+                            <div className="batch-program-fields">
                                 <div className="form-group">
                                     <label>Email <span className="required-star">*</span></label>
                                     <input type="email" name="email" value={formData.email} onChange={handleChange} required className={errors.email ? 'error' : ''}/>
@@ -143,6 +151,9 @@ function Register() {
                                     <input type="text" name="username" value={formData.username} onChange={handleChange} required className={errors.username ? 'error' : ''}/>
                                     {errors.username && <span className="field-error">{errors.username}</span>}
                                 </div>
+                            </div>
+
+                            <div className="batch-program-fields">
                                 <div className="form-group">
                                     <label>Password (Min 8 chars) <span className="required-star">*</span></label>
                                     <div className="password-input-wrapper">
@@ -161,6 +172,26 @@ function Register() {
                                             )}
                                         </button>
                                     </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>Confirm Password <span className="required-star">*</span></label>
+                                    <div className="password-input-wrapper">
+                                        <input type={showConfirmPassword ? 'text' : 'password'} name="confirm_password" value={formData.confirm_password} onChange={handleChange} minLength="8" required className={errors.confirm_password ? 'error' : ''} />
+                                        <button type="button" className="password-toggle" onClick={() => setShowConfirmPassword(!showConfirmPassword)} title={showConfirmPassword ? "Hide password" : "Show password"}>
+                                            {showConfirmPassword ? (
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                                </svg>
+                                            ) : (
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                    <circle cx="12" cy="12" r="3"></circle>
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
+                                    {errors.confirm_password && <span className="field-error">{errors.confirm_password}</span>}
                                 </div>
                             </div>
 
@@ -315,31 +346,21 @@ function Register() {
                                     </select>
                                 </div>
                             </div>
-
-                            <div className="form-group">
-                                <label>Do you have a diploma? <span className="required-star">*</span></label>
-                                <select name="has_diploma" value={formData.has_diploma} onChange={handleChange} required>
-                                    <option value="">Select Option</option>
-                                    <option value="yes">Yes</option>
-                                    <option value="no">No</option>
-                                </select>
-                            </div>
                             
-                            {formData.has_diploma === 'yes' && (
-                                <div className="form-group">
-                                    <label>Upload Diploma (JPG/PNG, Max 10MB) <span className="required-star">*</span></label>
-                                    <input type="file" ref={diplomaInputRef} onChange={(e) => handleFileChange(e, 'diploma')} style={{ display: "none" }} accept="image/png, image/jpeg, image/jpg" />
-                                    <button type="button" className="upload-btn" onClick={() => diplomaInputRef.current.click()}>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                            <polyline points="17 8 12 3 7 8"></polyline>
-                                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                                        </svg>
-                                        {fileNames.diploma || `Browse Diploma`} 
-                                    </button>
-                                    {errors.diploma && <span className="field-error">{errors.diploma}</span>}
-                                </div>
-                            )}
+                            <div className="form-group">
+                                <label>Do you have a diploma?</label>
+                                <span style={{ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' }}>Upload Diploma (Optional, JPG/PNG, Max 10MB)</span>
+                                <input type="file" ref={diplomaInputRef} onChange={(e) => handleFileChange(e, 'diploma')} style={{ display: "none" }} accept="image/png, image/jpeg, image/jpg" />
+                                <button type="button" className="upload-btn" onClick={() => diplomaInputRef.current.click()}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                    </svg>
+                                    {fileNames.diploma || `Browse Diploma`} 
+                                </button>
+                                {errors.diploma && <span className="field-error">{errors.diploma}</span>}
+                            </div>
 
                             <div className="form-group">
                                 <label>ID Type <span className="required-star">*</span></label>

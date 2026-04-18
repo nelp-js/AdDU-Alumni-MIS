@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Users, CreditCard, Smartphone, Wallet } from 'lucide-react';
 import '../styles/EventRegistrationModal.css';
 import api from '../api';
@@ -14,7 +14,42 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
     const [error, setError]                 = useState('');
     const [registrationStatus, setRegistrationStatus] = useState('');
 
+    // Additional state for the dynamic payment inputs (Removed Reference No.)
+    const [ewalletAccount, setEwalletAccount] = useState('');
+    const [cardInfo, setCardInfo] = useState({ number: '', expiry: '', cvc: '', name: '' });
+
     const totalPrice = (1 + guestCount) * pricePerGuest;
+
+    // Auto-fetch the logged in user's name
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const endpoints = ['/api/profile/', '/api/users/me/', '/api/user/'];
+                for (let endpoint of endpoints) {
+                    try {
+                        const res = await api.get(endpoint);
+                        if (res.data && (res.data.first_name || res.data.user?.first_name)) {
+                            setFirstName(res.data.first_name || res.data.user.first_name || '');
+                            setLastName(res.data.last_name || res.data.user.last_name || '');
+                            return; 
+                        }
+                    } catch (e) {
+                        continue;
+                    }
+                }
+            } catch (err) {
+                const storedUser = localStorage.getItem('user');
+                if (storedUser) {
+                    try {
+                        const parsed = JSON.parse(storedUser);
+                        if (parsed.first_name) setFirstName(parsed.first_name);
+                        if (parsed.last_name) setLastName(parsed.last_name);
+                    } catch(e) {}
+                }
+            }
+        };
+        fetchUser();
+    }, []);
 
     const handleGuestCountChange = (newCount) => {
         setGuestCount(newCount);
@@ -37,15 +72,34 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        
         if (!firstName.trim() || !lastName.trim()) {
             setError('Please enter your first and last name.');
             return;
         }
+
+        for (let i = 0; i < guests.length; i++) {
+            if (!guests[i].firstName.trim() || !guests[i].lastName.trim()) {
+                setError(`Please enter the first and last name for Guest ${i + 1}.`);
+                return;
+            }
+        }
+
         setError('');
         setStep('payment');
     };
 
     const handlePayment = async () => {
+        // Validate dynamic payment inputs before submitting
+        if ((paymentMethod === 'gcash' || paymentMethod === 'maya') && !ewalletAccount.trim()) {
+            setError(`Please enter your ${paymentMethod === 'gcash' ? 'GCash' : 'Maya'} Account Number.`);
+            return;
+        }
+        if (paymentMethod === 'card' && (!cardInfo.number || !cardInfo.expiry || !cardInfo.cvc || !cardInfo.name)) {
+            setError('Please fill in all credit card details.');
+            return;
+        }
+
         setIsProcessing(true);
         setError('');
         setRegistrationStatus('');
@@ -57,6 +111,7 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
                 guests:         guests,
                 payment_method: paymentMethod,
                 total_amount:   totalPrice,
+                payment_account: ewalletAccount, // Send the user's inputted account number
             });
             const status = res?.data?.payment_status || '';
             setRegistrationStatus(status);
@@ -157,6 +212,51 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
                         ))}
                     </div>
 
+                    {/* DYNAMIC PAYMENT INPUTS - Added 24px bottom margin here for spacing */}
+                    <div className="erm-payment-details-box" style={{ margin: '0 24px 24px' }}>
+                        {(paymentMethod === 'gcash' || paymentMethod === 'maya') && (
+                            <div className="erm-payment-ewallet" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                <div className="erm-field">
+                                    <label className="erm-label-sm">{paymentMethod === 'gcash' ? 'GCash' : 'Maya'} Account Number *</label>
+                                    <input type="text" className="erm-input" 
+                                        value={ewalletAccount} onChange={(e) => setEwalletAccount(e.target.value)} 
+                                        placeholder="09XX XXX XXXX" maxLength="11" required />
+                                </div>
+                            </div>
+                        )}
+
+                        {paymentMethod === 'card' && (
+                            <div className="erm-payment-card">
+                                <div className="erm-field">
+                                    <label className="erm-label-sm">Card Number *</label>
+                                    <input type="text" className="erm-input" 
+                                        value={cardInfo.number} onChange={(e) => setCardInfo({...cardInfo, number: e.target.value})}
+                                        placeholder="0000 0000 0000 0000" maxLength="19" required />
+                                </div>
+                                <div className="erm-guest-row">
+                                    <div className="erm-field">
+                                        <label className="erm-label-sm">Expiry Date *</label>
+                                        <input type="text" className="erm-input" 
+                                            value={cardInfo.expiry} onChange={(e) => setCardInfo({...cardInfo, expiry: e.target.value})}
+                                            placeholder="MM/YY" maxLength="5" required />
+                                    </div>
+                                    <div className="erm-field">
+                                        <label className="erm-label-sm">CVC *</label>
+                                        <input type="text" className="erm-input" 
+                                            value={cardInfo.cvc} onChange={(e) => setCardInfo({...cardInfo, cvc: e.target.value})}
+                                            placeholder="123" maxLength="4" required />
+                                    </div>
+                                </div>
+                                <div className="erm-field" style={{ marginTop: '4px' }}>
+                                    <label className="erm-label-sm">Cardholder Name *</label>
+                                    <input type="text" className="erm-input" 
+                                        value={cardInfo.name} onChange={(e) => setCardInfo({...cardInfo, name: e.target.value})}
+                                        placeholder="Name on card" required />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     <div className="erm-summary">
                         <div className="erm-summary-row">
                             <span>Attendees</span>
@@ -172,7 +272,7 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
                         </div>
                     </div>
 
-                    {error && <div className="erm-error">{error}</div>}
+                    {error && <div className="erm-error" style={{ margin: '0 24px' }}>{error}</div>}
 
                     <div className="erm-footer">
                         <button type="button" className="erm-btn-back" onClick={() => setStep('form')}>Back</button>
@@ -211,12 +311,12 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
                     <div className="erm-field">
                         <label className="erm-label">First Name *</label>
                         <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)}
-                            placeholder="Enter your first name" className="erm-input" />
+                            placeholder="Enter your first name" className="erm-input" required />
                     </div>
                     <div className="erm-field">
                         <label className="erm-label">Last Name *</label>
                         <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)}
-                            placeholder="Enter your last name" className="erm-input" />
+                            placeholder="Enter your last name" className="erm-input" required />
                     </div>
 
                     <div className="erm-field">
@@ -243,16 +343,16 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
                                     <p className="erm-guest-number">Guest {index + 1}</p>
                                     <div className="erm-guest-row">
                                         <div className="erm-field">
-                                            <label className="erm-label-sm">First Name</label>
+                                            <label className="erm-label-sm">First Name *</label>
                                             <input type="text" value={guest.firstName}
                                                 onChange={(e) => handleGuestChange(index, 'firstName', e.target.value)}
-                                                placeholder="First name" className="erm-input" />
+                                                placeholder="First name" className="erm-input" required />
                                         </div>
                                         <div className="erm-field">
-                                            <label className="erm-label-sm">Last Name</label>
+                                            <label className="erm-label-sm">Last Name *</label>
                                             <input type="text" value={guest.lastName}
                                                 onChange={(e) => handleGuestChange(index, 'lastName', e.target.value)}
-                                                placeholder="Last name" className="erm-input" />
+                                                placeholder="Last name" className="erm-input" required />
                                         </div>
                                     </div>
                                     <div className="erm-field">
