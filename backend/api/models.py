@@ -146,6 +146,7 @@ class Event(models.Model):
     action_button_link  = models.URLField(max_length=500, blank=True, null=True)
     created_at          = models.DateTimeField(auto_now_add=True, null=True)
     updated_at          = models.DateTimeField(auto_now=True, null=True)
+    timeline_status     = models.CharField(max_length=20, default='Incoming', blank=True)
 
     class Meta:
         ordering = ['-start_date']
@@ -153,24 +154,25 @@ class Event(models.Model):
     def __str__(self):
         return self.event_name
 
-    @property
-    def timeline_status(self):
+    def save(self, *args, **kwargs):
         if self.status != 'approved' and not self.is_approved:
-            return 'N/A'
-            
-        now = timezone.now()
-        start_dt = timezone.make_aware(datetime.datetime.combine(self.start_date, self.start_time))
-        
-        end_d = self.end_date if self.end_date else self.start_date
-        end_t = self.end_time if self.end_time else datetime.time(23, 59, 59)
-        end_dt = timezone.make_aware(datetime.datetime.combine(end_d, end_t))
-        
-        if now < start_dt:
-            return 'Incoming'
-        elif start_dt <= now <= end_dt:
-            return 'Ongoing'
+            self.timeline_status = 'N/A'
         else:
-            return 'Completed'
+            now = timezone.now()
+            start_dt = timezone.make_aware(datetime.datetime.combine(self.start_date, self.start_time))
+            
+            end_d = self.end_date if self.end_date else self.start_date
+            end_t = self.end_time if self.end_time else datetime.time(23, 59, 59)
+            end_dt = timezone.make_aware(datetime.datetime.combine(end_d, end_t))
+            
+            if now < start_dt:
+                self.timeline_status = 'Incoming'
+            elif start_dt <= now <= end_dt:
+                self.timeline_status = 'Ongoing'
+            else:
+                self.timeline_status = 'Completed'
+                
+        super().save(*args, **kwargs)
 
 
 class EventRegistration(models.Model):
@@ -217,6 +219,7 @@ class Job(models.Model):
     posted_by       = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='job_postings')
     created_at      = models.DateTimeField(auto_now_add=True)
     updated_at      = models.DateTimeField(auto_now=True)
+    timeline_status = models.CharField(max_length=20, default='Incoming', blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -224,40 +227,41 @@ class Job(models.Model):
     def __str__(self):
         return f"{self.position} at {self.company}"
 
-    @property
-    def timeline_status(self):
+    def save(self, *args, **kwargs):
         if self.status != 'approved':
-            return 'N/A'
-            
-        today = datetime.date.today()
-        
-        if today < self.start_date:
-            return 'Incoming'
-        elif self.start_date <= today <= self.end_date:
-            return 'Ongoing'
+            self.timeline_status = 'N/A'
         else:
-            return 'Completed'
+            today = datetime.date.today()
+            if today < self.start_date:
+                self.timeline_status = 'Incoming'
+            elif self.start_date <= today <= self.end_date:
+                self.timeline_status = 'Ongoing'
+            else:
+                self.timeline_status = 'Completed'
+                
+        super().save(*args, **kwargs)
 
 
 class Internship(models.Model):
     MODALITY_CHOICES = [('On-site', 'On-site'), ('Remote', 'Remote'), ('Hybrid', 'Hybrid')]
     STATUS_CHOICES   = [('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied')]
 
-    company     = models.CharField(max_length=255)
-    position    = models.CharField(max_length=255)
-    location    = models.CharField(max_length=255)
-    modality    = models.CharField(max_length=20, choices=MODALITY_CHOICES)
-    allowance   = models.CharField(max_length=100, blank=True, null=True)
-    email       = models.EmailField()
-    start_date  = models.DateField()
-    end_date    = models.DateField()
-    description = models.TextField()
-    status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    remarks     = models.TextField(blank=True, null=True)
-    is_hidden   = models.BooleanField(default=False)
-    posted_by   = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='internship_postings')
-    created_at  = models.DateTimeField(auto_now_add=True)
-    updated_at  = models.DateTimeField(auto_now=True)
+    company         = models.CharField(max_length=255)
+    position        = models.CharField(max_length=255)
+    location        = models.CharField(max_length=255)
+    modality        = models.CharField(max_length=20, choices=MODALITY_CHOICES)
+    allowance       = models.CharField(max_length=100, blank=True, null=True)
+    email           = models.EmailField()
+    start_date      = models.DateField()
+    end_date        = models.DateField()
+    description     = models.TextField()
+    status          = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    remarks         = models.TextField(blank=True, null=True)
+    is_hidden       = models.BooleanField(default=False)
+    posted_by       = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='internship_postings')
+    created_at      = models.DateTimeField(auto_now_add=True)
+    updated_at      = models.DateTimeField(auto_now=True)
+    timeline_status = models.CharField(max_length=20, default='Incoming', blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -265,19 +269,19 @@ class Internship(models.Model):
     def __str__(self):
         return f"{self.position} at {self.company} (Internship)"
 
-    @property
-    def timeline_status(self):
+    def save(self, *args, **kwargs):
         if self.status != 'approved':
-            return 'N/A'
-            
-        today = datetime.date.today()
-        
-        if today < self.start_date:
-            return 'Incoming'
-        elif self.start_date <= today <= self.end_date:
-            return 'Ongoing'
+            self.timeline_status = 'N/A'
         else:
-            return 'Completed'
+            today = datetime.date.today()
+            if today < self.start_date:
+                self.timeline_status = 'Incoming'
+            elif self.start_date <= today <= self.end_date:
+                self.timeline_status = 'Ongoing'
+            else:
+                self.timeline_status = 'Completed'
+                
+        super().save(*args, **kwargs)
 
 
 class VolunteerOpportunity(models.Model):
@@ -290,21 +294,22 @@ class VolunteerOpportunity(models.Model):
     ]
     STATUS_CHOICES = [('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied')]
 
-    title       = models.CharField(max_length=60)
-    category    = models.CharField(max_length=100, choices=CATEGORY_CHOICES)
-    description = models.TextField()
-    start_date  = models.DateField()
-    end_date    = models.DateField()
-    cover_photo = models.ImageField(upload_to='volunteers/')
-    summary     = models.CharField(max_length=240)
-    location    = models.CharField(max_length=60)
-    organizer   = models.CharField(max_length=60)
-    status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    remarks     = models.TextField(blank=True, null=True)
-    is_hidden   = models.BooleanField(default=False)
-    created_by  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='volunteer_opportunities')
-    created_at  = models.DateTimeField(auto_now_add=True)
-    updated_at  = models.DateTimeField(auto_now=True)
+    title           = models.CharField(max_length=60)
+    category        = models.CharField(max_length=100, choices=CATEGORY_CHOICES)
+    description     = models.TextField()
+    start_date      = models.DateField()
+    end_date        = models.DateField()
+    cover_photo     = models.ImageField(upload_to='volunteers/')
+    summary         = models.CharField(max_length=240)
+    location        = models.CharField(max_length=60)
+    organizer       = models.CharField(max_length=60)
+    status          = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    remarks         = models.TextField(blank=True, null=True)
+    is_hidden       = models.BooleanField(default=False)
+    created_by      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='volunteer_opportunities')
+    created_at      = models.DateTimeField(auto_now_add=True)
+    updated_at      = models.DateTimeField(auto_now=True)
+    timeline_status = models.CharField(max_length=20, default='Incoming', blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -312,19 +317,19 @@ class VolunteerOpportunity(models.Model):
     def __str__(self):
         return self.title
 
-    @property
-    def timeline_status(self):
+    def save(self, *args, **kwargs):
         if self.status != 'approved':
-            return 'N/A'
-            
-        today = datetime.date.today()
-        
-        if today < self.start_date:
-            return 'Incoming'
-        elif self.start_date <= today <= self.end_date:
-            return 'Ongoing'
+            self.timeline_status = 'N/A'
         else:
-            return 'Completed'
+            today = datetime.date.today()
+            if today < self.start_date:
+                self.timeline_status = 'Incoming'
+            elif self.start_date <= today <= self.end_date:
+                self.timeline_status = 'Ongoing'
+            else:
+                self.timeline_status = 'Completed'
+                
+        super().save(*args, **kwargs)
 
 
 class VolunteerRegistration(models.Model):
@@ -349,21 +354,22 @@ class Campaign(models.Model):
     ]
     STATUS_CHOICES = [('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied')]
 
-    title         = models.CharField(max_length=255)
-    description   = models.TextField(blank=True, default='')
-    category      = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='Student Aid')
-    cover_image   = models.ImageField(upload_to='campaigns/', null=True, blank=True)
-    image_url     = models.URLField(max_length=500, blank=True, null=True)
-    goal_amount   = models.DecimalField(max_digits=12, decimal_places=2)
-    raised_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    donors_count  = models.PositiveIntegerField(default=0)
-    end_date      = models.DateField()
-    status        = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    remarks       = models.TextField(blank=True, null=True)
-    is_active     = models.BooleanField(default=True)
-    created_by    = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='campaigns')
-    created_at    = models.DateTimeField(auto_now_add=True)
-    updated_at    = models.DateTimeField(auto_now=True)
+    title           = models.CharField(max_length=255)
+    description     = models.TextField(blank=True, default='')
+    category        = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='Student Aid')
+    cover_image     = models.ImageField(upload_to='campaigns/', null=True, blank=True)
+    image_url       = models.URLField(max_length=500, blank=True, null=True)
+    goal_amount     = models.DecimalField(max_digits=12, decimal_places=2)
+    raised_amount   = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    donors_count    = models.PositiveIntegerField(default=0)
+    end_date        = models.DateField()
+    status          = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    remarks         = models.TextField(blank=True, null=True)
+    is_active       = models.BooleanField(default=True)
+    created_by      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='campaigns')
+    created_at      = models.DateTimeField(auto_now_add=True)
+    updated_at      = models.DateTimeField(auto_now=True)
+    timeline_status = models.CharField(max_length=20, default='Incoming', blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -371,20 +377,22 @@ class Campaign(models.Model):
     def __str__(self):
         return self.title
 
-    @property
-    def timeline_status(self):
+    def save(self, *args, **kwargs):
         if self.status != 'approved':
-            return 'N/A'
-            
-        today = datetime.date.today()
-        start_date = self.created_at.date() if self.created_at else today
-        
-        if today < start_date:
-            return 'Incoming'
-        elif start_date <= today <= self.end_date:
-            return 'Ongoing'
+            self.timeline_status = 'N/A'
         else:
-            return 'Completed'
+            today = datetime.date.today()
+            # If created_at doesn't exist yet (brand new), use today
+            start_date = self.created_at.date() if self.created_at else today
+            
+            if today < start_date:
+                self.timeline_status = 'Incoming'
+            elif start_date <= today <= self.end_date:
+                self.timeline_status = 'Ongoing'
+            else:
+                self.timeline_status = 'Completed'
+                
+        super().save(*args, **kwargs)
 
 
 class CampaignDonation(models.Model):
@@ -409,9 +417,8 @@ class CampaignDonation(models.Model):
     amount         = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='gcash')
     payment_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='success')
-    # Optional fields aligned with public donate UI (stored for record-keeping; no recurring billing engine).
-    frequency = models.CharField(max_length=20, blank=True, default='one-time')
-    payment_account = models.CharField(max_length=64, blank=True, default='')
+    frequency      = models.CharField(max_length=20, blank=True, default='one-time')
+    payment_account= models.CharField(max_length=64, blank=True, default='')
     donated_at     = models.DateTimeField(auto_now_add=True)
 
     class Meta:
