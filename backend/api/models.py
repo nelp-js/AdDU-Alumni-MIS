@@ -146,7 +146,7 @@ class Event(models.Model):
     action_button_link  = models.URLField(max_length=500, blank=True, null=True)
     created_at          = models.DateTimeField(auto_now_add=True, null=True)
     updated_at          = models.DateTimeField(auto_now=True, null=True)
-    timeline_status     = models.CharField(max_length=20, default='Incoming', blank=True)
+    timeline_status     = models.CharField(max_length=20, default='Upcoming', blank=True)
 
     class Meta:
         ordering = ['-start_date']
@@ -166,7 +166,7 @@ class Event(models.Model):
             end_dt = timezone.make_aware(datetime.datetime.combine(end_d, end_t))
             
             if now < start_dt:
-                self.timeline_status = 'Incoming'
+                self.timeline_status = 'Upcoming'
             elif start_dt <= now <= end_dt:
                 self.timeline_status = 'Ongoing'
             else:
@@ -219,7 +219,7 @@ class Job(models.Model):
     posted_by       = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='job_postings')
     created_at      = models.DateTimeField(auto_now_add=True)
     updated_at      = models.DateTimeField(auto_now=True)
-    timeline_status = models.CharField(max_length=20, default='Incoming', blank=True)
+    timeline_status = models.CharField(max_length=20, default='Upcoming', blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -233,7 +233,7 @@ class Job(models.Model):
         else:
             today = datetime.date.today()
             if today < self.start_date:
-                self.timeline_status = 'Incoming'
+                self.timeline_status = 'Upcoming'
             elif self.start_date <= today <= self.end_date:
                 self.timeline_status = 'Ongoing'
             else:
@@ -261,7 +261,7 @@ class Internship(models.Model):
     posted_by       = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='internship_postings')
     created_at      = models.DateTimeField(auto_now_add=True)
     updated_at      = models.DateTimeField(auto_now=True)
-    timeline_status = models.CharField(max_length=20, default='Incoming', blank=True)
+    timeline_status = models.CharField(max_length=20, default='Upcoming', blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -275,7 +275,7 @@ class Internship(models.Model):
         else:
             today = datetime.date.today()
             if today < self.start_date:
-                self.timeline_status = 'Incoming'
+                self.timeline_status = 'Upcoming'
             elif self.start_date <= today <= self.end_date:
                 self.timeline_status = 'Ongoing'
             else:
@@ -309,7 +309,7 @@ class VolunteerOpportunity(models.Model):
     created_by      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='volunteer_opportunities')
     created_at      = models.DateTimeField(auto_now_add=True)
     updated_at      = models.DateTimeField(auto_now=True)
-    timeline_status = models.CharField(max_length=20, default='Incoming', blank=True)
+    timeline_status = models.CharField(max_length=20, default='Upcoming', blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -323,7 +323,7 @@ class VolunteerOpportunity(models.Model):
         else:
             today = datetime.date.today()
             if today < self.start_date:
-                self.timeline_status = 'Incoming'
+                self.timeline_status = 'Upcoming'
             elif self.start_date <= today <= self.end_date:
                 self.timeline_status = 'Ongoing'
             else:
@@ -369,7 +369,7 @@ class Campaign(models.Model):
     created_by      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='campaigns')
     created_at      = models.DateTimeField(auto_now_add=True)
     updated_at      = models.DateTimeField(auto_now=True)
-    timeline_status = models.CharField(max_length=20, default='Incoming', blank=True)
+    timeline_status = models.CharField(max_length=20, default='Upcoming', blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -386,7 +386,7 @@ class Campaign(models.Model):
             start_date = self.created_at.date() if self.created_at else today
             
             if today < start_date:
-                self.timeline_status = 'Incoming'
+                self.timeline_status = 'Upcoming'
             elif start_date <= today <= self.end_date:
                 self.timeline_status = 'Ongoing'
             else:
