@@ -343,8 +343,9 @@ class EventSerializer(serializers.ModelSerializer):
             "venue", "category", "is_approved", "status", "remarks", "is_hidden", "organizer",
             "event_image", "cost", "organizer_names", "participants",
             "action_button_label", "action_button_link", "created_at", "updated_at",
+            "timeline_status",
         ]
-        read_only_fields = ["is_approved", "organizer", "created_at", "updated_at"]
+        read_only_fields = ["is_approved", "organizer", "created_at", "updated_at", "timeline_status"]
 
 
 class EventUpdateSerializer(serializers.ModelSerializer):
@@ -356,8 +357,9 @@ class EventUpdateSerializer(serializers.ModelSerializer):
             "venue", "category", "is_approved", "status", "remarks", "is_hidden", "organizer",
             "event_image", "cost", "organizer_names", "participants",
             "action_button_label", "action_button_link", "created_at", "updated_at",
+            "timeline_status",
         ]
-        read_only_fields = ["organizer", "created_at", "updated_at"]
+        read_only_fields = ["organizer", "created_at", "updated_at", "timeline_status"]
 
 
 class EventRegistrationSerializer(serializers.ModelSerializer):
@@ -390,8 +392,9 @@ class JobSerializer(serializers.ModelSerializer):
             'id', 'company', 'position', 'location', 'modality',
             'employment_type', 'salary', 'email', 'start_date', 'end_date', 'description',
             'status', 'remarks', 'is_hidden', 'posted_by', 'posted_by_name', 'created_at', 'updated_at',
+            'timeline_status',
         ]
-        read_only_fields = ['id', 'posted_by', 'posted_by_name', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'posted_by', 'posted_by_name', 'created_at', 'updated_at', 'timeline_status']
 
     def get_posted_by_name(self, obj):
         if not obj.posted_by_id:
@@ -414,8 +417,9 @@ class InternshipSerializer(serializers.ModelSerializer):
             'id', 'company', 'position', 'location', 'modality',
             'allowance', 'email', 'start_date', 'end_date', 'description',
             'status', 'remarks', 'is_hidden', 'posted_by', 'posted_by_name', 'created_at', 'updated_at',
+            'timeline_status',
         ]
-        read_only_fields = ['id', 'posted_by', 'posted_by_name', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'posted_by', 'posted_by_name', 'created_at', 'updated_at', 'timeline_status']
 
     def get_posted_by_name(self, obj):
         if not obj.posted_by_id:
@@ -440,8 +444,9 @@ class VolunteerOpportunitySerializer(serializers.ModelSerializer):
             'summary', 'location', 'organizer',
             'status', 'remarks', 'is_hidden',
             'created_by', 'created_by_name', 'created_at', 'updated_at',
+            'timeline_status',
         ]
-        read_only_fields = ['id', 'status', 'remarks', 'is_hidden', 'created_by', 'created_by_name', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'status', 'remarks', 'is_hidden', 'created_by', 'created_by_name', 'created_at', 'updated_at', 'timeline_status']
         extra_kwargs = {
             'title': {'required': True},
             'category': {'required': True},
@@ -564,10 +569,10 @@ class CampaignSerializer(serializers.ModelSerializer):
             'end_date', 'status', 'remarks', 'is_active',
             'created_by', 'created_by_name',
             'created_at', 'updated_at',
-            'donations_count',
+            'donations_count', 'timeline_status',
         ]
         read_only_fields = ['id', 'raised_amount', 'donors_count', 'created_by',
-                            'created_by_name', 'created_at', 'updated_at', 'donations_count']
+                            'created_by_name', 'created_at', 'updated_at', 'donations_count', 'timeline_status']
         extra_kwargs = {
             'title': {'required': True},
             'description': {'required': True},
