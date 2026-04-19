@@ -16,6 +16,7 @@ function Register() {
     const idInputRef = useRef(null);
     const diplomaInputRef = useRef(null);
     const birthDateRef = useRef(null); 
+    const confirmPasswordRef = useRef(null); // Added ref for native validation
 
     const [formData, setFormData] = useState({
         first_name: '', middle_name: '', last_name: '',
@@ -45,6 +46,13 @@ function Register() {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
         if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+
+        // Clear the native validation popup if the user starts typing again
+        if (name === 'password' || name === 'confirm_password') {
+            if (confirmPasswordRef.current) {
+                confirmPasswordRef.current.setCustomValidity("");
+            }
+        }
     };
 
     // Handler for LocationFields component
@@ -70,9 +78,10 @@ function Register() {
         e.preventDefault();
         setErrors({});
 
-        // Frontend password validation
+        // Frontend password validation using Native Browser Tooltip
         if (formData.password !== formData.confirm_password) {
-            setErrors({ confirm_password: 'Passwords do not match.' });
+            confirmPasswordRef.current.setCustomValidity("Passwords do not match.");
+            confirmPasswordRef.current.reportValidity(); // This triggers the native popup!
             return;
         }
 
@@ -196,7 +205,15 @@ function Register() {
                                 <div className="form-group">
                                     <label>Confirm Password <span className="required-star">*</span></label>
                                     <div className="password-input-wrapper">
-                                        <input type={showConfirmPassword ? 'text' : 'password'} name="confirm_password" value={formData.confirm_password} onChange={handleChange} minLength="8" required className={errors.confirm_password ? 'error' : ''} />
+                                        <input 
+                                            type={showConfirmPassword ? 'text' : 'password'} 
+                                            name="confirm_password" 
+                                            value={formData.confirm_password} 
+                                            onChange={handleChange} 
+                                            minLength="8" 
+                                            required 
+                                            ref={confirmPasswordRef} 
+                                        />
                                         <button type="button" className="password-toggle" onClick={() => setShowConfirmPassword(!showConfirmPassword)} title={showConfirmPassword ? "Hide password" : "Show password"}>
                                             {showConfirmPassword ? (
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -211,7 +228,6 @@ function Register() {
                                             )}
                                         </button>
                                     </div>
-                                    {errors.confirm_password && <span className="field-error">{errors.confirm_password}</span>}
                                 </div>
                             </div>
 
