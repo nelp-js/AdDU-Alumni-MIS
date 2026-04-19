@@ -209,13 +209,15 @@ class ExperienceSerializer(serializers.ModelSerializer):
     location        = serializers.CharField(required=False, allow_blank=True, default='')
     employment_type = serializers.CharField(required=False, allow_blank=True, default='')
     site_type       = serializers.CharField(required=False, allow_blank=True, default='')
+    income_range    = serializers.CharField(required=False, allow_blank=True, default='')
 
     class Meta:
         model = Experience
         fields = ["id", "job_title", "company_name", "website", "location",
-                  "employment_type", "site_type", "start_date", "end_date", "description", "is_current"]
+                  "employment_type", "site_type", "aligned_to_degree", "income_range", 
+                  "start_date", "end_date", "description", "is_current"]
         read_only_fields = ["id"]
-
+        
     def validate(self, data):
         if data.get('is_current'):
             data['end_date'] = None

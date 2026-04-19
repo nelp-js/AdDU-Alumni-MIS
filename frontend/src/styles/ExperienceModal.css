@@ -228,3 +228,8 @@
     color: #374151;
     line-height: 1.5;
 }
+
+.exp-form-required-star {
+    color: #dc2626;
+    margin-left: 4px;
+}

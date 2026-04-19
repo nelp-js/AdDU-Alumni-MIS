@@ -84,6 +84,8 @@ class Experience(models.Model):
     location        = models.CharField(max_length=255, blank=True, default='')
     employment_type = models.CharField(max_length=50, choices=EMPLOYMENT_TYPES, blank=True, default='')
     site_type       = models.CharField(max_length=20, choices=SITE_TYPES, blank=True, default='')
+    aligned_to_degree = models.BooleanField(default=False)
+    income_range      = models.CharField(max_length=50, blank=True, default='')
     start_date      = models.DateField(null=True, blank=True)
     end_date        = models.DateField(null=True, blank=True)
     description     = models.TextField(blank=True, default='')

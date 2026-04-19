@@ -27,6 +27,19 @@ const EMPLOYMENT_TYPES = [
     { value: 'volunteer', label: 'Volunteer' },
 ];
 
+const INCOME_RANGES = [
+    { value: '', label: 'Select income range' },
+    { value: 'under_10k', label: 'Under ₱10,000' },
+    { value: '10k_to_20k', label: '₱10,000 - ₱20,000' },
+    { value: '20k_to_30k', label: '₱20,001 - ₱30,000' },
+    { value: '30k_to_40k', label: '₱30,001 - ₱40,000' },
+    { value: '40k_to_50k', label: '₱40,001 - ₱50,000' },
+    { value: '50k_to_75k', label: '₱50,001 - ₱75,000' },
+    { value: '75k_to_100k', label: '₱75,001 - ₱100,000' },
+    { value: '100k_to_150k', label: '₱100,001 - ₱150,000' },
+    { value: 'over_150k', label: 'Over ₱150,000' },
+];
+
 const DESC_MAX = 500;
 
 const emptyExperience = () => ({
@@ -36,7 +49,9 @@ const emptyExperience = () => ({
     website: '',
     location: '',
     employment_type: '',
+    aligned_to_degree: false,
     site_type: '',
+    income_range: '',
     start_date: '',
     end_date: '',
     description: '',
@@ -76,7 +91,6 @@ function getCompanyInitials(name) {
     return name.slice(0, 2).toUpperCase();
 }
 
-/** Guess domain from company name when website is not saved (e.g. typed manually) */
 function guessDomainFromCompanyName(name) {
     if (!name || !name.trim()) return null;
     const n = name.trim().toLowerCase();
@@ -121,7 +135,9 @@ function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api }) {
             website: website.replace(/^https?:\/\//, '').replace(/^www\./, '') || '',
             location: exp.location || '',
             employment_type: exp.employment_type || '',
+            aligned_to_degree: exp.aligned_to_degree || false,
             site_type: exp.site_type || '',
+            income_range: exp.income_range || '',
             start_date: exp.start_date ? exp.start_date.slice(0, 10) : '',
             end_date: exp.end_date ? exp.end_date.slice(0, 10) : '',
             description: exp.description || '',
@@ -175,7 +191,9 @@ function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api }) {
                 website: websiteVal,
                 location: form.location?.trim() ?? '',
                 employment_type: form.employment_type?.trim() ?? '',
+                aligned_to_degree: form.aligned_to_degree,
                 site_type: form.site_type?.trim() ?? '',
+                income_range: form.income_range?.trim() ?? null,
                 start_date: form.start_date || null,
                 end_date: form.is_current ? null : (form.end_date || null),
                 description: form.description,
@@ -330,7 +348,7 @@ function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api }) {
                     )}
 
                     <div className="exp-form-row">
-                        <label className="exp-form-label">Title *</label>
+                        <label className="exp-form-label">Job Role<span className="exp-form-required-star">*</span></label>
                         <input
                             type="text"
                             name="job_title"
@@ -343,7 +361,7 @@ function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api }) {
                     </div>
 
                     <div className="exp-form-row">
-                        <label className="exp-form-label">Company or organization *</label>
+                        <label className="exp-form-label">Company or organization<span className="exp-form-required-star">*</span></label>
                         <CompanyAutocomplete
                             value={form.company_name}
                             selectedDomain={form.website}
@@ -385,6 +403,19 @@ function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api }) {
                     </div>
 
                     <div className="exp-form-row">
+                        <label className="exp-form-check">
+                            <input
+                                type="checkbox"
+                                name="aligned_to_degree"
+                                checked={form.aligned_to_degree}
+                                onChange={handleChange}
+                                required
+                            />
+                            Aligned to Degree<span className="exp-form-required-star">*</span>
+                        </label>
+                    </div>
+
+                    <div className="exp-form-row">
                         <label className="exp-form-label">Site type</label>
                         <select
                             name="site_type"
@@ -394,6 +425,22 @@ function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api }) {
                         >
                             {SITE_TYPES.map((t) => (
                                 <option key={t.value || 'st-empty'} value={t.value}>
+                                    {t.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="exp-form-row">
+                        <label className="exp-form-label">Income range</label>
+                        <select
+                            name="income_range"
+                            value={form.income_range}
+                            onChange={handleChange}
+                            className="exp-form-input exp-form-select"
+                        >
+                            {INCOME_RANGES.map((t) => (
+                                <option key={t.value || 'inc-empty'} value={t.value}>
                                     {t.label}
                                 </option>
                             ))}
