@@ -146,7 +146,7 @@ class Event(models.Model):
     action_button_link  = models.URLField(max_length=500, blank=True, null=True)
     created_at          = models.DateTimeField(auto_now_add=True, null=True)
     updated_at          = models.DateTimeField(auto_now=True, null=True)
-    timeline_status     = models.CharField(max_length=20, default='Upcoming', blank=True)
+    timeline_status     = models.CharField(max_length=20, default='', blank=True)
 
     class Meta:
         ordering = ['-start_date']
@@ -156,7 +156,7 @@ class Event(models.Model):
 
     def save(self, *args, **kwargs):
         if self.status != 'approved' and not self.is_approved:
-            self.timeline_status = 'N/A'
+            self.timeline_status = ''
         else:
             now = timezone.now()
             start_dt = timezone.make_aware(datetime.datetime.combine(self.start_date, self.start_time))
@@ -219,7 +219,7 @@ class Job(models.Model):
     posted_by       = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='job_postings')
     created_at      = models.DateTimeField(auto_now_add=True)
     updated_at      = models.DateTimeField(auto_now=True)
-    timeline_status = models.CharField(max_length=20, default='Upcoming', blank=True)
+    timeline_status = models.CharField(max_length=20, default='', blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -229,7 +229,7 @@ class Job(models.Model):
 
     def save(self, *args, **kwargs):
         if self.status != 'approved':
-            self.timeline_status = 'N/A'
+            self.timeline_status = ''
         else:
             today = datetime.date.today()
             if today < self.start_date:
@@ -261,7 +261,7 @@ class Internship(models.Model):
     posted_by       = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='internship_postings')
     created_at      = models.DateTimeField(auto_now_add=True)
     updated_at      = models.DateTimeField(auto_now=True)
-    timeline_status = models.CharField(max_length=20, default='Upcoming', blank=True)
+    timeline_status = models.CharField(max_length=20, default='', blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -271,7 +271,7 @@ class Internship(models.Model):
 
     def save(self, *args, **kwargs):
         if self.status != 'approved':
-            self.timeline_status = 'N/A'
+            self.timeline_status = ''
         else:
             today = datetime.date.today()
             if today < self.start_date:
@@ -309,7 +309,7 @@ class VolunteerOpportunity(models.Model):
     created_by      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='volunteer_opportunities')
     created_at      = models.DateTimeField(auto_now_add=True)
     updated_at      = models.DateTimeField(auto_now=True)
-    timeline_status = models.CharField(max_length=20, default='Upcoming', blank=True)
+    timeline_status = models.CharField(max_length=20, default='', blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -319,7 +319,7 @@ class VolunteerOpportunity(models.Model):
 
     def save(self, *args, **kwargs):
         if self.status != 'approved':
-            self.timeline_status = 'N/A'
+            self.timeline_status = ''
         else:
             today = datetime.date.today()
             if today < self.start_date:
@@ -369,7 +369,7 @@ class Campaign(models.Model):
     created_by      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='campaigns')
     created_at      = models.DateTimeField(auto_now_add=True)
     updated_at      = models.DateTimeField(auto_now=True)
-    timeline_status = models.CharField(max_length=20, default='Upcoming', blank=True)
+    timeline_status = models.CharField(max_length=20, default='', blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -379,7 +379,7 @@ class Campaign(models.Model):
 
     def save(self, *args, **kwargs):
         if self.status != 'approved':
-            self.timeline_status = 'N/A'
+            self.timeline_status = ''
         else:
             today = datetime.date.today()
             # If created_at doesn't exist yet (brand new), use today

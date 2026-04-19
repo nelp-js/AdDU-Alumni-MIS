@@ -7,24 +7,24 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.stdout.write("Updating statuses...")
 
-        # 1. Update Events
-        for event in Event.objects.filter(status='approved'):
+        # 1. Update ALL Events
+        for event in Event.objects.all():
             event.save() 
 
-        # 2. Update Jobs
-        for job in Job.objects.filter(status='approved'):
+        # 2. Update ALL Jobs
+        for job in Job.objects.all():
             job.save()
 
-        # 3. Update Internships
-        for internship in Internship.objects.filter(status='approved'):
+        # 3. Update ALL Internships
+        for internship in Internship.objects.all():
             internship.save()
 
-        # 4. Update Volunteers
-        for volunteer in VolunteerOpportunity.objects.filter(status='approved'):
+        # 4. Update ALL Volunteers
+        for volunteer in VolunteerOpportunity.objects.all():
             volunteer.save()
 
-        # 5. Update Campaigns
-        for campaign in Campaign.objects.filter(status='approved'):
+        # 5. Update ALL Campaigns
+        for campaign in Campaign.objects.all():
             campaign.save()
 
         self.stdout.write(self.style.SUCCESS("Successfully updated all timeline statuses!"))
