@@ -103,7 +103,7 @@ function UserManagement() {
     const [savingEdit, setSavingEdit]   = useState(false);
 
     const currentYear = new Date().getFullYear();
-    const years = Array.from({ length: currentYear - 1948 + 1 }, (_, i) => currentYear - i);
+    const years = Array.from({ length: currentYear - 1948 + 1 }, (_, i) => currentYear - i).filter(year => year <= 2025);
     const { countries, loading: loadingCountries } = useCountries();
 
     // ── Fetch ────────────────────────────────────────────────────────────────

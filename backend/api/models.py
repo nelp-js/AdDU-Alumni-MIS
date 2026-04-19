@@ -4,7 +4,7 @@ import datetime
 
 
 class User(AbstractUser):
-    BATCH_CHOICES = [(str(year), str(year)) for year in range(1948, datetime.date.today().year + 2)]
+    BATCH_CHOICES = [(str(year), str(year)) for year in range(1948, 2026)]
     PROGRAM_CHOICES = [('CS', 'Computer Science'), ('IT', 'Information Technology'), ('IS', 'Information Systems')]
     SEX_CHOICES = [('male', 'Male'), ('female', 'Female'), ('prefer_not_to_say', 'Prefer not to say')]
     MARITAL_STATUS_CHOICES = [
