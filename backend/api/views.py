@@ -1,11 +1,14 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q, F, IntegerField, Sum, Value
+from django.db.models import Q, F, IntegerField, Sum, Value, Count
 from django.db.models.functions import Coalesce
 from django.core.paginator import Paginator
 from urllib.parse import quote
+from datetime import date
+from collections import defaultdict
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -142,6 +145,200 @@ class EducationDetail(generics.RetrieveUpdateDestroyAPIView):
 @permission_classes([IsAuthenticated, IsAdminUser])
 def pending_user_count(request):
     return Response({'count': User.objects.filter(is_approved=False, is_superuser=False).count()})
+
+
+def _parse_bool(value, default=True):
+    if value is None:
+        return default
+    return str(value).strip().lower() in ('1', 'true', 'yes', 'on')
+
+
+def _apply_report_filters(request, qs):
+    program = (request.GET.get('program') or '').strip()
+    batch = (request.GET.get('batch') or '').strip()
+    start_date = parse_date((request.GET.get('start_date') or '').strip())
+    end_date = parse_date((request.GET.get('end_date') or '').strip())
+
+    if program:
+        qs = qs.filter(Q(course__iexact=program) | Q(program__iexact=program))
+    if batch:
+        qs = qs.filter(Q(batch_year__iexact=batch) | Q(batch__iexact=batch))
+    if start_date:
+        qs = qs.filter(date_joined__date__gte=start_date)
+    if end_date:
+        qs = qs.filter(date_joined__date__lte=end_date)
+
+    return qs
+
+
+def _latest_experience_for_user(user):
+    experiences = list(getattr(user, '_prefetched_objects_cache', {}).get('experiences', user.experiences.all()))
+    if not experiences:
+        return None
+
+    current = [exp for exp in experiences if exp.is_current]
+    pool = current if current else experiences
+    return max(pool, key=lambda exp: ((exp.start_date or date.min), exp.id))
+
+
+def _base_alumni_queryset(request):
+    qs = User.objects.filter(is_superuser=False, is_staff=False).prefetch_related('experiences')
+    return _apply_report_filters(request, qs)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def user_reports_summary(request):
+    include_missing = _parse_bool(request.GET.get('include_missing'), default=True)
+    qs = _base_alumni_queryset(request)
+
+    # Report 1: alumni registered per program per batch
+    grouped = (
+        qs.values('course', 'program', 'batch_year', 'batch')
+        .annotate(count=Count('id'))
+        .order_by('course', 'program', 'batch_year', 'batch')
+    )
+    by_program_batch = []
+    for row in grouped:
+        program = row.get('course') or row.get('program') or 'Unspecified'
+        batch = row.get('batch_year') or row.get('batch') or 'Unspecified'
+        by_program_batch.append({
+            'program': program,
+            'batch': batch,
+            'count': row['count'],
+        })
+
+    # Reports 2/3/4: latest employment, income range, and alignment.
+    income_counts = defaultdict(int)
+    aligned = 0
+    not_aligned = 0
+    no_data = 0
+
+    for user in qs:
+        latest_exp = _latest_experience_for_user(user)
+        if latest_exp is None:
+            no_data += 1
+            if include_missing:
+                income_counts['No employment data'] += 1
+            continue
+
+        income_label = latest_exp.income_range or 'No income data'
+        income_counts[income_label] += 1
+
+        if latest_exp.aligned_to_degree:
+            aligned += 1
+        else:
+            not_aligned += 1
+
+    alignment_total = aligned + not_aligned + (no_data if include_missing else 0)
+    denominator = alignment_total if alignment_total > 0 else 1
+    alignment_percentages = {
+        'aligned': round((aligned / denominator) * 100, 2),
+        'not_aligned': round((not_aligned / denominator) * 100, 2),
+        'no_data': round((no_data / denominator) * 100, 2) if include_missing else 0,
+    }
+
+    return Response({
+        'filters': {
+            'program': (request.GET.get('program') or '').strip(),
+            'batch': (request.GET.get('batch') or '').strip(),
+            'start_date': (request.GET.get('start_date') or '').strip(),
+            'end_date': (request.GET.get('end_date') or '').strip(),
+            'include_missing': include_missing,
+        },
+        'totals': {
+            'alumni_count': qs.count(),
+            'with_employment_data': aligned + not_aligned,
+            'without_employment_data': no_data,
+        },
+        'report_1_program_batch_counts': by_program_batch,
+        'report_2_income_range_counts': [
+            {'income_range': key, 'count': value}
+            for key, value in sorted(income_counts.items(), key=lambda kv: kv[0])
+        ],
+        'report_4_alignment_breakdown': {
+            'aligned': aligned,
+            'not_aligned': not_aligned,
+            'no_data': no_data if include_missing else 0,
+            'percentages': alignment_percentages,
+        },
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def user_reports_detail(request):
+    include_missing = _parse_bool(request.GET.get('include_missing'), default=True)
+    report = (request.GET.get('report') or 'program_batch').strip().lower()
+    alignment = (request.GET.get('alignment') or '').strip().lower()
+
+    allowed_reports = {'program_batch', 'employment_income', 'employment_alignment'}
+    if report not in allowed_reports:
+        return Response(
+            {'detail': f"Unsupported report '{report}'. Allowed: {', '.join(sorted(allowed_reports))}."},
+            status=400
+        )
+
+    qs = _base_alumni_queryset(request)
+    rows = []
+    for user in qs:
+        latest_exp = _latest_experience_for_user(user)
+        has_employment = latest_exp is not None
+        if not include_missing and not has_employment and report != 'program_batch':
+            continue
+
+        alignment_label = 'No employment data'
+        if has_employment:
+            alignment_label = 'Aligned' if latest_exp.aligned_to_degree else 'Not aligned'
+
+        if report == 'employment_alignment' and alignment:
+            if alignment in ('aligned', 'not_aligned', 'no_data'):
+                if (
+                    (alignment == 'aligned' and alignment_label != 'Aligned')
+                    or (alignment == 'not_aligned' and alignment_label != 'Not aligned')
+                    or (alignment == 'no_data' and alignment_label != 'No employment data')
+                ):
+                    continue
+
+        base_row = {
+            'user_id': user.id,
+            'name': f"{user.first_name} {user.last_name}".strip() or user.username,
+            'username': user.username,
+            'email': user.email or '—',
+            'program': user.course or user.program or 'Unspecified',
+            'batch': user.batch_year or user.batch or 'Unspecified',
+            'date_registered': user.date_joined.date().isoformat() if user.date_joined else '',
+        }
+
+        if report == 'program_batch':
+            rows.append(base_row)
+            continue
+
+        rows.append({
+            **base_row,
+            'latest_job_title': latest_exp.job_title if has_employment else '—',
+            'latest_company_name': latest_exp.company_name if has_employment else '—',
+            'employment_type': latest_exp.employment_type if has_employment else '—',
+            'latest_start_date': latest_exp.start_date.isoformat() if (has_employment and latest_exp.start_date) else '',
+            'is_marked_current': bool(latest_exp.is_current) if has_employment else False,
+            'income_range': (latest_exp.income_range or 'No income data') if has_employment else 'No employment data',
+            'alignment': alignment_label,
+        })
+
+    return Response({
+        'report': report,
+        'filters': {
+            'program': (request.GET.get('program') or '').strip(),
+            'batch': (request.GET.get('batch') or '').strip(),
+            'start_date': (request.GET.get('start_date') or '').strip(),
+            'end_date': (request.GET.get('end_date') or '').strip(),
+            'include_missing': include_missing,
+            'alignment': alignment,
+        },
+        'count': len(rows),
+        'results': rows,
+    })
+
 
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()

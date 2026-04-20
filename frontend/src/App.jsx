@@ -26,6 +26,7 @@ import AlumniDirectory from "./pages/AlumniDirectory"
 import AlumniProfilePublic from "./pages/AlumniProfilePublic"
 import Dashboard from "./pages/Dashboard"
 import UserManagement from "./pages/UserManagement"
+import UserReports from "./pages/UserReports"
 import EventManagement from "./pages/EventManagement"
 import CreateContent from "./pages/CreateContent"
 import ContentManagement from "./pages/ContentManagement"
@@ -82,6 +83,7 @@ function App() {
         {/* Admin Dashboard Routes */}
         <Route path="/dashboard" element={<AdminProtectedRoute><Dashboard /></AdminProtectedRoute>} />
         <Route path="/dashboard/users" element={<AdminProtectedRoute><UserManagement /></AdminProtectedRoute>} />
+        <Route path="/dashboard/users/reports" element={<AdminProtectedRoute><UserReports /></AdminProtectedRoute>} />
         <Route path="/dashboard/events" element={<AdminProtectedRoute><EventManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/events/edit/:id" element={<AdminProtectedRoute><EditEvent /></AdminProtectedRoute>} />
         <Route path="/dashboard/events/registrations" element={<AdminProtectedRoute><EventRegistrations /></AdminProtectedRoute>} />

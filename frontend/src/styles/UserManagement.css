@@ -404,6 +404,10 @@
 /* ── Back Link ── */
 .user-mgmt-back {
     text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
 .user-mgmt-back-link {
@@ -414,6 +418,10 @@
 
 .user-mgmt-back-link:hover {
     opacity: 0.8;
+}
+
+.user-mgmt-report-link {
+    font-weight: 600;
 }
 
 /* Keep "View Details" on one line */
