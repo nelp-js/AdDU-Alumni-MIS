@@ -2,7 +2,8 @@ from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q, F
+from django.db.models import Q, F, IntegerField, Sum, Value
+from django.db.models.functions import Coalesce
 from django.core.paginator import Paginator
 from urllib.parse import quote
 from rest_framework import generics, status
@@ -328,10 +329,21 @@ class EventDelete(generics.DestroyAPIView):
 
 # --- EVENT REGISTRATION VIEWS ---
 
+def _event_registered_attendees(event):
+    data = EventRegistration.objects.filter(event=event).exclude(payment_status='failed').aggregate(
+        total=Coalesce(
+            Sum(F('guest_count') + Value(1), output_field=IntegerField()),
+            0,
+        )
+    )
+    return int(data.get('total') or 0)
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def register_for_event(request, event_id):
     event = get_object_or_404(Event, pk=event_id, status='approved', is_hidden=False)
+    if event.participants and _event_registered_attendees(event) >= event.participants:
+        return Response({'detail': 'Capacity has been reached.'}, status=400)
     if EventRegistration.objects.filter(event=event, user=request.user).exists():
         return Response({'detail': 'You are already registered for this event.'}, status=400)
     serializer = EventRegistrationSerializer(data={**request.data, 'event': event.id})
@@ -872,6 +884,8 @@ def campaign_deny(request, campaign_id):
 @permission_classes([AllowAny])
 def campaign_donate(request, campaign_id):
     campaign = get_object_or_404(Campaign, pk=campaign_id, is_active=True, status='approved')
+    if campaign.end_date and timezone.localdate() > campaign.end_date:
+        return Response({'detail': 'This campaign has ended.'}, status=400)
 
     method_raw = str(request.data.get('payment_method', '')).strip().lower()
     method_aliases = {
@@ -903,7 +917,7 @@ def campaign_donate(request, campaign_id):
         donor_user = request.user
     else:
         first_name = (request.data.get('first_name') or '').strip() or 'Guest'
-        last_name = (request.data.get('last_name') or '').strip() or 'Donor'
+        last_name = (request.data.get('last_name') or '').strip() or 'Contributor'
         email = (request.data.get('email') or '').strip() or 'guest@example.com'
         donor_user = None
 

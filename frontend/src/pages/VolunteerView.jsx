@@ -8,6 +8,17 @@ import { useTitle } from '../Hooks/useTitle';
 import { getOptimizedUrl } from '../utils/imageUtils';
 import { ACCESS_TOKEN } from '../constants';
 
+function isDatePassed(dateValue) {
+    if (!dateValue) return false;
+    try {
+        const parsed = new Date(`${dateValue}T23:59:59`);
+        if (Number.isNaN(parsed.getTime())) return false;
+        return parsed.getTime() < Date.now();
+    } catch {
+        return false;
+    }
+}
+
 function VolunteerView() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -66,6 +77,9 @@ function VolunteerView() {
     const imageUrl = getOptimizedUrl(item.cover_photo, 'hero');
     const fmtDate = (d) => d ? new Date(d).toLocaleDateString() : '—';
     const isLoggedIn = !!localStorage.getItem(ACCESS_TOKEN);
+    const hasPassed =
+        item.timeline_status === 'Completed' ||
+        isDatePassed(item.end_date || item.start_date);
 
     const buildGoogleCalendarUrl = (volunteer) => {
         if (!volunteer?.start_date) return '#';
@@ -113,31 +127,37 @@ function VolunteerView() {
                 {item.summary && <p className="volunteer-view-tagline">{item.summary}</p>}
                 {item.description && <p className="volunteer-view-description">{item.description}</p>}
 
-                <div className="volunteer-view-actions">
-                    <button
-                        type="button"
-                        className="volunteer-view-btn volunteer-view-btn-register"
-                        onClick={handleRegister}
-                        disabled={registering}
-                    >
-                        {registering ? 'Registering...' : (isLoggedIn ? 'Register' : 'Login to Register')}
-                    </button>
-                    <a
-                        href={calendarUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="volunteer-view-btn volunteer-view-btn-calendar"
-                    >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-                            <line x1="3" y1="10" x2="21" y2="10" />
-                        </svg>
-                        <span>Add to Calendar</span>
-                    </a>
-                </div>
-                {registerMessage && <p className="volunteer-view-register-msg">{registerMessage}</p>}
+                {hasPassed ? (
+                    <div className="volunteer-view-passed-note">• This event has passed.</div>
+                ) : (
+                    <>
+                        <div className="volunteer-view-actions">
+                            <button
+                                type="button"
+                                className="volunteer-view-btn volunteer-view-btn-register"
+                                onClick={handleRegister}
+                                disabled={registering}
+                            >
+                                {registering ? 'Registering...' : (isLoggedIn ? 'Register' : 'Login to Register')}
+                            </button>
+                            <a
+                                href={calendarUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="volunteer-view-btn volunteer-view-btn-calendar"
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                    <line x1="16" y1="2" x2="16" y2="6" />
+                                    <line x1="8" y1="2" x2="8" y2="6" />
+                                    <line x1="3" y1="10" x2="21" y2="10" />
+                                </svg>
+                                <span>Add to Calendar</span>
+                            </a>
+                        </div>
+                        {registerMessage && <p className="volunteer-view-register-msg">{registerMessage}</p>}
+                    </>
+                )}
 
                 <section className="volunteer-view-info">
                     <div className="volunteer-view-info-col">

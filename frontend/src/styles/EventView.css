@@ -110,6 +110,26 @@
     margin-bottom: 48px;
 }
 
+.event-view-passed-note {
+    margin-bottom: 48px;
+    padding: 10px 14px;
+    background: #dff1fb;
+    color: #2a6f8f;
+    border-radius: 2px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.event-view-capacity-note {
+    margin-bottom: 48px;
+    padding: 10px 14px;
+    background: #fff4d6;
+    color: #8a5a00;
+    border-radius: 2px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
 .event-view-btn {
     display: inline-flex;
     align-items: center;

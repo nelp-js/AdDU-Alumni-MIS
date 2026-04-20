@@ -28,13 +28,15 @@ function CampaignContributors() {
             .finally(() => setLoading(false));
     }, []);
 
-    const formatDate = (dateStr) => {
+    const formatDateTime = (dateStr) => {
         if (!dateStr) return '—';
         try {
-            return new Date(dateStr).toLocaleDateString(undefined, {
+            return new Date(dateStr).toLocaleString(undefined, {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
             });
         } catch {
             return dateStr;
@@ -53,6 +55,28 @@ function CampaignContributors() {
         if (status === 'cancelled') return 'failed';
         return status || 'pending';
     };
+
+    const isPlaceholderEmail = (email) => {
+        const normalized = String(email || '').trim().toLowerCase();
+        return normalized === 'guest@example.com' || normalized === 'donor@example.com';
+    };
+
+    const getContributorName = (contributor) => {
+        const fullName = `${contributor.first_name || ''} ${contributor.last_name || ''}`.trim();
+        if (!fullName) return 'Guest Contributor';
+        if (fullName.toLowerCase() === 'guest donor') return 'Guest Contributor';
+        return fullName;
+    };
+
+    const getContributorEmail = (contributor) => {
+        const submittedEmail = String(contributor.email || '').trim();
+        if (!submittedEmail || isPlaceholderEmail(submittedEmail)) {
+            return 'No email provided';
+        }
+        return submittedEmail;
+    };
+
+    const getContributorType = (contributor) => (contributor.user ? 'Alumni' : 'Guest');
 
     const campaignNames = useMemo(
         () => [...new Set(contributors.map((c) => c.campaign_title).filter(Boolean))],
@@ -148,12 +172,12 @@ function CampaignContributors() {
                                 <thead>
                                     <tr>
                                         <th>Contributor</th>
+                                        <th>Type</th>
                                         <th>Campaign</th>
-                                        <th>Payment Method</th>
-                                        <th>Frequency</th>
                                         <th>Amount</th>
+                                        <th>Payment Method</th>
                                         <th>Status</th>
-                                        <th>Contributed</th>
+                                        <th>Date and Time</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -167,25 +191,29 @@ function CampaignContributors() {
                                                             {getInitials(c.first_name, c.last_name)}
                                                         </div>
                                                         <div>
-                                                            <div>{c.first_name} {c.last_name}</div>
-                                                            <div className="ccg-email">{c.user_email || c.email}</div>
+                                                            <div>{getContributorName(c)}</div>
+                                                            <div className="ccg-email">{getContributorEmail(c)}</div>
                                                         </div>
                                                     </div>
+                                                </td>
+                                                <td>
+                                                    <span className={`ccg-type ccg-type-${getContributorType(c).toLowerCase()}`}>
+                                                        {getContributorType(c)}
+                                                    </span>
                                                 </td>
                                                 <td>
                                                     <span className="ccg-campaign-tag">
                                                         {c.campaign_title || '—'}
                                                     </span>
                                                 </td>
-                                                <td className="ccg-capitalize">{(c.payment_method || '—').replace('_', '/')}</td>
-                                                <td className="ccg-capitalize">{c.frequency || '—'}</td>
                                                 <td className="ccg-amount">{formatMoney(c.amount)}</td>
+                                                <td className="ccg-capitalize">{(c.payment_method || '—').replace('_', '/')}</td>
                                                 <td>
                                                     <span className={`ccg-badge ccg-badge-${status}`}>
                                                         {status}
                                                     </span>
                                                 </td>
-                                                <td className="ccg-muted">{formatDate(c.donated_at)}</td>
+                                                <td className="ccg-muted">{formatDateTime(c.donated_at)}</td>
                                             </tr>
                                         );
                                     })}

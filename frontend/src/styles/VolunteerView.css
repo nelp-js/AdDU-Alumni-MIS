@@ -79,6 +79,16 @@
     margin-bottom: 16px;
 }
 
+.volunteer-view-passed-note {
+    margin-bottom: 20px;
+    padding: 10px 14px;
+    background: #dff1fb;
+    color: #2a6f8f;
+    border-radius: 2px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
 .volunteer-view-btn {
     display: inline-flex;
     align-items: center;

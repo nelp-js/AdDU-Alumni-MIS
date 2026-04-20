@@ -19,6 +19,7 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
     const [cardInfo, setCardInfo] = useState({ number: '', expiry: '', cvc: '', name: '' });
 
     const totalPrice = (1 + guestCount) * pricePerGuest;
+    const isFreeEvent = totalPrice <= 0;
 
     // Auto-fetch the logged in user's name
     useEffect(() => {
@@ -70,9 +71,36 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
         setGuests(newGuests);
     };
 
-    const handleSubmit = (e) => {
+    const submitRegistration = async (method) => {
+        setIsProcessing(true);
+        setError('');
+        setRegistrationStatus('');
+        try {
+            const res = await api.post(`/api/events/${event.id}/register/`, {
+                first_name:     firstName,
+                last_name:      lastName,
+                guest_count:    guestCount,
+                guests:         guests,
+                payment_method: method,
+                total_amount:   totalPrice,
+                payment_account: method === 'gcash' || method === 'maya' ? ewalletAccount : '',
+            });
+            const status = res?.data?.payment_status || '';
+            setRegistrationStatus(status);
+            if (status !== 'success') {
+                setError(res?.data?.detail || 'Registration submitted.');
+            }
+        } catch (err) {
+            const msg = err.response?.data?.detail || 'Registration failed. Please try again.';
+            setError(msg);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!firstName.trim() || !lastName.trim()) {
             setError('Please enter your first and last name.');
             return;
@@ -86,6 +114,10 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
         }
 
         setError('');
+        if (isFreeEvent) {
+            await submitRegistration('gcash');
+            return;
+        }
         setStep('payment');
     };
 
@@ -100,30 +132,7 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
             return;
         }
 
-        setIsProcessing(true);
-        setError('');
-        setRegistrationStatus('');
-        try {
-            const res = await api.post(`/api/events/${event.id}/register/`, {
-                first_name:     firstName,
-                last_name:      lastName,
-                guest_count:    guestCount,
-                guests:         guests,
-                payment_method: paymentMethod,
-                total_amount:   totalPrice,
-                payment_account: ewalletAccount, // Send the user's inputted account number
-            });
-            const status = res?.data?.payment_status || '';
-            setRegistrationStatus(status);
-            if (status !== 'success') {
-                setError(res?.data?.detail || 'Registration submitted.');
-            }
-        } catch (err) {
-            const msg = err.response?.data?.detail || 'Registration failed. Please try again.';
-            setError(msg);
-        } finally {
-            setIsProcessing(false);
-        }
+        await submitRegistration(paymentMethod);
     };
 
     const paymentOptions = [
@@ -376,7 +385,9 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
 
                     <div className="erm-footer">
                         <button type="button" className="erm-btn-back" onClick={onClose}>Cancel</button>
-                        <button type="submit" className="erm-btn-pay">Continue to Payment</button>
+                        <button type="submit" className="erm-btn-pay" disabled={isProcessing}>
+                            {isProcessing ? 'Submitting...' : (isFreeEvent ? 'Complete Registration' : 'Continue to Payment')}
+                        </button>
                     </div>
                 </form>
             </div>

@@ -1,4 +1,6 @@
 import re
+from django.db.models import F, IntegerField, Sum, Value
+from django.db.models.functions import Coalesce
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -335,6 +337,9 @@ class PublicAlumniDetailSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
+    registered_attendees = serializers.SerializerMethodField()
+    is_capacity_reached = serializers.SerializerMethodField()
+
     class Meta:
         model = Event
         fields = [
@@ -343,9 +348,23 @@ class EventSerializer(serializers.ModelSerializer):
             "venue", "category", "is_approved", "status", "remarks", "is_hidden", "organizer",
             "event_image", "cost", "organizer_names", "participants",
             "action_button_label", "action_button_link", "created_at", "updated_at",
-            "timeline_status",
+            "timeline_status", "registered_attendees", "is_capacity_reached",
         ]
         read_only_fields = ["is_approved", "organizer", "created_at", "updated_at", "timeline_status"]
+
+    def get_registered_attendees(self, obj):
+        data = obj.registrations.exclude(payment_status='failed').aggregate(
+            total=Coalesce(
+                Sum(F('guest_count') + Value(1), output_field=IntegerField()),
+                0,
+            )
+        )
+        return int(data.get('total') or 0)
+
+    def get_is_capacity_reached(self, obj):
+        if not obj.participants:
+            return False
+        return self.get_registered_attendees(obj) >= obj.participants
 
 
 class EventUpdateSerializer(serializers.ModelSerializer):

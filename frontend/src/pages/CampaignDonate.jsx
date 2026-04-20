@@ -36,6 +36,17 @@ function formatReceiptDate(isoDate) {
     }
 }
 
+function isCampaignEnded(endDate) {
+    if (!endDate) return false;
+    try {
+        const end = new Date(`${endDate}T23:59:59`);
+        if (Number.isNaN(end.getTime())) return false;
+        return end.getTime() < Date.now();
+    } catch {
+        return false;
+    }
+}
+
 function CampaignDonate() {
     useTitle('Give Back');
     const { id } = useParams();
@@ -52,6 +63,7 @@ function CampaignDonate() {
     const [donationFeedback, setDonationFeedback] = useState('');
     const [showReceipt, setShowReceipt] = useState(false);
     const [receiptData, setReceiptData] = useState(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     const [ewalletAccount, setEwalletAccount] = useState('');
     const [cardFields, setCardFields] = useState({
@@ -78,6 +90,23 @@ function CampaignDonate() {
             })
             .finally(() => setLoading(false));
     }, [id]);
+
+    useEffect(() => {
+        api.get('/api/user/me/')
+            .then((res) => {
+                const user = res.data || {};
+                setIsLoggedIn(true);
+                setCardFields((prev) => ({
+                    ...prev,
+                    firstName: prev.firstName || user.first_name || '',
+                    lastName: prev.lastName || user.last_name || '',
+                    email: prev.email || user.email || '',
+                }));
+            })
+            .catch(() => {
+                setIsLoggedIn(false);
+            });
+    }, []);
 
     const customTrim = String(customAmountInput || '').replace(/,/g, '').trim();
     const customParsed = parseFloat(customTrim);
@@ -106,9 +135,14 @@ function CampaignDonate() {
     const raised = Number(campaign?.raised_amount || 0);
     const goal = Number(campaign?.goal_amount || 0);
     const pct = clampPercent(raised, goal);
+    const hasEnded = isCampaignEnded(campaign?.end_date);
 
     const handleDonateSubmit = async () => {
         if (safeDonation <= 0 || submitting) return;
+        if (hasEnded) {
+            setDonationFeedback('This campaign has ended.');
+            return;
+        }
 
         if ((paymentMethod === 'gcash' || paymentMethod === 'maya') && !ewalletAccount.trim()) {
             setDonationFeedback(`Please enter your ${paymentMethod === 'gcash' ? 'GCash' : 'Maya'} Account Number.`);
@@ -198,6 +232,9 @@ function CampaignDonate() {
                         <div className="campaign-donate-modal campaign-donate-modal-page">
                             <h2 className="campaign-donate-section-title">Give Back</h2>
                             <p className="campaign-donate-section-hint">Enter your contribution</p>
+                            {hasEnded && (
+                                <div className="campaign-donate-ended-note">• This campaign has ended.</div>
+                            )}
 
                             <div className="campaign-donate-segment" role="group" aria-label="Donation frequency">
                                 <button
@@ -270,6 +307,29 @@ function CampaignDonate() {
 
                             {(paymentMethod === 'gcash' || paymentMethod === 'maya') && (
                                 <div className="campaign-card-fields">
+                                    <div className="campaign-donate-inline-label">
+                                        Contibutor Details
+                                    </div>
+                                    <div className="campaign-card-fields-two">
+                                        <input
+                                            type="text"
+                                            placeholder="First name (Optional)"
+                                            value={cardFields.firstName}
+                                            readOnly={isLoggedIn}
+                                            onChange={(e) =>
+                                                setCardFields((p) => ({ ...p, firstName: e.target.value }))
+                                            }
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="Last name (Optional)"
+                                            value={cardFields.lastName}
+                                            readOnly={isLoggedIn}
+                                            onChange={(e) =>
+                                                setCardFields((p) => ({ ...p, lastName: e.target.value }))
+                                            }
+                                        />
+                                    </div>
                                     <input
                                         type="text"
                                         placeholder={`${paymentMethod === 'gcash' ? 'GCash' : 'Maya'} Account Number * (09XX XXX XXXX)`}
@@ -293,12 +353,14 @@ function CampaignDonate() {
                                             type="text"
                                             placeholder="First name"
                                             value={cardFields.firstName}
+                                            readOnly={isLoggedIn}
                                             onChange={(e) => setCardFields((p) => ({ ...p, firstName: e.target.value }))}
                                         />
                                         <input
                                             type="text"
                                             placeholder="Last name"
                                             value={cardFields.lastName}
+                                            readOnly={isLoggedIn}
                                             onChange={(e) => setCardFields((p) => ({ ...p, lastName: e.target.value }))}
                                         />
                                     </div>
@@ -359,7 +421,7 @@ function CampaignDonate() {
                             <button
                                 type="button"
                                 className="campaign-donate-submit"
-                                disabled={safeDonation <= 0 || submitting}
+                                disabled={hasEnded || safeDonation <= 0 || submitting}
                                 onClick={handleDonateSubmit}
                             >
                                 {submitting ? 'Processing...' : 'Give Back Today'}
@@ -395,7 +457,7 @@ function CampaignDonate() {
 
                             <h3 className="campaign-receipt-subtitle">Here is your donation receipt:</h3>
 
-                            <p className="campaign-receipt-row"><strong>Donor name:</strong> {receiptData.donorName || '—'}</p>
+                            <p className="campaign-receipt-row"><strong>Contributor Name:</strong> {receiptData.donorName || '—'}</p>
                             <p className="campaign-receipt-row"><strong>Frequency:</strong> {receiptData.frequency === 'monthly' ? 'Monthly Pledge' : 'One-time Donation'}</p>
                             <p className="campaign-receipt-row"><strong>Donation date:</strong> {formatReceiptDate(receiptData.donationDate)}</p>
                             <p className="campaign-receipt-row"><strong>Donation to:</strong> {receiptData.campaignTitle}</p>

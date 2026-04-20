@@ -799,6 +799,12 @@
     background: #fff;
 }
 
+.campaign-donate-inline-label {
+    font-size: 13px;
+    color: #6d7280;
+    margin: 0 0 2px 0;
+}
+
 .campaign-card-fields-two {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1358,6 +1364,16 @@
     margin: 0 0 18px;
     font-size: 0.95rem;
     color: #6b7280;
+}
+
+.campaign-donate-ended-note {
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    background: #dff1fb;
+    color: #2a6f8f;
+    border-radius: 2px;
+    font-size: 14px;
+    line-height: 1.4;
 }
 
 .campaign-donate-segment {

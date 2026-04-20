@@ -273,9 +273,17 @@ function EditEvent() {
 
                             <div className="ce-row">
                                 <div className="ce-field-group ce-field-half">
-                                    <label className="ce-label-small">Cost</label>
-                                    <input type="text" name="cost" value={formData.cost}
-                                        onChange={handleChange} className="ce-input" placeholder="Free or 3000 PHP" />
+                                    <label className="ce-label-small">Cost (₱)</label>
+                                    <input
+                                        type="number"
+                                        name="cost"
+                                        value={formData.cost}
+                                        min="0"
+                                        step="0.01"
+                                        onChange={handleChange}
+                                        className="ce-input"
+                                        placeholder="e.g., 3000 (0 if Free)"
+                                    />
                                 </div>
                                 <div className="ce-field-group ce-field-half">
                                     <label className="ce-label-small">Venue <span className="ce-required">*</span></label>

@@ -168,6 +168,12 @@ function CreateJob() {
             return;
         }
 
+        if (name === 'salary' || name === 'allowance') {
+            if (value !== '' && !/^\d*\.?\d{0,2}$/.test(value)) {
+                return;
+            }
+        }
+
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
@@ -445,13 +451,15 @@ function CreateJob() {
                                             <span className="ce-char-count">{salaryCount}/{MAX_TEXT_60}</span>
                                         </div>
                                         <input
-                                            type="text"
+                                            type="number"
                                             name="salary"
                                             value={formData.salary}
+                                            min="0"
+                                            step="0.01"
+                                            inputMode="decimal"
                                             onChange={handleChange}
                                             className="ce-input"
-                                            maxLength={MAX_TEXT_60}
-                                            placeholder="e.g. ₱50,000 - ₱80,000"
+                                            placeholder="e.g. 50000"
                                         />
                                     </div>
                                 </div>
@@ -464,13 +472,15 @@ function CreateJob() {
                                         <span className="ce-char-count">{allowanceCount}/{MAX_TEXT_60}</span>
                                     </div>
                                     <input
-                                        type="text"
+                                        type="number"
                                         name="allowance"
                                         value={formData.allowance}
+                                        min="0"
+                                        step="0.01"
+                                        inputMode="decimal"
                                         onChange={handleChange}
                                         className="ce-input"
-                                        maxLength={MAX_TEXT_60}
-                                        placeholder="e.g. ₱5,000/month or Unpaid"
+                                        placeholder="e.g. 5000 (0 if unpaid)"
                                     />
                                 </div>
                             )}

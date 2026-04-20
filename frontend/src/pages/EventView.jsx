@@ -33,6 +33,18 @@ function formatTime(timeStr) {
     return `${h}:${m} ${ampm}`;
 }
 
+function isDateTimePassed(dateValue, timeValue) {
+    if (!dateValue) return false;
+    try {
+        const fallback = timeValue ? `${dateValue}T${timeValue}` : `${dateValue}T23:59:59`;
+        const parsed = new Date(fallback);
+        if (Number.isNaN(parsed.getTime())) return false;
+        return parsed.getTime() < Date.now();
+    } catch {
+        return false;
+    }
+}
+
 function buildGoogleCalendarUrl(event) {
     if (!event.start_date) return '#';
     const start = event.start_date.replace(/-/g, '');
@@ -96,6 +108,10 @@ function EventView() {
     const pricePerPerson  = event.cost && !isNaN(parseFloat(event.cost))
         ? parseFloat(event.cost)
         : 0;
+    const capacityReached = Boolean(event.is_capacity_reached);
+    const hasPassed =
+        event.timeline_status === 'Completed' ||
+        isDateTimePassed(event.end_date || event.start_date, event.end_time || event.start_time);
 
     return (
         <div className="event-view-page">
@@ -126,39 +142,43 @@ function EventView() {
 
                 <p className="event-view-date-repeat">{detailsDate}</p>
 
-                <div className="event-view-actions">
-                    {/* Register — always visible, redirects to login if not logged in */}
-                    <button
-                        type="button"
-                        className="event-view-btn event-view-btn-register"
-                        onClick={() => {
-                            if (!isLoggedIn) {
-                                navigate('/login');
-                            } else {
-                                setShowRegister(true);
-                            }
-                        }}
-                    >
-                        {isLoggedIn ? (event.action_button_label || 'Register') : 'Login to Register'}
-                    </button>
+                {hasPassed ? (
+                    <div className="event-view-passed-note">• This event has passed.</div>
+                ) : capacityReached ? (
+                    <div className="event-view-capacity-note">• Capacity has been reached.</div>
+                ) : (
+                    <div className="event-view-actions">
+                        <button
+                            type="button"
+                            className="event-view-btn event-view-btn-register"
+                            onClick={() => {
+                                if (!isLoggedIn) {
+                                    navigate('/login');
+                                } else {
+                                    setShowRegister(true);
+                                }
+                            }}
+                        >
+                            {isLoggedIn ? (event.action_button_label || 'Register') : 'Login to Register'}
+                        </button>
 
-                    {/* Add to Calendar — always links to Google Calendar */}
-                    <a
-                        href={calendarUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="event-view-btn event-view-btn-calendar"
-                        aria-label="Add to Google Calendar"
-                    >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-                            <line x1="3" y1="10" x2="21" y2="10" />
-                        </svg>
-                        <span>Add to Calendar</span>
-                    </a>
-                </div>
+                        <a
+                            href={calendarUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="event-view-btn event-view-btn-calendar"
+                            aria-label="Add to Google Calendar"
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                            <span>Add to Calendar</span>
+                        </a>
+                    </div>
+                )}
 
                 {/* Registration Modal */}
                 {showRegister && (
