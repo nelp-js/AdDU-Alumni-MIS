@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { jsPDF } from 'jspdf';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -14,7 +15,7 @@ function EventRegistrations() {
     const [error, setError]                 = useState(null);
     const [filterEvent, setFilterEvent]     = useState('');
     const [filterStatus, setFilterStatus]   = useState('');
-    const [updatingId, setUpdatingId]       = useState(null);
+    const [guestsForRegistration, setGuestsForRegistration] = useState(null);
 
     useEffect(() => {
         api.get('/api/events/registrations/all/')
@@ -22,14 +23,6 @@ function EventRegistrations() {
             .catch((err) => setError(err.response?.status === 403 ? 'Admin access required.' : 'Failed to load registrations.'))
             .finally(() => setLoading(false));
     }, []);
-
-    const handleStatusChange = (id, newStatus) => {
-        setUpdatingId(id);
-        api.patch(`/api/events/registrations/${id}/status/`, { payment_status: newStatus })
-            .then((res) => setRegistrations((prev) => prev.map((r) => r.id === id ? res.data : r)))
-            .catch(() => alert('Failed to update status.'))
-            .finally(() => setUpdatingId(null));
-    };
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '—';
@@ -52,6 +45,7 @@ function EventRegistrations() {
         if (filterStatus && normalizeStatus(r.payment_status) !== filterStatus) return false;
         return true;
     });
+    const canDownloadPdf = Boolean(filterEvent && filterStatus === 'success' && filtered.length > 0);
 
     // Metrics
     const total     = registrations.length;
@@ -59,6 +53,45 @@ function EventRegistrations() {
     const pending   = registrations.filter((r) => normalizeStatus(r.payment_status) === 'pending').length;
     const failed    = registrations.filter((r) => normalizeStatus(r.payment_status) === 'failed').length;
     const totalGuests = registrations.reduce((sum, r) => sum + (r.guest_count || 0), 0);
+
+    const getGuestNames = (registration) => {
+        if (!Array.isArray(registration.guests) || registration.guests.length === 0) return [];
+        return registration.guests
+            .map((guest) => `${guest.firstName || ''} ${guest.lastName || ''}`.trim())
+            .filter(Boolean);
+    };
+
+    const handleDownloadPdf = () => {
+        if (!canDownloadPdf) return;
+        const doc = new jsPDF();
+        let y = 16;
+
+        const writeLine = (text) => {
+            if (y > 280) {
+                doc.addPage();
+                y = 16;
+            }
+            const lines = doc.splitTextToSize(text, 180);
+            doc.text(lines, 14, y);
+            y += lines.length * 6;
+        };
+
+        doc.setFontSize(14);
+        writeLine(`Event Registrations - ${filterEvent}`);
+        doc.setFontSize(11);
+        writeLine(`Status: Success`);
+        y += 2;
+
+        filtered.forEach((registration, index) => {
+            const fullName = `${registration.first_name || ''} ${registration.last_name || ''}`.trim() || '—';
+            const guestNames = getGuestNames(registration);
+            writeLine(`${index + 1}. Registrant: ${fullName}`);
+            writeLine(`   Guests: ${guestNames.length ? guestNames.join(', ') : 'None'}`);
+            y += 2;
+        });
+
+        doc.save(`event-registrations-${filterEvent.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+    };
 
     return (
         <div className="erg-page">
@@ -163,36 +196,13 @@ function EventRegistrations() {
                                             </td>
                                             <td className="erg-muted">{formatDate(r.registered_at)}</td>
                                             <td>
-                                                {status === 'pending' && (
-                                                    <button
-                                                        type="button"
-                                                        className="erg-action-btn"
-                                                        onClick={() => handleStatusChange(r.id, 'success')}
-                                                        disabled={updatingId === r.id}
-                                                    >
-                                                        {updatingId === r.id ? '...' : 'Mark success'}
-                                                    </button>
-                                                )}
-                                                {status === 'success' && (
-                                                    <button
-                                                        type="button"
-                                                        className="erg-action-btn"
-                                                        onClick={() => handleStatusChange(r.id, 'failed')}
-                                                        disabled={updatingId === r.id}
-                                                    >
-                                                        {updatingId === r.id ? '...' : 'Mark failed'}
-                                                    </button>
-                                                )}
-                                                {status === 'failed' && (
-                                                    <button
-                                                        type="button"
-                                                        className="erg-action-btn"
-                                                        onClick={() => handleStatusChange(r.id, 'pending')}
-                                                        disabled={updatingId === r.id}
-                                                    >
-                                                        {updatingId === r.id ? '...' : 'Restore'}
-                                                    </button>
-                                                )}
+                                                <button
+                                                    type="button"
+                                                    className="erg-action-btn erg-guest-btn"
+                                                    onClick={() => setGuestsForRegistration(r)}
+                                                >
+                                                    Guests
+                                                </button>
                                             </td>
                                         </tr>
                                         );
@@ -205,9 +215,59 @@ function EventRegistrations() {
 
                 <div className="erg-back">
                     <Link to="/dashboard" className="erg-back-link">← Back to Dashboard</Link>
+                    {canDownloadPdf && (
+                        <button type="button" className="erg-back-link erg-download-link" onClick={handleDownloadPdf}>
+                            Download PDF
+                        </button>
+                    )}
                 </div>
             </main>
             <Footer />
+
+            {guestsForRegistration && (
+                <div
+                    className="erg-guests-overlay"
+                    onClick={() => setGuestsForRegistration(null)}
+                >
+                    <div
+                        className="erg-guests-modal"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h2 className="erg-guests-title">Guest Details</h2>
+                        <p className="erg-guests-subtitle">
+                            {guestsForRegistration.first_name} {guestsForRegistration.last_name} - {guestsForRegistration.event_name}
+                        </p>
+                        {Array.isArray(guestsForRegistration.guests) && guestsForRegistration.guests.length > 0 ? (
+                            <ul className="erg-guests-list">
+                                {guestsForRegistration.guests.map((guest, index) => (
+                                    <li key={`${guest.firstName || ''}-${guest.lastName || ''}-${index}`} className="erg-guest-item">
+                                        <span className="erg-guest-name">
+                                            {guest.firstName || '—'} {guest.lastName || ''}
+                                        </span>
+                                        <span className="erg-guest-relationship">
+                                            {guest.relationship || '—'}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="erg-guests-empty">
+                                Guest count was recorded, but guest names were not provided.
+                            </p>
+                        )}
+
+                        <div className="erg-guests-actions">
+                            <button
+                                type="button"
+                                className="erg-action-btn"
+                                onClick={() => setGuestsForRegistration(null)}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { jsPDF } from 'jspdf';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -14,6 +15,7 @@ function VolunteerRegistrations() {
     const [error, setError] = useState(null);
     const [filterVolunteer, setFilterVolunteer] = useState('');
     const [filterCategory, setFilterCategory] = useState('');
+    const [filterStatus, setFilterStatus] = useState('');
 
     useEffect(() => {
         api.get('/api/volunteers/registrations/all/')
@@ -67,10 +69,12 @@ function VolunteerRegistrations() {
             registrations.filter((r) => {
                 if (filterVolunteer && r.volunteer_title !== filterVolunteer) return false;
                 if (filterCategory && r.volunteer_category !== filterCategory) return false;
+                if (filterStatus && filterStatus !== 'success') return false;
                 return true;
             }),
-        [registrations, filterVolunteer, filterCategory]
+        [registrations, filterVolunteer, filterCategory, filterStatus]
     );
+    const canDownloadPdf = Boolean(filterVolunteer && filterStatus === 'success' && filtered.length > 0);
 
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
@@ -87,6 +91,48 @@ function VolunteerRegistrations() {
             .filter((r) => r.volunteer_start_date && new Date(r.volunteer_start_date) > new Date())
             .map((r) => r.volunteer)
     ).size;
+
+    const getGuestNames = (registration) => {
+        if (!Array.isArray(registration.guests) || registration.guests.length === 0) return [];
+        return registration.guests
+            .map((guest) => `${guest.firstName || ''} ${guest.lastName || ''}`.trim())
+            .filter(Boolean);
+    };
+
+    const handleDownloadPdf = () => {
+        if (!canDownloadPdf) return;
+        const doc = new jsPDF();
+        let y = 16;
+
+        const writeLine = (text) => {
+            if (y > 280) {
+                doc.addPage();
+                y = 16;
+            }
+            const lines = doc.splitTextToSize(text, 180);
+            doc.text(lines, 14, y);
+            y += lines.length * 6;
+        };
+
+        doc.setFontSize(14);
+        writeLine(`Volunteer Registrations - ${filterVolunteer}`);
+        doc.setFontSize(11);
+        writeLine(`Status: Success`);
+        y += 2;
+
+        filtered.forEach((registration, index) => {
+            const fullName =
+                `${registration.first_name || ''} ${registration.last_name || ''}`.trim() || '—';
+            const guestNames = getGuestNames(registration);
+            writeLine(`${index + 1}. Registrant: ${fullName}`);
+            writeLine(`   Guests: ${guestNames.length ? guestNames.join(', ') : 'None'}`);
+            y += 2;
+        });
+
+        doc.save(
+            `volunteer-registrations-${filterVolunteer.toLowerCase().replace(/\s+/g, '-')}.pdf`
+        );
+    };
 
     return (
         <div className="vrg-page">
@@ -146,6 +192,14 @@ function VolunteerRegistrations() {
                                         {category}
                                     </option>
                                 ))}
+                            </select>
+                            <select
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                                className="vrg-select"
+                            >
+                                <option value="">All statuses</option>
+                                <option value="success">Success</option>
                             </select>
                         </div>
                     </div>
@@ -227,6 +281,11 @@ function VolunteerRegistrations() {
                     <Link to="/dashboard" className="vrg-back-link">
                         ← Back to Dashboard
                     </Link>
+                    {canDownloadPdf && (
+                        <button type="button" className="vrg-back-link vrg-download-link" onClick={handleDownloadPdf}>
+                            Download PDF
+                        </button>
+                    )}
                 </div>
             </main>
             <Footer />

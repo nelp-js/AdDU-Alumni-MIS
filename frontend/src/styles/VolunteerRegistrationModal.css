@@ -1,0 +1,147 @@
+.vrm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1300;
+}
+
+.vrm-modal {
+    width: min(560px, 100%);
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+.vrm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.vrm-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.vrm-close {
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    cursor: pointer;
+}
+
+.vrm-item-info {
+    padding: 14px 18px 8px;
+}
+
+.vrm-item-title {
+    margin: 0 0 4px;
+    font-size: 16px;
+    color: #111827;
+}
+
+.vrm-item-meta {
+    margin: 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.vrm-form {
+    padding: 10px 18px 18px;
+}
+
+.vrm-error {
+    margin-bottom: 10px;
+    color: #b91c1c;
+    font-size: 13px;
+}
+
+.vrm-field {
+    margin-bottom: 10px;
+}
+
+.vrm-label {
+    display: block;
+    font-size: 13px;
+    color: #374151;
+    margin-bottom: 4px;
+}
+
+.vrm-input {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: #111827;
+    box-sizing: border-box;
+}
+
+.vrm-input:focus {
+    outline: none;
+    border-color: #040354;
+}
+
+.vrm-actions {
+    margin-top: 14px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.vrm-secondary-btn,
+.vrm-primary-btn {
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.vrm-secondary-btn {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+}
+
+.vrm-primary-btn {
+    border: none;
+    background: #040354;
+    color: #fff;
+}
+
+.vrm-primary-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.vrm-result {
+    padding: 24px 18px 22px;
+    text-align: center;
+}
+
+.vrm-result-icon {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 10px;
+    border-radius: 999px;
+    background: #dcfce7;
+    color: #047857;
+    font-size: 26px;
+    line-height: 52px;
+    font-weight: 700;
+}
+
+.vrm-result-message {
+    margin: 8px 0 18px;
+    font-size: 14px;
+    color: #4b5563;
+}

@@ -7,6 +7,7 @@ import '../styles/VolunteerView.css';
 import { useTitle } from '../Hooks/useTitle';
 import { getOptimizedUrl } from '../utils/imageUtils';
 import { ACCESS_TOKEN } from '../constants';
+import VolunteerRegistrationModal from '../components/VolunteerRegistrationModal';
 
 function isDatePassed(dateValue) {
     if (!dateValue) return false;
@@ -25,8 +26,7 @@ function VolunteerView() {
     const [item, setItem] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
-    const [registering, setRegistering] = useState(false);
-    const [registerMessage, setRegisterMessage] = useState('');
+    const [showRegister, setShowRegister] = useState(false);
 
     useEffect(() => {
         if (!id) {
@@ -96,16 +96,7 @@ function VolunteerView() {
             navigate('/login');
             return;
         }
-        setRegistering(true);
-        setRegisterMessage('');
-        try {
-            const res = await api.post(`/api/volunteers/${item.id}/register/`);
-            setRegisterMessage(res?.data?.detail || 'Successfully registered.');
-        } catch (err) {
-            setRegisterMessage(err.response?.data?.detail || 'Registration failed.');
-        } finally {
-            setRegistering(false);
-        }
+        setShowRegister(true);
     };
 
     const calendarUrl = buildGoogleCalendarUrl(item);
@@ -136,9 +127,8 @@ function VolunteerView() {
                                 type="button"
                                 className="volunteer-view-btn volunteer-view-btn-register"
                                 onClick={handleRegister}
-                                disabled={registering}
                             >
-                                {registering ? 'Registering...' : (isLoggedIn ? 'Register' : 'Login to Register')}
+                                {isLoggedIn ? 'Register' : 'Login to Register'}
                             </button>
                             <a
                                 href={calendarUrl}
@@ -155,7 +145,6 @@ function VolunteerView() {
                                 <span>Add to Calendar</span>
                             </a>
                         </div>
-                        {registerMessage && <p className="volunteer-view-register-msg">{registerMessage}</p>}
                     </>
                 )}
 
@@ -180,6 +169,12 @@ function VolunteerView() {
                 </section>
             </main>
             <Footer />
+            {showRegister && (
+                <VolunteerRegistrationModal
+                    item={item}
+                    onClose={() => setShowRegister(false)}
+                />
+            )}
         </div>
     );
 }

@@ -233,8 +233,103 @@
 .erg-action-btn:hover:not(:disabled) { background: #f3f4f6; }
 .erg-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+.erg-action-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+}
+
+.erg-guest-btn {
+    border-color: #bfdbfe;
+    color: #1e40af;
+}
+
+.erg-guest-btn:hover:not(:disabled) {
+    background: #dbeafe;
+    border-color: #93c5fd;
+}
+
+.erg-guests-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1200;
+}
+
+.erg-guests-modal {
+    width: min(520px, 100%);
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+}
+
+.erg-guests-title {
+    margin: 0 0 6px;
+    font-size: 20px;
+    color: #111827;
+}
+
+.erg-guests-subtitle {
+    margin: 0 0 14px;
+    font-size: 13px;
+    color: #6d7280;
+}
+
+.erg-guests-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.erg-guest-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.erg-guest-name {
+    font-size: 14px;
+    color: #111827;
+}
+
+.erg-guest-relationship {
+    font-size: 12px;
+    color: #6d7280;
+    text-transform: capitalize;
+}
+
+.erg-guests-empty {
+    margin: 0;
+    font-size: 14px;
+    color: #6d7280;
+}
+
+.erg-guests-actions {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+}
+
 /* ── Back ── */
-.erg-back { text-align: left; }
+.erg-back {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
 
 .erg-back-link {
     color: #040354;
@@ -243,6 +338,25 @@
 }
 
 .erg-back-link:hover { opacity: 0.8; }
+
+.erg-download-link {
+    margin-left: auto;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    appearance: none;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: normal;
+    color: #040354;
+    text-decoration: inherit;
+}
+
+.erg-download-link:hover {
+    opacity: 0.8;
+}
 
 /* ── Responsive ── */
 @media (max-width: 768px) {

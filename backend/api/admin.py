@@ -1,6 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Event, UserProfile, Experience, Education
+from .models import (
+    User, Event, UserProfile, Experience, Education,
+    Job, Internship, VolunteerOpportunity, VolunteerRegistration,
+    Campaign, CampaignDonation, Article, ActivityLog,
+)
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
@@ -58,3 +62,59 @@ class ExperienceAdmin(admin.ModelAdmin):
 @admin.register(Education)
 class EducationAdmin(admin.ModelAdmin):
     list_display = ('school_name', 'degree', 'user')
+
+
+@admin.register(Job)
+class JobAdmin(admin.ModelAdmin):
+    list_display = ('position', 'company', 'location', 'status', 'is_hidden', 'created_at')
+    list_filter = ('status', 'modality', 'employment_type', 'is_hidden')
+    search_fields = ('position', 'company', 'email')
+
+
+@admin.register(Internship)
+class InternshipAdmin(admin.ModelAdmin):
+    list_display = ('position', 'company', 'location', 'status', 'is_hidden', 'created_at')
+    list_filter = ('status', 'modality', 'is_hidden')
+    search_fields = ('position', 'company', 'email')
+
+
+@admin.register(VolunteerOpportunity)
+class VolunteerOpportunityAdmin(admin.ModelAdmin):
+    list_display = ('title', 'category', 'organizer', 'status', 'is_hidden', 'created_at')
+    list_filter = ('status', 'category', 'is_hidden')
+    search_fields = ('title', 'organizer', 'location')
+
+
+@admin.register(VolunteerRegistration)
+class VolunteerRegistrationAdmin(admin.ModelAdmin):
+    list_display = ('volunteer', 'user', 'registered_at')
+    list_filter = ('registered_at',)
+    search_fields = ('volunteer__title', 'user__username', 'user__email')
+
+
+@admin.register(Campaign)
+class CampaignAdmin(admin.ModelAdmin):
+    list_display = ('title', 'category', 'goal_amount', 'raised_amount', 'status', 'is_active', 'end_date')
+    list_filter = ('status', 'category', 'is_active')
+    search_fields = ('title', 'description')
+
+
+@admin.register(CampaignDonation)
+class CampaignDonationAdmin(admin.ModelAdmin):
+    list_display = ('campaign', 'first_name', 'last_name', 'amount', 'payment_method', 'payment_status', 'donated_at')
+    list_filter = ('payment_status', 'payment_method', 'frequency')
+    search_fields = ('campaign__title', 'first_name', 'last_name', 'email')
+
+
+@admin.register(Article)
+class ArticleAdmin(admin.ModelAdmin):
+    list_display = ('title', 'category', 'status', 'is_hidden', 'created_by', 'created_at', 'updated_at')
+    list_filter = ('status', 'category', 'is_hidden')
+    search_fields = ('title', 'author_name', 'subtitle')
+
+
+@admin.register(ActivityLog)
+class ActivityLogAdmin(admin.ModelAdmin):
+    list_display = ('timestamp', 'module', 'action', 'user', 'status')
+    list_filter = ('module', 'status', 'timestamp')
+    search_fields = ('action', 'module', 'user__username', 'user__email')
