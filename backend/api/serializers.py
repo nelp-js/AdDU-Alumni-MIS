@@ -578,6 +578,26 @@ class CampaignDonationSerializer(serializers.ModelSerializer):
         return s
 
 
+class CampaignContributorAdminSerializer(serializers.ModelSerializer):
+    campaign_title = serializers.CharField(source='campaign.title', read_only=True)
+    user_email = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CampaignDonation
+        fields = [
+            'id', 'campaign', 'campaign_title', 'user',
+            'first_name', 'last_name', 'email', 'user_email',
+            'amount', 'payment_method', 'payment_status',
+            'frequency', 'payment_account', 'donated_at',
+        ]
+        read_only_fields = fields
+
+    def get_user_email(self, obj):
+        if obj.user and obj.user.email:
+            return obj.user.email
+        return obj.email
+
+
 class CampaignSerializer(serializers.ModelSerializer):
     created_by_name = serializers.SerializerMethodField()
     donations_count = serializers.SerializerMethodField()

@@ -68,6 +68,7 @@ urlpatterns = [
     path("campaigns/<int:campaign_id>/deny/",           views.campaign_deny,           name="campaign-deny"),
     path("campaigns/<int:campaign_id>/toggle-active/",  views.campaign_toggle_active,  name="campaign-toggle-active"),
     path("campaigns/<int:campaign_id>/donate/",         views.campaign_donate,         name="campaign-donate"),
+    path("campaigns/contributors/all/",                 views.campaign_all_contributors, name="campaign-all-contributors"),
 
     # --- ARTICLE / CMS VIEWS ---
     path("articles/",                           views.ArticleListCreate.as_view(),      name="article-list"),

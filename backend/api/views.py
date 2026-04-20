@@ -23,7 +23,7 @@ from .serializers import (
     EventSerializer, EventUpdateSerializer, EventRegistrationSerializer,
     JobSerializer, InternshipSerializer, VolunteerOpportunitySerializer,
     VolunteerRegistrationSerializer, VolunteerRegistrationAdminSerializer,
-    CampaignSerializer, CampaignDonationSerializer,
+    CampaignSerializer, CampaignDonationSerializer, CampaignContributorAdminSerializer,
     CustomTokenObtainPairSerializer, CustomTokenRefreshSerializer, ActivityLogSerializer,
     ArticleSerializer, ArticleUpdateSerializer,
     UserProfileSerializer, ExperienceSerializer, EducationSerializer,
@@ -949,6 +949,13 @@ def campaign_donate(request, campaign_id):
             'campaign_progress_percent': progress,
         }, status=201)
     return Response(serializer.errors, status=400)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def campaign_all_contributors(request):
+    donations = CampaignDonation.objects.select_related('campaign', 'user').all()
+    return Response(CampaignContributorAdminSerializer(donations, many=True).data)
 
 
 # --- ARTICLE / CMS VIEWS ---

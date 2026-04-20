@@ -14,6 +14,7 @@ import CreateCampaign from "./pages/CreateCampaign"
 import CreateVolunteer from "./pages/CreateVolunteer"
 import VolunteerManagement from "./pages/VolunteerManagement"
 import CampaignManagement from "./pages/CampaignManagement"
+import CampaignContributors from "./pages/CampaignContributors"
 import JobsInternships from "./pages/JobsInternships"
 import JobOpportunityView from "./pages/JobOpportunityView"
 import Volunteer from "./pages/Volunteer"
@@ -95,6 +96,7 @@ function App() {
         <Route path="/dashboard/volunteer/create" element={<AdminProtectedRoute><CreateVolunteer /></AdminProtectedRoute>} />
         <Route path="/dashboard/volunteer/edit/:id" element={<AdminProtectedRoute><CreateVolunteer /></AdminProtectedRoute>} />
         <Route path="/dashboard/campaigns" element={<AdminProtectedRoute><CampaignManagement /></AdminProtectedRoute>} />
+        <Route path="/dashboard/campaigns/contributors" element={<AdminProtectedRoute><CampaignContributors /></AdminProtectedRoute>} />
         <Route path="/dashboard/campaigns/edit/:id" element={<AdminProtectedRoute><CreateCampaign /></AdminProtectedRoute>} />
         <Route path="/dashboard/content" element={<AdminProtectedRoute><ContentManagement /></AdminProtectedRoute>} />
         <Route path="/dashboard/content/create" element={<AdminProtectedRoute><CreateContent /></AdminProtectedRoute>} />

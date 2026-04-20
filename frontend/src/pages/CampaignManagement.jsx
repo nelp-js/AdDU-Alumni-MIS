@@ -323,6 +323,9 @@ function CampaignManagement() {
                     <Link to="/dashboard" className="campaign-mgmt-back-link">
                         ← Back to Dashboard
                     </Link>
+                    <Link to="/dashboard/campaigns/contributors" className="campaign-mgmt-back-link campaign-mgmt-create-link">
+                        View Contributors
+                    </Link>
                     <Link to="/dashboard/donations/create" className="campaign-mgmt-back-link campaign-mgmt-create-link">
                         Create Campaign
                     </Link>
