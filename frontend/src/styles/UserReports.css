@@ -1,18 +1,26 @@
 .user-reports-page {
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     background: #f4f5f7;
 }
 
 .user-reports-main {
-    max-width: 1200px;
+    flex: 1;
+    width: 100%;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 48px 20px 36px;
+    padding: 60px 24px 40px;
+    box-sizing: border-box;
 }
 
 .user-reports-title {
-    margin: 0 0 6px;
-    font-size: 34px;
-    color: #111827;
+    margin: 0 0 32px;
+    font-size: 28px;
+    font-weight: 400;
+    color: #333;
+    text-align: center;
+    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
 }
 
 .user-reports-subtitle {
@@ -35,7 +43,7 @@
 
 .user-reports-filters-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
     margin-bottom: 12px;
 }
@@ -256,7 +264,7 @@
 
 @media (max-width: 640px) {
     .user-reports-main {
-        padding: 36px 14px 30px;
+        padding: 40px 16px 28px;
     }
     .user-reports-title {
         font-size: 28px;

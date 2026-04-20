@@ -214,7 +214,7 @@ function EventRegistrations() {
                 </div>
 
                 <div className="erg-back">
-                    <Link to="/dashboard" className="erg-back-link">← Back to Dashboard</Link>
+                    <Link to="/dashboard/events" className="erg-back-link">← Back to Event Management</Link>
                     {canDownloadPdf && (
                         <button type="button" className="erg-back-link erg-download-link" onClick={handleDownloadPdf}>
                             Download PDF

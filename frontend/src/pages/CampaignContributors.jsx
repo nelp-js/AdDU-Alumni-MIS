@@ -224,8 +224,8 @@ function CampaignContributors() {
                 </div>
 
                 <div className="ccg-back">
-                    <Link to="/dashboard" className="ccg-back-link">
-                        ← Back to Dashboard
+                    <Link to="/dashboard/campaigns" className="ccg-back-link">
+                        ← Back to Campaign Management
                     </Link>
                 </div>
             </main>

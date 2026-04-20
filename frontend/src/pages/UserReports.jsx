@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { jsPDF } from 'jspdf';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -20,11 +19,11 @@ function UserReports() {
     const [filters, setFilters] = useState({
         program: '',
         batch: '',
-        start_date: '',
-        end_date: '',
-        include_missing: true,
     });
-    const [appliedFilters, setAppliedFilters] = useState(filters);
+    const [appliedFilters, setAppliedFilters] = useState({
+        program: '',
+        batch: '',
+    });
     const [summary, setSummary] = useState(null);
     const [detail, setDetail] = useState({ report: activeReport, count: 0, results: [] });
     const [loadingSummary, setLoadingSummary] = useState(true);
@@ -35,9 +34,7 @@ function UserReports() {
         const params = new URLSearchParams();
         if (appliedFilters.program) params.set('program', appliedFilters.program);
         if (appliedFilters.batch) params.set('batch', appliedFilters.batch);
-        if (appliedFilters.start_date) params.set('start_date', appliedFilters.start_date);
-        if (appliedFilters.end_date) params.set('end_date', appliedFilters.end_date);
-        params.set('include_missing', appliedFilters.include_missing ? 'true' : 'false');
+        params.set('include_missing', 'true');
         return params.toString();
     }, [appliedFilters]);
 
@@ -61,20 +58,19 @@ function UserReports() {
     }, [queryString, activeReport]);
 
     const handleFilterChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFilters((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+        const { name, value } = e.target;
+        if (name === 'batch') {
+            const digitsOnly = value.replace(/\D/g, '').slice(0, 4);
+            setFilters((prev) => ({ ...prev, batch: digitsOnly }));
+            return;
+        }
+        setFilters((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleApply = () => setAppliedFilters(filters);
 
     const handleReset = () => {
-        const reset = {
-            program: '',
-            batch: '',
-            start_date: '',
-            end_date: '',
-            include_missing: true,
-        };
+        const reset = { program: '', batch: '' };
         setFilters(reset);
         setAppliedFilters(reset);
     };
@@ -114,53 +110,6 @@ function UserReports() {
         ];
     }, [activeReport]);
 
-    const exportPdf = () => {
-        if (!reportRows.length) {
-            window.alert('No rows available to export.');
-            return;
-        }
-        const doc = new jsPDF();
-        const title = REPORT_OPTIONS.find((opt) => opt.id === activeReport)?.label || 'User Report';
-        const generatedAt = new Date().toLocaleString();
-        const filenameBase = activeReport.replace(/_/g, '-');
-        let y = 16;
-
-        const writeLine = (text = '') => {
-            if (y > 280) {
-                doc.addPage();
-                y = 16;
-            }
-            const lines = doc.splitTextToSize(String(text), 180);
-            doc.text(lines, 14, y);
-            y += lines.length * 6;
-        };
-
-        const formatValue = (row, key) => {
-            if (key === 'is_marked_current') return row[key] ? 'Yes' : 'No';
-            return row[key] || '—';
-        };
-
-        doc.setFontSize(14);
-        writeLine(`User Report: ${title}`);
-        doc.setFontSize(11);
-        writeLine(`Generated: ${generatedAt}`);
-        writeLine(
-            `Filters -> Program: ${appliedFilters.program || 'All'}, Batch: ${appliedFilters.batch || 'All'}, Date: ${appliedFilters.start_date || 'Any'} to ${appliedFilters.end_date || 'Any'}, Include missing data: ${appliedFilters.include_missing ? 'Yes' : 'No'}`
-        );
-        writeLine(`Total rows: ${reportRows.length}`);
-        y += 2;
-
-        reportRows.forEach((row, idx) => {
-            writeLine(`${idx + 1}. ${row.name || row.username || '—'}`);
-            detailColumns.forEach(([key, label]) => {
-                writeLine(`   ${label}: ${formatValue(row, key)}`);
-            });
-            y += 2;
-        });
-
-        doc.save(`user-report-${filenameBase}.pdf`);
-    };
-
     const alignment = summary?.report_4_alignment_breakdown || {};
     const percentages = alignment.percentages || {};
 
@@ -169,7 +118,6 @@ function UserReports() {
             <Header />
             <main className="user-reports-main">
                 <h1 className="user-reports-title">User Reports</h1>
-                <p className="user-reports-subtitle">Generate alumni reports with filters and export to PDF.</p>
 
                 <section className="user-reports-filters-card">
                     <div className="user-reports-filters-grid">
@@ -184,26 +132,18 @@ function UserReports() {
                         </label>
                         <label>
                             Batch
-                            <input name="batch" value={filters.batch} onChange={handleFilterChange} placeholder="e.g., 2024" />
-                        </label>
-                        <label>
-                            Registered from
-                            <input type="date" name="start_date" value={filters.start_date} onChange={handleFilterChange} />
-                        </label>
-                        <label>
-                            Registered to
-                            <input type="date" name="end_date" value={filters.end_date} onChange={handleFilterChange} />
+                            <input
+                                name="batch"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                maxLength={4}
+                                value={filters.batch}
+                                onChange={handleFilterChange}
+                                placeholder="e.g., 2024"
+                            />
                         </label>
                     </div>
-                    <label className="user-reports-checkbox">
-                        <input
-                            type="checkbox"
-                            name="include_missing"
-                            checked={filters.include_missing}
-                            onChange={handleFilterChange}
-                        />
-                        Include alumni with missing employment data
-                    </label>
                     <div className="user-reports-filter-actions">
                         <button type="button" className="user-reports-btn primary" onClick={handleApply}>Apply Filters</button>
                         <button type="button" className="user-reports-btn" onClick={handleReset}>Reset</button>
@@ -253,9 +193,6 @@ function UserReports() {
                 <section className="user-reports-table-card">
                     <div className="user-reports-table-head">
                         <h2>{REPORT_OPTIONS.find((opt) => opt.id === activeReport)?.label}</h2>
-                        <button type="button" className="user-reports-btn primary" onClick={exportPdf}>
-                            Generate PDF
-                        </button>
                     </div>
                     <p className="user-reports-count">
                         {loadingDetail ? 'Loading rows...' : `${detail.count || 0} result(s)`}
@@ -323,7 +260,6 @@ function UserReports() {
 
                 <div className="user-reports-back-row">
                     <Link to="/dashboard/users" className="user-reports-back-link">← Back to User Management</Link>
-                    <Link to="/dashboard" className="user-reports-back-link">Back to Dashboard</Link>
                 </div>
             </main>
             <Footer />
