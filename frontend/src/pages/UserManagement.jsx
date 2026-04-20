@@ -94,13 +94,15 @@ function UserManagement() {
     const [loading, setLoading]         = useState(true);
     const [error, setError]             = useState(null);
     const [approvingId, setApprovingId] = useState(null);
-    const [rejectingId, setRejectingId] = useState(null);
+    const [denyingId, setDenyingId]     = useState(null);
     const [deletingId, setDeletingId]   = useState(null);
     const [detailsUser, setDetailsUser] = useState(null);
     const [editingUser, setEditingUser] = useState(null);
     const [editForm, setEditForm]       = useState(EMPTY_FORM);
     const [editError, setEditError]     = useState(null);
     const [savingEdit, setSavingEdit]   = useState(false);
+    const [denyRemarks, setDenyRemarks]         = useState('');
+    const [showDenyInput, setShowDenyInput]     = useState(null);
 
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: currentYear - 1948 + 1 }, (_, i) => currentYear - i).filter(year => year <= 2025);
@@ -125,12 +127,16 @@ function UserManagement() {
             .finally(() => setApprovingId(null));
     };
 
-    const handleReject = (userId) => {
-        setRejectingId(userId);
-        api.post(`/api/users/${userId}/reject/`)
-            .then(() => setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, is_approved: false, is_active: false } : u)))
+    const handleDeny = (userId, remarks = '') => {
+        setDenyingId(userId);
+        api.post(`/api/users/${userId}/deny/`, { remarks })
+            .then(() => {
+                setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, is_approved: false, is_active: false } : u));
+                setShowDenyInput(null);
+                setDenyRemarks('');
+            })
             .catch(() => {})
-            .finally(() => setRejectingId(null));
+            .finally(() => setDenyingId(null));
     };
 
     const handleDelete = (userId) => {
@@ -261,12 +267,47 @@ function UserManagement() {
                                             <td>
                                                 {isPending(u) ? (
                                                     <span className="user-mgmt-actions">
-                                                        <button type="button" className="user-mgmt-approve-btn" onClick={() => handleApprove(u.id)} disabled={approvingId === u.id}>
-                                                            {approvingId === u.id ? '...' : 'Approve'}
-                                                        </button>
-                                                        <button type="button" className="user-mgmt-reject-btn" onClick={() => handleReject(u.id)} disabled={rejectingId === u.id}>
-                                                            {rejectingId === u.id ? '...' : 'Reject'}
-                                                        </button>
+                                                        {showDenyInput !== u.id && (
+                                                            <button type="button" className="user-mgmt-approve-btn" onClick={() => handleApprove(u.id)} disabled={approvingId === u.id}>
+                                                                {approvingId === u.id ? '...' : 'Approve'}
+                                                            </button>
+                                                        )}
+                                                        {showDenyInput === u.id ? (
+                                                            <div className="user-mgmt-deny-block">
+                                                                <textarea
+                                                                    placeholder="Reason for denial... (max 140 chars)"
+                                                                    value={denyRemarks}
+                                                                    onChange={(e) => setDenyRemarks(e.target.value)}
+                                                                    maxLength={140}
+                                                                    className="user-mgmt-deny-textarea"
+                                                                />
+                                                                <div className="user-mgmt-deny-actions">
+                                                                    <button
+                                                                        type="button"
+                                                                        className="user-mgmt-confirm-btn"
+                                                                        onClick={() => handleDeny(u.id, denyRemarks.trim())}
+                                                                        disabled={denyingId === u.id}
+                                                                    >
+                                                                        {denyingId === u.id ? '...' : 'Confirm'}
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="user-mgmt-deny-btn"
+                                                                        onClick={() => { setShowDenyInput(null); setDenyRemarks(''); }}
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <button
+                                                                type="button"
+                                                                className="user-mgmt-deny-btn"
+                                                                onClick={() => { setShowDenyInput(u.id); setDenyRemarks(''); }}
+                                                            >
+                                                                Deny
+                                                            </button>
+                                                        )}
                                                     </span>
                                                 ) : (
                                                     <span className="user-mgmt-actions user-mgmt-actions--single">

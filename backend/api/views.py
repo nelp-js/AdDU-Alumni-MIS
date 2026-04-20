@@ -252,9 +252,26 @@ def approve_user(request, user_id):
 @permission_classes([IsAuthenticated, IsAdminUser])
 def reject_user(request, user_id):
     user = get_object_or_404(User, pk=user_id, is_superuser=False)
+    remarks = (request.data.get('remarks') or '').strip()
     user.is_approved = False; user.is_active = False; user.save()
-    ActivityLog.objects.create(action=f"User rejected: {user.username}", module="User Management", user=request.user, status="Rejected")
-    return Response({"detail": "User rejected.", "is_approved": False, "is_active": False})
+    if user.email:
+        greeting_name = user.first_name or user.username or 'there'
+        reason_line = f"\nReason:\n{remarks}\n" if remarks else "\nReason:\nNo specific reason provided.\n"
+        send_mail(
+            subject='Ateneo Alumni - Account Registration Denied',
+            message=(
+                f"Hi {greeting_name},\n\n"
+                f"Your registration request for Ateneo Alumni was denied by the administrator.\n"
+                f"{reason_line}\n"
+                f"If you believe this is a mistake, please contact support and submit a new request.\n\n"
+                f"Thank you."
+            ),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[user.email],
+            fail_silently=True,
+        )
+    ActivityLog.objects.create(action=f"User denied: {user.username}", module="User Management", user=request.user, status="Denied")
+    return Response({"detail": "User denied.", "is_approved": False, "is_active": False})
 
 
 # --- EVENT VIEWS ---

@@ -100,6 +100,10 @@
 .user-mgmt-table td {
     padding: 14px 12px;
     color: #4b5563;
+}
+
+.user-mgmt-table th:nth-last-child(-n+3),
+.user-mgmt-table td:nth-last-child(-n+3) {
     white-space: nowrap;
 }
 
@@ -131,9 +135,10 @@
 .user-mgmt-actions {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    align-items: stretch;
-    min-width: 85px;
+    gap: 8px;
+    align-items: flex-start;
+    white-space: normal;
+    flex-wrap: nowrap;
 }
 .user-mgmt-btn-group {
     position: relative;
@@ -259,8 +264,8 @@
     cursor: not-allowed;
 }
 
-/* Reject */
-.user-mgmt-reject-btn {
+/* Deny */
+.user-mgmt-deny-btn {
     padding: 8px 14px;
     min-width: 96px;
     border: 1px solid #fca5a5;
@@ -275,15 +280,81 @@
     text-align: center;
 }
 
-.user-mgmt-reject-btn:hover:not(:disabled) {
+.user-mgmt-deny-btn:hover:not(:disabled) {
     background: #fee2e2;
     border-color: #f87171;
     color: #991b1b;
 }
 
-.user-mgmt-reject-btn:disabled {
+.user-mgmt-deny-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.user-mgmt-confirm-btn {
+    padding: 8px 14px;
+    min-width: 96px;
+    border: 1px solid #93c5fd;
+    color: #1d4ed8;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    text-align: center;
+}
+
+.user-mgmt-confirm-btn:hover:not(:disabled) {
+    background: #dbeafe;
+    border-color: #60a5fa;
+    color: #1e40af;
+}
+
+.user-mgmt-confirm-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ── Deny inline input (copied from Job & Internship pattern) ── */
+.user-mgmt-deny-block {
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.user-mgmt-deny-textarea {
+    width: 100%;
+    height: 50px;
+    padding: 6px 10px;
+    border: 1px solid #93c5fd;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.35;
+    box-sizing: border-box;
+    resize: none;
+    overflow-y: auto;
+}
+
+.user-mgmt-deny-textarea:focus {
+    outline: none;
+    border-color: #60a5fa;
+}
+
+.user-mgmt-deny-textarea::placeholder {
+    font-size: 12px;
+}
+
+.user-mgmt-deny-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.user-mgmt-deny-actions .user-mgmt-confirm-btn,
+.user-mgmt-deny-actions .user-mgmt-deny-btn {
+    flex: 0 0 96px;
 }
 
 /* Edit — same look as Event Management split "Edit" (.event-mgmt-split-main), full border, size matches Approve/Reject */
@@ -534,8 +605,21 @@
     color: #374151;
 }
 
+.user-mgmt-modal-field textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    box-sizing: border-box;
+    color: #374151;
+    font-family: inherit;
+    resize: vertical;
+}
+
 .user-mgmt-modal-field input:focus,
-.user-mgmt-modal-field select:focus {
+.user-mgmt-modal-field select:focus,
+.user-mgmt-modal-field textarea:focus {
     outline: none;
     border-color: #040354;
 }

@@ -18,6 +18,7 @@ urlpatterns = [
     path("users/<int:pk>/",                 views.UserDetailView.as_view(),         name="user-detail"),
     path("users/<int:user_id>/approve/",    views.approve_user,                    name="approve-user"),
     path("users/<int:user_id>/reject/",     views.reject_user,                     name="reject-user"),
+    path("users/<int:user_id>/deny/",       views.reject_user,                     name="deny-user"),
 
     # --- EVENT VIEWS ---
     path("events/",                                             views.EventListCreate.as_view(),        name="event-list"),
