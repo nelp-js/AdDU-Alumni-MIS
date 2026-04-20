@@ -17,7 +17,7 @@ function Login() {
     const [searchParams, setSearchParams] = useSearchParams();
 
     const from = location.state?.from?.pathname || "/";
-    const [showInactivityMessage, setShowInactivityMessage] = useState(() => searchParams.get('inactivity') === '1');
+    const [showInactivityMessage] = useState(() => searchParams.get('inactivity') === '1');
 
     useEffect(() => {
         if (searchParams.get('inactivity') === '1') {

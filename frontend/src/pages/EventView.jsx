@@ -102,7 +102,6 @@ function EventView() {
     );
 
     const detailsDate     = formatDisplayDate(event.start_date);
-    const hasActionButton = !!(event.action_button_label && event.action_button_link);
     const imageUrl        = getOptimizedUrl(event.event_image, 'hero');
     const calendarUrl     = buildGoogleCalendarUrl(event);
     const pricePerPerson  = event.cost && !isNaN(parseFloat(event.cost))

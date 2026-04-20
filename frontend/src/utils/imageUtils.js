@@ -1,5 +1,3 @@
-import api from '../api'; 
-
 /**
  * UTILITY: getOptimizedUrl
  * Injects Cloudinary optimization parameters into the URL.

@@ -19,7 +19,9 @@ function AdminProtectedRoute({ children }) {
                     localStorage.setItem(ACCESS_TOKEN, res.data.access);
                     return true;
                 }
-            } catch (_) {}
+            } catch {
+                // Refresh failed; caller handles fallback.
+            }
             return false;
         };
 
@@ -50,7 +52,7 @@ function AdminProtectedRoute({ children }) {
                 localStorage.setItem(USER_IS_ADMIN, isAdmin ? "true" : "false");
                 if (!cancelled) setStatus(isAdmin);
 
-            } catch (_) {
+            } catch {
                 // Last resort: use cached value
                 const cachedAdmin = localStorage.getItem(USER_IS_ADMIN) === "true";
                 if (!cancelled) setStatus(cachedAdmin);

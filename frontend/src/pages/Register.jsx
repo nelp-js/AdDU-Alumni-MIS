@@ -131,7 +131,7 @@ function Register() {
             } else {
                 setErrors(data);
             }
-        } catch (error) {
+        } catch {
             setErrors({ general: 'An error occurred. Please try again.' });
         } finally {
             setLoading(false);

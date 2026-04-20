@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -98,7 +98,7 @@ function CreateContent() {
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(false);
-    const [loadError, setLoadError] = useState(null);
+    const [_loadError, setLoadError] = useState(null);
     const [submitError, setSubmitError] = useState('');
     const [showPreview, setShowPreview] = useState(false);
 

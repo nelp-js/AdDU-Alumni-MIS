@@ -50,7 +50,9 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
                 const parsed = JSON.parse(storedUser);
                 if (parsed.first_name) setFirstName(parsed.first_name);
                 if (parsed.last_name) setLastName(parsed.last_name);
-            } catch {}
+            } catch {
+                // Ignore invalid cached profile payloads.
+            }
         };
         fetchUser();
     }, []);
@@ -139,9 +141,9 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
     };
 
     const paymentOptions = [
-        { value: 'gcash', label: 'GCash',             Icon: Smartphone, description: 'Pay via GCash mobile wallet' },
-        { value: 'maya',  label: 'Maya',              Icon: Wallet,     description: 'Pay via Maya (formerly PayMaya)' },
-        { value: 'card',  label: 'Credit/Debit Card', Icon: CreditCard, description: 'Pay via Visa, Mastercard, or AMEX' },
+        { value: 'gcash', label: 'GCash',             icon: Smartphone, description: 'Pay via GCash mobile wallet' },
+        { value: 'maya',  label: 'Maya',              icon: Wallet,     description: 'Pay via Maya (formerly PayMaya)' },
+        { value: 'card',  label: 'Credit/Debit Card', icon: CreditCard, description: 'Pay via Visa, Mastercard, or AMEX' },
     ];
 
     // ── Result screens (success / pending / failed) ─────────────────────────
@@ -210,18 +212,21 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
                     </div>
 
                     <div className="erm-payment-options">
-                        {paymentOptions.map(({ value, label, Icon, description }) => (
-                            <label key={value} className={`erm-payment-option ${paymentMethod === value ? 'selected' : ''}`}>
-                                <input type="radio" name="payment" value={value}
-                                    checked={paymentMethod === value}
-                                    onChange={(e) => setPaymentMethod(e.target.value)} />
-                                <Icon size={24} className="erm-payment-icon" />
-                                <div className="erm-payment-text">
-                                    <p className="erm-payment-label">{label}</p>
-                                    <p className="erm-payment-desc">{description}</p>
-                                </div>
-                            </label>
-                        ))}
+                        {paymentOptions.map((option) => {
+                            const PaymentIcon = option.icon;
+                            return (
+                                <label key={option.value} className={`erm-payment-option ${paymentMethod === option.value ? 'selected' : ''}`}>
+                                    <input type="radio" name="payment" value={option.value}
+                                        checked={paymentMethod === option.value}
+                                        onChange={(e) => setPaymentMethod(e.target.value)} />
+                                    <PaymentIcon size={24} className="erm-payment-icon" />
+                                    <div className="erm-payment-text">
+                                        <p className="erm-payment-label">{option.label}</p>
+                                        <p className="erm-payment-desc">{option.description}</p>
+                                    </div>
+                                </label>
+                            );
+                        })}
                     </div>
 
                     {/* DYNAMIC PAYMENT INPUTS - Added 24px bottom margin here for spacing */}

@@ -28,8 +28,6 @@ function Events() {
     const sortedEvents = [...events].sort((a, b) => {
         const aDate = new Date(a.start_date || a.end_date || 0).getTime();
         const bDate = new Date(b.start_date || b.end_date || 0).getTime();
-        const aDiff = Math.abs(aDate - today);
-        const bDiff = Math.abs(bDate - today);
         // Future events first (ascending from today), past events after
         const aIsFuture = aDate >= today;
         const bIsFuture = bDate >= today;
@@ -171,7 +169,7 @@ function Events() {
                 )}
 
                 {/* One header + list per month group */}
-                {!loading && !error && groupKeys.map((monthYear, groupIndex) => (
+                {!loading && !error && groupKeys.map((monthYear) => (
                     <div key={monthYear}>
                         <header className="events-month-year-header">
                             <span className="events-month-year-text">{monthYear}</span>
