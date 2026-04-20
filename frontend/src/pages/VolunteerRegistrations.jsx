@@ -14,7 +14,6 @@ function VolunteerRegistrations() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [filterVolunteer, setFilterVolunteer] = useState('');
-    const [filterCategory, setFilterCategory] = useState('');
     const [filterStatus, setFilterStatus] = useState('');
 
     useEffect(() => {
@@ -59,20 +58,14 @@ function VolunteerRegistrations() {
         () => [...new Set(registrations.map((r) => r.volunteer_title).filter(Boolean))],
         [registrations]
     );
-    const categories = useMemo(
-        () => [...new Set(registrations.map((r) => r.volunteer_category).filter(Boolean))],
-        [registrations]
-    );
-
     const filtered = useMemo(
         () =>
             registrations.filter((r) => {
                 if (filterVolunteer && r.volunteer_title !== filterVolunteer) return false;
-                if (filterCategory && r.volunteer_category !== filterCategory) return false;
                 if (filterStatus && filterStatus !== 'success') return false;
                 return true;
             }),
-        [registrations, filterVolunteer, filterCategory, filterStatus]
+        [registrations, filterVolunteer, filterStatus]
     );
     const canDownloadPdf = Boolean(filterVolunteer && filterStatus === 'success' && filtered.length > 0);
 
@@ -182,18 +175,6 @@ function VolunteerRegistrations() {
                             </select>
 
                             <select
-                                value={filterCategory}
-                                onChange={(e) => setFilterCategory(e.target.value)}
-                                className="vrg-select"
-                            >
-                                <option value="">All categories</option>
-                                {categories.map((category) => (
-                                    <option key={category} value={category}>
-                                        {category}
-                                    </option>
-                                ))}
-                            </select>
-                            <select
                                 value={filterStatus}
                                 onChange={(e) => setFilterStatus(e.target.value)}
                                 className="vrg-select"
@@ -217,7 +198,6 @@ function VolunteerRegistrations() {
                                     <tr>
                                         <th>Registrant</th>
                                         <th>Opportunity</th>
-                                        <th>Category</th>
                                         <th>Location</th>
                                         <th>Organizer</th>
                                         <th>Date Range</th>
@@ -250,9 +230,6 @@ function VolunteerRegistrations() {
                                                 <span className="vrg-opportunity-tag">
                                                     {registration.volunteer_title || '—'}
                                                 </span>
-                                            </td>
-                                            <td className="vrg-muted">
-                                                {registration.volunteer_category || '—'}
                                             </td>
                                             <td className="vrg-muted">
                                                 {registration.volunteer_location || '—'}

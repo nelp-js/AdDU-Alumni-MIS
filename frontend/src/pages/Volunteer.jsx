@@ -25,16 +25,28 @@ function Volunteer() {
             .finally(() => setLoading(false));
     }, []);
 
+    const normalizeText = (value) =>
+        String(value || '')
+            .toLowerCase()
+            .replace(/\s+/g, ' ')
+            .trim();
+
+    const normalizedQuery = normalizeText(searchQuery);
+
     const filtered = items.filter((item) => {
-        if (!searchQuery.trim()) return true;
-        const q = searchQuery.toLowerCase();
+        if (!normalizedQuery) return true;
+        const searchable = [
+            item.title,
+            item.summary,
+            item.description,
+            item.location,
+            item.organizer,
+            item.category,
+            item.start_date,
+            item.end_date,
+        ].map(normalizeText);
         return (
-            (item.title || '').toLowerCase().includes(q) ||
-            (item.summary || '').toLowerCase().includes(q) ||
-            (item.description || '').toLowerCase().includes(q) ||
-            (item.location || '').toLowerCase().includes(q) ||
-            (item.organizer || '').toLowerCase().includes(q) ||
-            (item.category || '').toLowerCase().includes(q)
+            searchable.some((entry) => entry.includes(normalizedQuery))
         );
     }).sort((a, b) => new Date(a.start_date || 0) - new Date(b.start_date || 0));
 
@@ -83,7 +95,13 @@ function Volunteer() {
                 </section>
 
                 <section className="volunteer-search-section">
-                    <form className="volunteer-search-box" onSubmit={(e) => e.preventDefault()}>
+                    <form
+                        className="volunteer-search-box"
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            setSearchQuery((prev) => prev.trim());
+                        }}
+                    >
                         <input
                             type="text"
                             className="volunteer-search-input"

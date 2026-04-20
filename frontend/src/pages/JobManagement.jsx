@@ -223,6 +223,7 @@ function JobManagement() {
                                         <th>LOCATION</th>
                                         <th>MODALITY</th>
                                         <th>POSTED BY</th>
+                                        <th>CONTACT EMAIL</th>
                                         <th>DETAILS</th>
                                         <th>STATUS</th>
                                         <th>ACTION</th>
@@ -235,7 +236,8 @@ function JobManagement() {
                                             <td className="jm-cell-wrap-2">{item.company || '—'}</td>
                                             <td className="jm-cell-nowrap">{item.location || '—'}</td>
                                             <td className="jm-cell-nowrap">{item.modality || '—'}</td>
-                                            <td className="jm-cell-nowrap">{item.posted_by_name || '—'}</td>
+                                            <td className="jm-cell-nowrap">{item.posted_by_name || 'Guest'}</td>
+                                            <td className="jm-cell-nowrap">{item.email || '—'}</td>
                                             <td>
                                                 <button
                                                     type="button"

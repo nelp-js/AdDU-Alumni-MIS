@@ -580,7 +580,27 @@ def job_approve(request, job_id):
 @permission_classes([IsAuthenticated, IsAdminUser])
 def job_deny(request, job_id):
     job = get_object_or_404(Job, pk=job_id)
-    job.status = 'denied'; job.remarks = request.data.get('remarks', ''); job.save()
+    remarks = (request.data.get('remarks') or '').strip()
+    job.status = 'denied'
+    job.remarks = remarks
+    job.save()
+
+    recipient_email = (job.posted_by.email if job.posted_by else job.email) or ''
+    if recipient_email:
+        send_mail(
+            subject=f"Job Posting Denied - {job.position} at {job.company}",
+            message=(
+                f"Hello,\n\n"
+                f"Your job posting \"{job.position}\" at \"{job.company}\" was denied by the administrator.\n\n"
+                f"Reason:\n{remarks or 'No specific reason provided.'}\n\n"
+                f"You may update your posting and submit again.\n\n"
+                f"Thank you."
+            ),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[recipient_email],
+            fail_silently=True,
+        )
+
     ActivityLog.objects.create(action=f"Job denied: {job.position} at {job.company}", module="Job & Internship", user=request.user, status="Denied")
     return Response({'detail': 'Job denied.', 'status': 'denied'})
 
@@ -644,7 +664,27 @@ def internship_approve(request, internship_id):
 @permission_classes([IsAuthenticated, IsAdminUser])
 def internship_deny(request, internship_id):
     internship = get_object_or_404(Internship, pk=internship_id)
-    internship.status = 'denied'; internship.remarks = request.data.get('remarks', ''); internship.save()
+    remarks = (request.data.get('remarks') or '').strip()
+    internship.status = 'denied'
+    internship.remarks = remarks
+    internship.save()
+
+    recipient_email = (internship.posted_by.email if internship.posted_by else internship.email) or ''
+    if recipient_email:
+        send_mail(
+            subject=f"Internship Posting Denied - {internship.position} at {internship.company}",
+            message=(
+                f"Hello,\n\n"
+                f"Your internship posting \"{internship.position}\" at \"{internship.company}\" was denied by the administrator.\n\n"
+                f"Reason:\n{remarks or 'No specific reason provided.'}\n\n"
+                f"You may update your posting and submit again.\n\n"
+                f"Thank you."
+            ),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[recipient_email],
+            fail_silently=True,
+        )
+
     ActivityLog.objects.create(action=f"Internship denied: {internship.position} at {internship.company}", module="Job & Internship", user=request.user, status="Denied")
     return Response({'detail': 'Internship denied.', 'status': 'denied'})
 
