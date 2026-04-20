@@ -326,7 +326,7 @@ function UserManagement() {
                 </div>
 
                 <div className="user-mgmt-back">
-                    <Link to="/dashboard" className="user-mgmt-back-link">← Back to Dashboard</Link>
+                    <Link to="/dashboard" className="user-mgmt-back-link user-mgmt-back-link-left">← Back to Dashboard</Link>
                     <Link to="/dashboard/users/reports" className="user-mgmt-back-link user-mgmt-report-link">View User Reports</Link>
                 </div>
 

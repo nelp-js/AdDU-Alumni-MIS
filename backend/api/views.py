@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q, F, IntegerField, Sum, Value, Count
+from django.db.models import Q, F, IntegerField, Sum, Value
 from django.db.models.functions import Coalesce
 from django.core.paginator import Paginator
 from urllib.parse import quote
@@ -182,7 +182,12 @@ def _latest_experience_for_user(user):
 
 
 def _base_alumni_queryset(request):
-    qs = User.objects.filter(is_superuser=False, is_staff=False).prefetch_related('experiences')
+    qs = User.objects.filter(
+        is_superuser=False,
+        is_staff=False,
+        is_approved=True,
+        is_active=True,
+    ).prefetch_related('experiences')
     return _apply_report_filters(request, qs)
 
 
@@ -192,21 +197,18 @@ def user_reports_summary(request):
     include_missing = _parse_bool(request.GET.get('include_missing'), default=True)
     qs = _base_alumni_queryset(request)
 
-    # Report 1: alumni registered per program per batch
-    grouped = (
-        qs.values('course', 'program', 'batch_year', 'batch')
-        .annotate(count=Count('id'))
-        .order_by('course', 'program', 'batch_year', 'batch')
-    )
-    by_program_batch = []
-    for row in grouped:
-        program = row.get('course') or row.get('program') or 'Unspecified'
-        batch = row.get('batch_year') or row.get('batch') or 'Unspecified'
-        by_program_batch.append({
-            'program': program,
-            'batch': batch,
-            'count': row['count'],
-        })
+    # Report 1: alumni registered per program per batch.
+    # Normalize old/new field pairs (course/program, batch_year/batch)
+    # before counting so logically identical labels are merged.
+    pb_counts = defaultdict(int)
+    for user in qs:
+        program = user.course or user.program or 'Unspecified'
+        batch = user.batch_year or user.batch or 'Unspecified'
+        pb_counts[(program, batch)] += 1
+    by_program_batch = [
+        {'program': program, 'batch': batch, 'count': count}
+        for (program, batch), count in sorted(pb_counts.items(), key=lambda item: (item[0][0], item[0][1]))
+    ]
 
     # Reports 2/3/4: latest employment, income range, and alignment.
     income_counts = defaultdict(int)

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { jsPDF } from 'jspdf';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -118,54 +119,46 @@ function UserReports() {
             window.alert('No rows available to export.');
             return;
         }
+        const doc = new jsPDF();
         const title = REPORT_OPTIONS.find((opt) => opt.id === activeReport)?.label || 'User Report';
-        const esc = (v) => String(v ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
-        const headerHtml = detailColumns.map(([, label]) => `<th>${esc(label)}</th>`).join('');
-        const bodyHtml = reportRows
-            .map((row) => {
-                const tds = detailColumns
-                    .map(([key]) => {
-                        const val = key === 'is_marked_current' ? (row[key] ? 'Yes' : 'No') : (row[key] ?? '—');
-                        return `<td>${esc(val)}</td>`;
-                    })
-                    .join('');
-                return `<tr>${tds}</tr>`;
-            })
-            .join('');
+        const generatedAt = new Date().toLocaleString();
+        const filenameBase = activeReport.replace(/_/g, '-');
+        let y = 16;
 
-        const win = window.open('', '_blank', 'noopener,noreferrer,width=1200,height=800');
-        if (!win) {
-            window.alert('Please allow popups to generate the PDF.');
-            return;
-        }
-        win.document.write(`
-            <!doctype html>
-            <html>
-              <head>
-                <meta charset="utf-8" />
-                <title>${esc(title)}</title>
-                <style>
-                  body { font-family: Arial, sans-serif; margin: 24px; color: #111827; }
-                  h1 { margin: 0 0 8px; font-size: 20px; }
-                  p { margin: 0 0 16px; color: #4b5563; font-size: 12px; }
-                  table { width: 100%; border-collapse: collapse; font-size: 12px; }
-                  th, td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; vertical-align: top; }
-                  th { background: #f9fafb; }
-                </style>
-              </head>
-              <body>
-                <h1>${esc(title)}</h1>
-                <p>Generated: ${esc(new Date().toLocaleString())}</p>
-                <table>
-                  <thead><tr>${headerHtml}</tr></thead>
-                  <tbody>${bodyHtml}</tbody>
-                </table>
-              </body>
-            </html>
-        `);
-        win.document.close();
-        win.focus();
-        win.print();
+        const writeLine = (text = '') => {
+            if (y > 280) {
+                doc.addPage();
+                y = 16;
+            }
+            const lines = doc.splitTextToSize(String(text), 180);
+            doc.text(lines, 14, y);
+            y += lines.length * 6;
+        };
+
+        const formatValue = (row, key) => {
+            if (key === 'is_marked_current') return row[key] ? 'Yes' : 'No';
+            return row[key] || '—';
+        };
+
+        doc.setFontSize(14);
+        writeLine(`User Report: ${title}`);
+        doc.setFontSize(11);
+        writeLine(`Generated: ${generatedAt}`);
+        writeLine(
+            `Filters -> Program: ${appliedFilters.program || 'All'}, Batch: ${appliedFilters.batch || 'All'}, Date: ${appliedFilters.start_date || 'Any'} to ${appliedFilters.end_date || 'Any'}, Include missing data: ${appliedFilters.include_missing ? 'Yes' : 'No'}`
+        );
+        writeLine(`Total rows: ${reportRows.length}`);
+        y += 2;
+
+        reportRows.forEach((row, idx) => {
+            writeLine(`${idx + 1}. ${row.name || row.username || '—'}`);
+            detailColumns.forEach(([key, label]) => {
+                writeLine(`   ${label}: ${formatValue(row, key)}`);
+            });
+            y += 2;
+        });
+
+        doc.save(`user-report-${filenameBase}.pdf`);
     };
 
     const alignment = summary?.report_4_alignment_breakdown || {};
