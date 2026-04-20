@@ -233,13 +233,6 @@
 .erg-action-btn:hover:not(:disabled) { background: #f3f4f6; }
 .erg-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.erg-action-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    align-items: flex-start;
-}
-
 .erg-guest-btn {
     border-color: #bfdbfe;
     color: #1e40af;

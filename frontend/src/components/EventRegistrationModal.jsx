@@ -14,40 +14,43 @@ function EventRegistrationModal({ event, onClose, pricePerGuest = 0 }) {
     const [error, setError]                 = useState('');
     const [registrationStatus, setRegistrationStatus] = useState('');
 
-    // Additional state for the dynamic payment inputs (Removed Reference No.)
     const [ewalletAccount, setEwalletAccount] = useState('');
     const [cardInfo, setCardInfo] = useState({ number: '', expiry: '', cvc: '', name: '' });
 
     const totalPrice = (1 + guestCount) * pricePerGuest;
     const isFreeEvent = totalPrice <= 0;
 
-    // Auto-fetch the logged in user's name
     useEffect(() => {
         const fetchUser = async () => {
-            try {
-                const endpoints = ['/api/profile/', '/api/users/me/', '/api/user/'];
-                for (let endpoint of endpoints) {
-                    try {
-                        const res = await api.get(endpoint);
-                        if (res.data && (res.data.first_name || res.data.user?.first_name)) {
-                            setFirstName(res.data.first_name || res.data.user.first_name || '');
-                            setLastName(res.data.last_name || res.data.user.last_name || '');
-                            return; 
-                        }
-                    } catch (e) {
-                        continue;
+            let profileData = null;
+            const endpoints = ['/api/user/me/', '/api/profile/'];
+            for (const endpoint of endpoints) {
+                try {
+                    const res = await api.get(endpoint);
+                    if (res?.data) {
+                        profileData = res.data;
+                        break;
                     }
-                }
-            } catch (err) {
-                const storedUser = localStorage.getItem('user');
-                if (storedUser) {
-                    try {
-                        const parsed = JSON.parse(storedUser);
-                        if (parsed.first_name) setFirstName(parsed.first_name);
-                        if (parsed.last_name) setLastName(parsed.last_name);
-                    } catch(e) {}
+                } catch {
+                    // Try the next fallback endpoint.
                 }
             }
+
+            const first = profileData?.first_name || profileData?.user?.first_name || '';
+            const last = profileData?.last_name || profileData?.user?.last_name || '';
+            if (first || last) {
+                setFirstName(first);
+                setLastName(last);
+                return;
+            }
+
+            const storedUser = localStorage.getItem('user');
+            if (!storedUser) return;
+            try {
+                const parsed = JSON.parse(storedUser);
+                if (parsed.first_name) setFirstName(parsed.first_name);
+                if (parsed.last_name) setLastName(parsed.last_name);
+            } catch {}
         };
         fetchUser();
     }, []);
