@@ -249,6 +249,7 @@ function VolunteerManagement() {
 
                 <div className="vm-back">
                     <Link to="/dashboard" className="vm-back-link">← Back to Dashboard</Link>
+                    <Link to="/dashboard/volunteer/registrations" className="vm-back-link vm-create-link">View Registrations</Link>
                     <Link to="/dashboard/volunteer/create" className="vm-back-link vm-create-link">Create Volunteer Opportunity</Link>
                 </div>
 

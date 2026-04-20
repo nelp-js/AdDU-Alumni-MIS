@@ -500,6 +500,28 @@ class VolunteerRegistrationSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'volunteer_title', 'user', 'registered_at']
 
 
+class VolunteerRegistrationAdminSerializer(serializers.ModelSerializer):
+    volunteer_title = serializers.CharField(source='volunteer.title', read_only=True)
+    volunteer_category = serializers.CharField(source='volunteer.category', read_only=True)
+    volunteer_organizer = serializers.CharField(source='volunteer.organizer', read_only=True)
+    volunteer_location = serializers.CharField(source='volunteer.location', read_only=True)
+    volunteer_start_date = serializers.DateField(source='volunteer.start_date', read_only=True)
+    volunteer_end_date = serializers.DateField(source='volunteer.end_date', read_only=True)
+    user_email = serializers.CharField(source='user.email', read_only=True)
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
+
+    class Meta:
+        model = VolunteerRegistration
+        fields = [
+            'id', 'volunteer', 'volunteer_title', 'volunteer_category',
+            'volunteer_organizer', 'volunteer_location',
+            'volunteer_start_date', 'volunteer_end_date',
+            'user', 'first_name', 'last_name', 'user_email', 'registered_at',
+        ]
+        read_only_fields = fields
+
+
 class CampaignDonationSerializer(serializers.ModelSerializer):
     donor_name = serializers.SerializerMethodField(read_only=True)
 

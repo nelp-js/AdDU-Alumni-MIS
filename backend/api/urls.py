@@ -53,6 +53,7 @@ urlpatterns = [
     path("volunteers/",                                  views.volunteer_list_create,   name="volunteer-list"),
     path("volunteers/admin/",                            views.volunteer_admin_list,    name="volunteer-admin-list"),
     path("volunteers/public/<int:volunteer_id>/",        views.volunteer_public_detail, name="volunteer-public-detail"),
+    path("volunteers/registrations/all/",                views.volunteer_all_registrations, name="volunteer-all-registrations"),
     path("volunteers/<int:volunteer_id>/",               views.volunteer_detail,        name="volunteer-detail"),
     path("volunteers/<int:volunteer_id>/register/",      views.volunteer_register,      name="volunteer-register"),
     path("volunteers/<int:volunteer_id>/approve/",       views.volunteer_approve,       name="volunteer-approve"),

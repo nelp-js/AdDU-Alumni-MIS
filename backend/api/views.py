@@ -21,7 +21,8 @@ from .models import (
 from .serializers import (
     UserSerializer, CurrentUserSerializer, UserListSerializer, UserUpdateSerializer,
     EventSerializer, EventUpdateSerializer, EventRegistrationSerializer,
-    JobSerializer, InternshipSerializer, VolunteerOpportunitySerializer, VolunteerRegistrationSerializer,
+    JobSerializer, InternshipSerializer, VolunteerOpportunitySerializer,
+    VolunteerRegistrationSerializer, VolunteerRegistrationAdminSerializer,
     CampaignSerializer, CampaignDonationSerializer,
     CustomTokenObtainPairSerializer, CustomTokenRefreshSerializer, ActivityLogSerializer,
     ArticleSerializer, ArticleUpdateSerializer,
@@ -769,6 +770,13 @@ def volunteer_register(request, volunteer_id):
         **VolunteerRegistrationSerializer(registration).data,
         'detail': 'Successfully registered.',
     }, status=201)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def volunteer_all_registrations(request):
+    registrations = VolunteerRegistration.objects.select_related('volunteer', 'user').all()
+    return Response(VolunteerRegistrationAdminSerializer(registrations, many=True).data)
 
 
 # --- CAMPAIGN VIEWS ---

@@ -1,0 +1,239 @@
+/* ============================================
+   VOLUNTEER REGISTRATIONS ADMIN PAGE
+   ============================================ */
+
+.vrg-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #F5F5F7;
+}
+
+.vrg-main {
+    flex: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 60px 24px 40px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.vrg-title {
+    font-size: 28px;
+    font-weight: 400;
+    color: #333;
+    text-align: center;
+    margin: 0 0 8px;
+    font-family: 'Avenir LT Std', 'Avenir Medium', system-ui, sans-serif;
+}
+
+.vrg-subtitle {
+    font-size: 14px;
+    color: #6d7280;
+    text-align: center;
+    margin: 0 0 32px;
+}
+
+.vrg-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.vrg-metric {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    padding: 20px 24px;
+}
+
+.vrg-metric-label {
+    font-size: 13px;
+    color: #6d7280;
+    margin-bottom: 8px;
+}
+
+.vrg-metric-value {
+    font-size: 28px;
+    font-weight: 500;
+    color: #333;
+}
+
+.vrg-indigo {
+    color: #3730a3;
+}
+
+.vrg-green {
+    color: #065f46;
+}
+
+.vrg-amber {
+    color: #92400e;
+}
+
+.vrg-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.vrg-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.vrg-card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+}
+
+.vrg-filters {
+    display: flex;
+    gap: 8px;
+}
+
+.vrg-select {
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    cursor: pointer;
+}
+
+.vrg-select:focus {
+    outline: none;
+    border-color: #040354;
+}
+
+.vrg-state {
+    text-align: center;
+    padding: 32px;
+    color: #6d7280;
+    font-size: 15px;
+}
+
+.vrg-error {
+    color: #dc3545;
+}
+
+.vrg-table-wrap {
+    overflow-x: auto;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.vrg-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.vrg-table thead {
+    background: #f3f4f6;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.vrg-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-weight: 600;
+    color: #040354;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.vrg-table tbody tr {
+    border-bottom: 1px solid #e5e7eb;
+    transition: background 0.1s;
+}
+
+.vrg-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.vrg-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.vrg-table td {
+    padding: 12px 16px;
+    color: #374151;
+    white-space: nowrap;
+}
+
+.vrg-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.vrg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e0e7ff;
+    color: #3730a3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.vrg-email {
+    font-size: 12px;
+    color: #6d7280;
+    margin-top: 1px;
+}
+
+.vrg-opportunity-tag {
+    display: inline-block;
+    font-size: 12px;
+    padding: 3px 8px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    color: #374151;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vrg-muted {
+    color: #6d7280;
+}
+
+.vrg-back {
+    text-align: left;
+}
+
+.vrg-back-link {
+    color: #040354;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.vrg-back-link:hover {
+    opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+    .vrg-metrics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .vrg-main {
+        padding: 40px 16px 32px;
+    }
+}
