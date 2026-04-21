@@ -409,7 +409,7 @@ class JobSerializer(serializers.ModelSerializer):
         model = Job
         fields = [
             'id', 'company', 'position', 'location', 'modality',
-            'employment_type', 'salary', 'email', 'start_date', 'end_date', 'description',
+            'employment_type', 'salary', 'contact_name', 'contact_position', 'email', 'start_date', 'end_date', 'description',
             'status', 'remarks', 'is_hidden', 'posted_by', 'posted_by_name', 'created_at', 'updated_at',
             'timeline_status',
         ]
@@ -434,7 +434,7 @@ class InternshipSerializer(serializers.ModelSerializer):
         model = Internship
         fields = [
             'id', 'company', 'position', 'location', 'modality',
-            'allowance', 'email', 'start_date', 'end_date', 'description',
+            'allowance', 'contact_name', 'contact_position', 'email', 'start_date', 'end_date', 'description',
             'status', 'remarks', 'is_hidden', 'posted_by', 'posted_by_name', 'created_at', 'updated_at',
             'timeline_status',
         ]

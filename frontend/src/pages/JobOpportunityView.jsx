@@ -98,6 +98,8 @@ function JobOpportunityView() {
                             </p>
                             <p><strong>Start Date:</strong> {formatDate(item.start_date)}</p>
                             <p><strong>End Date:</strong> {formatDate(item.end_date)}</p>
+                            <p><strong>Contact Name:</strong> {item.contact_name || '—'}</p>
+                            <p><strong>Company Position:</strong> {item.contact_position || '—'}</p>
                             <p><strong>Contact Email:</strong> {item.email || '—'}</p>
                         </div>
 

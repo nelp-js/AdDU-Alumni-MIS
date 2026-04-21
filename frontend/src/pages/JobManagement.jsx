@@ -369,6 +369,8 @@ function JobManagement() {
                                         detailsType === 'job'
                                             ? { label: 'Salary', value: detailsItem.salary || '—' }
                                             : null,
+                                        { label: 'Contact Name', value: detailsItem.contact_name || '—' },
+                                        { label: 'Company Position', value: detailsItem.contact_position || '—' },
                                         { label: 'Email', value: detailsItem.email },
                                         { label: 'Start Date', value: formatDate(detailsItem.start_date) },
                                         { label: 'End Date', value: formatDate(detailsItem.end_date) },
