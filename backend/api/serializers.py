@@ -429,10 +429,6 @@ class JobSerializer(serializers.ModelSerializer):
 
 class InternshipSerializer(serializers.ModelSerializer):
     posted_by_name = serializers.SerializerMethodField()
-    # Backward-compatible aliases so API can expose internship duration keys
-    # even on deployments where Internship model only has start_date/end_date.
-    internship_start_date = serializers.DateField(source='start_date', required=False, read_only=True)
-    internship_end_date = serializers.DateField(source='end_date', required=False, read_only=True)
 
     class Meta:
         model = Internship
