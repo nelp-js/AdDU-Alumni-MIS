@@ -754,7 +754,12 @@ def _serialize_campaign_listing(request, queryset):
 @permission_classes([AllowAny])
 def job_list_create(request):
     if request.method == 'GET':
-        queryset = Job.objects.filter(status='approved', is_hidden=False)
+        today = timezone.localdate()
+        queryset = Job.objects.filter(
+            status='approved',
+            is_hidden=False,
+            start_date__lte=today,
+        )
         return _serialize_public_postings(request, queryset, JobSerializer)
     serializer = JobSerializer(data=request.data)
     if serializer.is_valid():
@@ -780,10 +785,37 @@ def job_detail(request, job_id):
     job = get_object_or_404(Job, pk=job_id)
     if request.method == 'GET': return Response(JobSerializer(job).data)
     if request.method == 'PATCH':
+        previous_status = job.status
+        previous_start_date = job.start_date
+        previous_is_hidden = job.is_hidden
         serializer = JobSerializer(job, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
+            updated = serializer.save()
+
+            # If an approved job was edited and start date was moved from future to today/past,
+            # make sure it is not kept hidden by stale visibility state.
+            today = timezone.localdate()
+            if (
+                previous_status == 'approved'
+                and 'status' not in request.data
+                and updated.status != 'approved'
+            ):
+                updated.status = 'approved'
+                updated.save(update_fields=['status'])
+
+            if (
+                previous_status == 'approved'
+                and 'start_date' in request.data
+                and 'is_hidden' not in request.data
+                and previous_start_date
+                and previous_start_date > today
+                and updated.start_date <= today
+                and previous_is_hidden
+            ):
+                updated.is_hidden = False
+                updated.save(update_fields=['is_hidden'])
+
+            return Response(JobSerializer(updated).data)
         return Response(serializer.errors, status=400)
     job.delete()
     return Response(status=204)
@@ -793,6 +825,22 @@ def job_detail(request, job_id):
 def job_approve(request, job_id):
     job = get_object_or_404(Job, pk=job_id)
     job.status = 'approved'; job.remarks = None; job.save()
+
+    recipient_email = (job.posted_by.email if job.posted_by else job.email) or ''
+    if recipient_email:
+        send_mail(
+            subject=f"Job Posting Approved - {job.position} at {job.company}",
+            message=(
+                f"Hello,\n\n"
+                f"Your job posting \"{job.position}\" at \"{job.company}\" has been approved by the administrator.\n\n"
+                f"You can now view it in the listings.\n\n"
+                f"Thank you."
+            ),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[recipient_email],
+            fail_silently=True,
+        )
+
     ActivityLog.objects.create(action=f"Job approved: {job.position} at {job.company}", module="Job & Internship", user=request.user, status="Completed")
     return Response({'detail': 'Job approved.', 'status': 'approved'})
 
@@ -877,6 +925,22 @@ def internship_detail(request, internship_id):
 def internship_approve(request, internship_id):
     internship = get_object_or_404(Internship, pk=internship_id)
     internship.status = 'approved'; internship.remarks = None; internship.save()
+
+    recipient_email = (internship.posted_by.email if internship.posted_by else internship.email) or ''
+    if recipient_email:
+        send_mail(
+            subject=f"Internship Posting Approved - {internship.position} at {internship.company}",
+            message=(
+                f"Hello,\n\n"
+                f"Your internship posting \"{internship.position}\" at \"{internship.company}\" has been approved by the administrator.\n\n"
+                f"You can now view it in the listings.\n\n"
+                f"Thank you."
+            ),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[recipient_email],
+            fail_silently=True,
+        )
+
     ActivityLog.objects.create(action=f"Internship approved: {internship.position} at {internship.company}", module="Job & Internship", user=request.user, status="Completed")
     return Response({'detail': 'Internship approved.', 'status': 'approved'})
 

@@ -1,11 +1,6 @@
 import axios from "axios";
 import { ACCESS_TOKEN, REFRESH_TOKEN, USER_IS_ADMIN, USER_PROFILE_CACHE } from "./constants";
 
-//for local
-// const api = axios.create({
-//   baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000",
-// });
-
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "https://sia-2.onrender.com",
 });
