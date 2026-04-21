@@ -14,7 +14,6 @@ function VolunteerRegistrations() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [filterVolunteer, setFilterVolunteer] = useState('');
-    const [filterStatus, setFilterStatus] = useState('');
 
     useEffect(() => {
         api.get('/api/volunteers/registrations/all/')
@@ -62,12 +61,11 @@ function VolunteerRegistrations() {
         () =>
             registrations.filter((r) => {
                 if (filterVolunteer && r.volunteer_title !== filterVolunteer) return false;
-                if (filterStatus && filterStatus !== 'success') return false;
                 return true;
             }),
-        [registrations, filterVolunteer, filterStatus]
+        [registrations, filterVolunteer]
     );
-    const canDownloadPdf = Boolean(filterVolunteer && filterStatus === 'success' && filtered.length > 0);
+    const canDownloadPdf = Boolean(filterVolunteer && filtered.length > 0);
 
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
@@ -110,7 +108,6 @@ function VolunteerRegistrations() {
         doc.setFontSize(14);
         writeLine(`Volunteer Registrations - ${filterVolunteer}`);
         doc.setFontSize(11);
-        writeLine(`Status: Success`);
         y += 2;
 
         filtered.forEach((registration, index) => {
@@ -172,15 +169,6 @@ function VolunteerRegistrations() {
                                         {title}
                                     </option>
                                 ))}
-                            </select>
-
-                            <select
-                                value={filterStatus}
-                                onChange={(e) => setFilterStatus(e.target.value)}
-                                className="vrg-select"
-                            >
-                                <option value="">All statuses</option>
-                                <option value="success">Success</option>
                             </select>
                         </div>
                     </div>
@@ -255,8 +243,8 @@ function VolunteerRegistrations() {
                 </div>
 
                 <div className="vrg-back">
-                    <Link to="/dashboard" className="vrg-back-link">
-                        ← Back to Dashboard
+                    <Link to="/dashboard/volunteers" className="vrg-back-link">
+                        ← Back to Volunteer Management
                     </Link>
                     {canDownloadPdf && (
                         <button type="button" className="vrg-back-link vrg-download-link" onClick={handleDownloadPdf}>
