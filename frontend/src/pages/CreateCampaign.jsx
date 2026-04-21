@@ -7,7 +7,7 @@ import '../styles/CreateCampaign.css';
 import { useTitle } from '../Hooks/useTitle';
 import { useNavigate, useParams } from 'react-router-dom';
 
-const CATEGORIES = ['Student Aid', 'Infrastructure', 'Research', 'Faculty'];
+const CATEGORIES = ['Student Aid', 'Infrastructure', 'Research', 'Faculty', 'Community'];
 const MAX_CAMPAIGN_TITLE = 60;
 const MAX_DESCRIPTION_WORDS = 1200;
 

@@ -357,6 +357,7 @@ class Campaign(models.Model):
         ('Infrastructure', 'Infrastructure'),
         ('Research',       'Research'),
         ('Faculty',        'Faculty'),
+        ('Community',      'Community'),
     ]
     STATUS_CHOICES = [('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied')]
 

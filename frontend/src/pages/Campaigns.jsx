@@ -22,7 +22,7 @@ function clampPercent(raised, goal) {
     return Math.max(0, Math.min(100, Math.round((raised / goal) * 100)));
 }
 
-const CATEGORY_OPTIONS = ['Student Aid', 'Infrastructure', 'Research', 'Faculty'];
+const CATEGORY_OPTIONS = ['Student Aid', 'Infrastructure', 'Research', 'Faculty', 'Community'];
 const MAX_CAMPAIGN_TITLE_CHARS = 60;
 
 function truncateText(text, maxChars = MAX_CAMPAIGN_TITLE_CHARS) {
