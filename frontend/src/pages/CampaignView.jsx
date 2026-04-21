@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import api from '../api';
 import '../styles/Opportunities.css';
 import { useTitle } from '../Hooks/useTitle';
+import { shareContent } from '../utils/share';
 function formatMoney(n) {
     if (n == null || n === '') return '—';
     const num = Number(n);
@@ -37,6 +38,7 @@ function CampaignView() {
     const [campaign, setCampaign] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [shareMessage, setShareMessage] = useState('');
 
     useEffect(() => {
         if (!id) return;
@@ -54,6 +56,20 @@ function CampaignView() {
     const raised = Number(campaign?.raised_amount || 0);
     const goal = Number(campaign?.goal_amount || 0);
     const pct = clampPercent(raised, goal);
+
+    async function handleShareCampaign() {
+        const result = await shareContent({
+            title: campaign?.title || 'Campaign',
+            text: campaign?.description || 'Check out this campaign.',
+        });
+        if (result?.method === 'native') {
+            setShareMessage('Shared.');
+        } else if (result?.method === 'clipboard') {
+            setShareMessage('Link copied.');
+        } else if (!result?.cancelled) {
+            setShareMessage('Unable to share right now.');
+        }
+    }
 
     return (
         <div className="opp-page">
@@ -110,7 +126,14 @@ function CampaignView() {
                                 >
                                     Give Back Today
                                 </button>
-                                <button type="button" className="campaign-detail-share-btn">Share</button>
+                                <button
+                                    type="button"
+                                    className="campaign-detail-share-btn"
+                                    onClick={handleShareCampaign}
+                                >
+                                    Share
+                                </button>
+                                {shareMessage && <p className="campaign-detail-small">{shareMessage}</p>}
                             </aside>
                         </div>
                     </>

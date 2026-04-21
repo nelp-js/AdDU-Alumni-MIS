@@ -197,14 +197,20 @@
     margin-top: 8px;
 }
 
-.event-view-share-icons a {
+.event-view-share-icons a,
+.event-view-share-icons button {
     color: #040354;
     display: flex;
     align-items: center;
     justify-content: center;
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
 }
 
-.event-view-share-icons a:hover {
+.event-view-share-icons a:hover,
+.event-view-share-icons button:hover {
     opacity: 0.8;
 }
 
