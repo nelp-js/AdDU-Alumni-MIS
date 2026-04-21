@@ -372,8 +372,8 @@ function JobManagement() {
                                         { label: 'Contact Name', value: detailsItem.contact_name || '—' },
                                         { label: 'Company Position', value: detailsItem.contact_position || '—' },
                                         { label: 'Email', value: detailsItem.email },
-                                        { label: 'Start Date', value: formatDate(detailsItem.start_date) },
-                                        { label: 'End Date', value: formatDate(detailsItem.end_date) },
+                                        { label: 'Posting Start Date', value: formatDate(detailsItem.start_date) },
+                                        { label: 'Posting End Date', value: formatDate(detailsItem.end_date) },
                                         detailsType === 'internship'
                                             ? { label: 'Internship Start Date', value: formatDate(detailsItem.internship_start_date) }
                                             : null,

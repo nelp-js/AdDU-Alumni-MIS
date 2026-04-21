@@ -1009,6 +1009,12 @@
     color: #4b5563;
 }
 
+.opp-card-dates-secondary {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
 .opp-card-apply {
     margin-top: auto;
     text-decoration: none;

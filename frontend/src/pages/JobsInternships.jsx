@@ -217,7 +217,14 @@ function JobsInternships() {
                                 <p className="opp-card-meta">
                                     {tab === 'jobs' ? (item.employment_type || 'Not specified') : (item.allowance || 'Not specified')}
                                 </p>
-                                <p className="opp-card-dates">From {formatDate(item.start_date)} to {formatDate(item.end_date)}</p>
+                                <p className="opp-card-dates">
+                                    Posting {formatDate(item.start_date)} – {formatDate(item.end_date)}
+                                </p>
+                                {tab === 'internships' && (item.internship_start_date || item.internship_end_date) && (
+                                    <p className="opp-card-dates opp-card-dates-secondary">
+                                        Internship {formatDate(item.internship_start_date)} – {formatDate(item.internship_end_date)}
+                                    </p>
+                                )}
                             </article>
                         ))}
                     </div>

@@ -96,13 +96,13 @@ function JobOpportunityView() {
                                 <strong>{isJob ? 'Employment Type' : 'Allowance'}:</strong>{' '}
                                 {isJob ? (item.employment_type || 'Not specified') : (item.allowance || 'Not specified')}
                             </p>
-                            <p><strong>Start Date:</strong> {formatDate(item.start_date)}</p>
-                            <p><strong>End Date:</strong> {formatDate(item.end_date)}</p>
+                            <p><strong>Posting Start Date:</strong> {formatDate(item.start_date)}</p>
+                            <p><strong>Posting End Date:</strong> {formatDate(item.end_date)}</p>
                             {!isJob && (
-                                <p><strong>Internship Start Date:</strong> {formatDate(item.internship_start_date)}</p>
-                            )}
-                            {!isJob && (
-                                <p><strong>Internship End Date:</strong> {formatDate(item.internship_end_date)}</p>
+                                <>
+                                    <p><strong>Internship Start Date:</strong> {formatDate(item.internship_start_date)}</p>
+                                    <p><strong>Internship End Date:</strong> {formatDate(item.internship_end_date)}</p>
+                                </>
                             )}
                             <p><strong>Contact Name:</strong> {item.contact_name || '—'}</p>
                             <p><strong>Company Position:</strong> {item.contact_position || '—'}</p>
