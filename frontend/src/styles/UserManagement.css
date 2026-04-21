@@ -464,6 +464,34 @@
     text-decoration: underline;
 }
 
+.user-details-docs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 10px;
+}
+
+.user-details-doc-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.user-details-doc-link {
+    display: block;
+    line-height: 0;
+}
+
+.user-details-doc-preview {
+    display: block;
+    width: 100%;
+    height: 220px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
 /* Valid ID: full image, label top-aligned (same pattern as Event details cover row) */
 .user-details-valid-id-row {
     display: flex;
@@ -756,5 +784,9 @@
 
     .user-mgmt-modal-row {
         flex-direction: column;
+    }
+
+    .user-details-docs-grid {
+        grid-template-columns: 1fr;
     }
 }

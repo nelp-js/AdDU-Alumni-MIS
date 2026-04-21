@@ -148,6 +148,13 @@ function UserManagement() {
             .finally(() => setDeletingId(null));
     };
 
+    const handleViewDetails = (userId) => {
+        const fromTable = users.find((u) => u.id === userId) || null;
+        api.get(`/api/users/${userId}/`)
+            .then((res) => setDetailsUser({ ...(fromTable || {}), ...(res.data || {}) }))
+            .catch(() => setDetailsUser(fromTable));
+    };
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     const formatDate = (dateStr) => {
@@ -162,6 +169,19 @@ function UserManagement() {
     const fullName  = (u) => [u.first_name, u.middle_name, u.last_name].filter(Boolean).join(' ') || '—';
     const getStatus = (u) => u.is_approved ? 'Approved' : 'Pending';
     const isPending = (u) => !u.is_approved;
+    const formatHasDiploma = (u) => {
+        if (!u) return '—';
+        if (u.has_diploma === true || u.has_diploma === 'yes') return 'Yes';
+        if (u.has_diploma === false || u.has_diploma === 'no') return 'No';
+        if (u.diploma_file) return 'Yes';
+        return 'No';
+    };
+    const formatIdType = (u) => {
+        if (!u) return '—';
+        if (u.id_type) return u.id_type;
+        if (u.valid_id_file || u.valid_id) return 'Uploaded document';
+        return '—';
+    };
 
     // ── Edit modal ───────────────────────────────────────────────────────────
 
@@ -260,7 +280,7 @@ function UserManagement() {
                                                 </span>
                                             </td>
                                             <td>
-                                                <button type="button" className="content-mgmt-details-link" onClick={() => setDetailsUser(u)}>
+                                                <button type="button" className="content-mgmt-details-link" onClick={() => handleViewDetails(u.id)}>
                                                     View Details
                                                 </button>
                                             </td>
@@ -373,38 +393,51 @@ function UserManagement() {
                                 <div className="user-details-grid">
                                     <DetailRow label="Course"      value={detailsUser.course} />
                                     <DetailRow label="Batch Year"  value={detailsUser.batch_year} />
-                                    <DetailRow label="Has Diploma" value={detailsUser.has_diploma} />
+                                    <DetailRow label="Has Diploma" value={formatHasDiploma(detailsUser)} />
                                 </div>
 
                                 <SectionLabel>Documents</SectionLabel>
                                 <div className="user-details-grid">
-                                    <DetailRow label="ID Type" value={detailsUser.id_type} />
-                                    {detailsUser.valid_id_file && (
-                                        <div className="user-details-valid-id-row">
-                                            <span className="content-mgmt-detail-label">Valid ID</span>
-                                            <div className="user-details-valid-id-media">
+                                    <DetailRow label="ID Type" value={formatIdType(detailsUser)} />
+                                </div>
+                                {(detailsUser.valid_id_file || detailsUser.diploma_file) && (
+                                    <div className="user-details-docs-grid">
+                                        {detailsUser.valid_id_file && (
+                                            <div className="user-details-doc-card">
+                                                <span className="content-mgmt-detail-label">Valid ID</span>
                                                 <a
                                                     href={detailsUser.valid_id_file}
                                                     target="_blank"
                                                     rel="noreferrer"
-                                                    className="user-details-valid-id-link"
+                                                    className="user-details-doc-link"
                                                 >
                                                     <img
                                                         src={detailsUser.valid_id_file}
                                                         alt="Valid ID"
-                                                        className="user-details-valid-id-img"
+                                                        className="user-details-doc-preview"
                                                     />
                                                 </a>
                                             </div>
-                                        </div>
-                                    )}
-                                    {detailsUser.diploma_file && (
-                                        <div className="content-mgmt-detail-row">
-                                            <span className="content-mgmt-detail-label">Diploma</span>
-                                            <a href={detailsUser.diploma_file} target="_blank" rel="noreferrer" className="user-details-file-link">View Diploma</a>
-                                        </div>
-                                    )}
-                                </div>
+                                        )}
+                                        {detailsUser.diploma_file && (
+                                            <div className="user-details-doc-card">
+                                                <span className="content-mgmt-detail-label">Diploma</span>
+                                                <a
+                                                    href={detailsUser.diploma_file}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="user-details-doc-link"
+                                                >
+                                                    <img
+                                                        src={detailsUser.diploma_file}
+                                                        alt="Diploma"
+                                                        className="user-details-doc-preview"
+                                                    />
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 <SectionLabel>Role & Status</SectionLabel>
                                 <div className="user-details-grid">

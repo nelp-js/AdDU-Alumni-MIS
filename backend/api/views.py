@@ -354,9 +354,13 @@ class UserListView(generics.ListAPIView):
     def get_queryset(self): return User.objects.filter(is_superuser=False).order_by("-date_joined")
 
 class UserDetailView(generics.RetrieveUpdateAPIView):
-    serializer_class = UserUpdateSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
     queryset = User.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return UserListSerializer
+        return UserUpdateSerializer
 
 
 @api_view(['GET'])
