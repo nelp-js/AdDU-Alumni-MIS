@@ -214,6 +214,8 @@ class Job(models.Model):
     email           = models.EmailField()
     start_date      = models.DateField()
     end_date        = models.DateField()
+    internship_start_date = models.DateField(blank=True, null=True)
+    internship_end_date = models.DateField(blank=True, null=True)
     description     = models.TextField()
     status          = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     remarks         = models.TextField(blank=True, null=True)

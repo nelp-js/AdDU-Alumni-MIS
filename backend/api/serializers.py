@@ -435,6 +435,7 @@ class InternshipSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'company', 'position', 'location', 'modality',
             'allowance', 'contact_name', 'contact_position', 'email', 'start_date', 'end_date', 'description',
+            'internship_start_date', 'internship_end_date',
             'status', 'remarks', 'is_hidden', 'posted_by', 'posted_by_name', 'created_at', 'updated_at',
             'timeline_status',
         ]

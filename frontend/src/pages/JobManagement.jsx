@@ -374,6 +374,12 @@ function JobManagement() {
                                         { label: 'Email', value: detailsItem.email },
                                         { label: 'Start Date', value: formatDate(detailsItem.start_date) },
                                         { label: 'End Date', value: formatDate(detailsItem.end_date) },
+                                        detailsType === 'internship'
+                                            ? { label: 'Internship Start Date', value: formatDate(detailsItem.internship_start_date) }
+                                            : null,
+                                        detailsType === 'internship'
+                                            ? { label: 'Internship End Date', value: formatDate(detailsItem.internship_end_date) }
+                                            : null,
                                         { label: 'Posted By', value: detailsItem.posted_by_name },
                                         { label: 'Date Posted', value: formatDate(detailsItem.created_at) },
                                         { label: 'Status', value: detailsItem.is_hidden ? 'Hidden' : detailsItem.status, isStatus: true },
