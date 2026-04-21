@@ -15,6 +15,17 @@ function formatDate(dateStr) {
     }
 }
 
+function buildGmailComposeUrl({ to = '', subject = '', body = '' }) {
+    const params = new URLSearchParams({
+        view: 'cm',
+        fs: '1',
+        to,
+        su: subject,
+        body,
+    });
+    return `https://mail.google.com/mail/?${params.toString()}`;
+}
+
 function JobOpportunityView() {
     useTitle('Opportunity Details');
     const { kind, id } = useParams();
@@ -41,6 +52,24 @@ function JobOpportunityView() {
         () => items.find((it) => String(it.id) === String(id)) || null,
         [items, id]
     );
+
+    const recipientEmail = String(item?.email || '').trim();
+    const applySubject = item?.position
+        ? `Application for ${item.position}`
+        : 'Application';
+    const applyBody = [
+        `Hello ${item?.company || ''},`,
+        '',
+        `I am interested in applying for the ${item?.position || 'position'} (${isJob ? 'Job' : 'Internship'}).`,
+        '',
+        'Thank you.',
+    ].join('\n');
+    const gmailComposeUrl = buildGmailComposeUrl({
+        to: recipientEmail,
+        subject: applySubject,
+        body: applyBody,
+    });
+    const fallbackMailto = `mailto:${encodeURIComponent(recipientEmail)}?subject=${encodeURIComponent(applySubject)}&body=${encodeURIComponent(applyBody)}`;
 
     return (
         <div className="opp-page">
@@ -79,7 +108,23 @@ function JobOpportunityView() {
 
                         <div className="opp-modal-actions">
                             <Link to="/jobs" className="opp-modal-close-link">Close</Link>
-                            <a className="opp-card-apply" href={`mailto:${item.email}`}>
+                            <a
+                                className="opp-card-apply"
+                                href={recipientEmail ? gmailComposeUrl : '#'}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                    if (!recipientEmail) {
+                                        e.preventDefault();
+                                        return;
+                                    }
+                                    // If popups/new tabs are blocked, use local mail client as fallback.
+                                    const opened = window.open(gmailComposeUrl, '_blank', 'noopener,noreferrer');
+                                    if (!opened) window.location.href = fallbackMailto;
+                                    e.preventDefault();
+                                }}
+                                aria-disabled={!recipientEmail}
+                            >
                                 Apply via email
                             </a>
                         </div>

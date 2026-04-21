@@ -243,7 +243,7 @@ function EventManagement() {
 
                                 <tbody>
                                     {events.map((ev) => (
-                                        <tr key={ev.id}>
+                                        <tr key={ev.id} className={ev.is_hidden ? 'event-mgmt-row-hidden' : ''}>
                                             <td>{ev.event_name || '—'}</td>
                                             <td>{ev.venue || '—'}</td>
                                             <td>{formatDateTime(ev.start_date, ev.start_time)}</td>

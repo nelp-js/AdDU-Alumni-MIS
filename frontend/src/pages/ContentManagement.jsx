@@ -138,7 +138,7 @@ function ContentManagement() {
     };
 
     const getStatusClass = (a) => {
-        if (a.status === 'published') return a.is_hidden ? 'draft' : 'published';
+        if (a.status === 'published') return a.is_hidden ? 'denied' : 'published';
         if (a.status === 'denied') return 'denied';
         return 'draft';
     };
@@ -187,7 +187,7 @@ function ContentManagement() {
                                 </thead>
                                 <tbody>
                                     {articles.map((a) => (
-                                        <tr key={a.id}>
+                                        <tr key={a.id} className={a.is_hidden ? 'content-mgmt-row-hidden' : ''}>
                                             <td className="content-mgmt-cell-title" title={a.title || ''}>
                                                 <span className="content-mgmt-cell-title-text">
                                                     {a.title || '—'}

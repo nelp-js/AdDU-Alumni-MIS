@@ -167,8 +167,17 @@ function UserManagement() {
     };
 
     const fullName  = (u) => [u.first_name, u.middle_name, u.last_name].filter(Boolean).join(' ') || '—';
-    const getStatus = (u) => u.is_approved ? 'Approved' : 'Pending';
-    const isPending = (u) => !u.is_approved;
+    const getStatus = (u) => {
+        if (u?.is_approved) return 'Approved';
+        if (u?.is_active === false) return 'Denied';
+        return 'Pending';
+    };
+    const getStatusClass = (u) => {
+        if (u?.is_approved) return 'approved';
+        if (u?.is_active === false) return 'rejected';
+        return 'pending';
+    };
+    const isPending = (u) => !u?.is_approved && u?.is_active !== false;
     const formatHasDiploma = (u) => {
         if (!u) return '—';
         if (u.has_diploma === true || u.has_diploma === 'yes') return 'Yes';
@@ -266,7 +275,7 @@ function UserManagement() {
                                 </thead>
                                 <tbody>
                                     {users.map((u) => (
-                                        <tr key={u.id}>
+                                        <tr key={u.id} className={getStatusClass(u) === 'rejected' ? 'user-mgmt-row-denied' : ''}>
                                             <td>{fullName(u)}</td>
                                             <td>{u.username}</td>
                                             <td>{u.email || '—'}</td>
@@ -275,7 +284,7 @@ function UserManagement() {
                                             <td>{u.course || u.program || '—'}</td>
                                             <td>{formatDate(u.date_joined)}</td>
                                             <td>
-                                                <span className={`user-mgmt-status ${u.is_approved ? 'approved' : 'pending'}`}>
+                                                <span className={`user-mgmt-status ${getStatusClass(u)}`}>
                                                     {getStatus(u)}
                                                 </span>
                                             </td>
@@ -443,7 +452,7 @@ function UserManagement() {
                                 <div className="user-details-grid">
                                     <div className="content-mgmt-detail-row">
                                         <span className="content-mgmt-detail-label">Status</span>
-                                        <span className={`user-mgmt-status ${detailsUser.is_approved ? 'approved' : 'pending'}`}>
+                                        <span className={`user-mgmt-status ${getStatusClass(detailsUser)}`}>
                                             {getStatus(detailsUser)}
                                         </span>
                                     </div>

@@ -167,10 +167,16 @@ function JobManagement() {
         catch { return dateStr; }
     };
 
-    const getStatusClass = (status) => {
-        if (status === 'approved') return 'approved';
-        if (status === 'denied')   return 'denied';
+    const getStatusClass = (item) => {
+        if (item?.status === 'approved') return item?.is_hidden ? 'denied' : 'approved';
+        if (item?.status === 'denied')   return 'denied';
         return 'pending';
+    };
+
+    const getStatusLabel = (item) => {
+        if (item?.status === 'approved') return item?.is_hidden ? 'Hidden' : 'Approved';
+        if (item?.status === 'denied') return 'Denied';
+        return 'Pending';
     };
 
     const items     = activeTab === 'jobs' ? jobs : internships;
@@ -248,8 +254,8 @@ function JobManagement() {
                                                 </button>
                                             </td>
                                             <td>
-                                                <span className={`jm-status ${getStatusClass(item.status)}`}>
-                                                    {item.is_hidden ? 'Hidden' : item.status}
+                                                <span className={`jm-status ${getStatusClass(item)}`}>
+                                                    {getStatusLabel(item)}
                                                 </span>
                                             </td>
                                             <td>
@@ -373,7 +379,7 @@ function JobManagement() {
                                         <div key={item.label} className="jm-details-item">
                                             <span className="jm-details-label">{item.label}</span>
                                             {item.isStatus ? (
-                                                <span className={`jm-status ${getStatusClass(detailsItem.status)}`}>
+                                                <span className={`jm-status ${getStatusClass(detailsItem)}`}>
                                                     {item.value}
                                                 </span>
                                             ) : (

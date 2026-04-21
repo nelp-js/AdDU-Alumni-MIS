@@ -102,6 +102,10 @@
     color: #4b5563;
 }
 
+.user-mgmt-table tbody tr.user-mgmt-row-denied td:not(:last-child) {
+    opacity: 0.6;
+}
+
 .user-mgmt-table th:nth-last-child(-n+3),
 .user-mgmt-table td:nth-last-child(-n+3) {
     white-space: nowrap;
@@ -109,11 +113,16 @@
 
 /* ── Status Badges ── */
 .user-mgmt-status {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 4px 10px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
+    min-width: 86px;
+    text-align: center;
+    box-sizing: border-box;
 }
 
 .user-mgmt-status.pending {

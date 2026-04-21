@@ -81,6 +81,51 @@
     margin: 0 0 28px 0;
 }
 
+.article-view-share {
+    margin: 0 0 20px 0;
+}
+
+.article-view-share h3 {
+    margin: 0 0 8px 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+}
+
+.article-view-share-icons {
+    display: flex;
+    gap: 14px;
+}
+
+.article-view-share-icons a,
+.article-view-share-icons button {
+    color: #040354;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+}
+
+.article-view-share-icons a:hover,
+.article-view-share-icons button:hover {
+    opacity: 0.8;
+}
+
+.article-view-share-icons svg {
+    width: 22px;
+    height: 22px;
+}
+
+.article-view-share-message {
+    margin: 10px 0 0 0;
+    color: #374151;
+    font-size: 14px;
+}
+
 /* Body text: Avenir – overrides pasted inline font styles */
 .article-view-content.avenir-book,
 .article-view-content.avenir-book p,

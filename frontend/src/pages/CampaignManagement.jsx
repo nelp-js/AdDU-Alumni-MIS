@@ -87,6 +87,13 @@ function getStatusLabel(campaign) {
     return 'Pending';
 }
 
+function shouldDimRow(campaign) {
+    const status = campaign.status || 'pending';
+    if (status === 'denied') return true;
+    if (status === 'approved' && !campaign.is_active) return true;
+    return false;
+}
+
 function CampaignManagement() {
     useTitle('Campaign Management');
     const navigate = useNavigate();
@@ -212,7 +219,7 @@ function CampaignManagement() {
                                 </thead>
                                 <tbody>
                                     {campaigns.map((c) => (
-                                        <tr key={c.id} className={!c.is_active ? 'campaign-mgmt-row-hidden' : ''}>
+                                        <tr key={c.id} className={shouldDimRow(c) ? 'campaign-mgmt-row-hidden' : ''}>
                                             {/* Removed manual truncation, CSS handles wrapping now */}
                                             <td>{c.title || '—'}</td>
                                             

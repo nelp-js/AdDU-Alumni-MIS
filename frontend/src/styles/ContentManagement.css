@@ -85,6 +85,10 @@
     border-bottom: 1px solid #e5e7eb;
 }
 
+.content-mgmt-table tbody tr.content-mgmt-row-hidden td:not(:last-child) {
+    opacity: 0.6;
+}
+
 .content-mgmt-table td {
     padding: 14px 16px;
     color: #4b5563;
@@ -130,6 +134,11 @@
 .content-mgmt-status-published {
     background: #d1fae5;
     color: #065f46;
+}
+
+.content-mgmt-status-denied {
+    background: #fee2e2;
+    color: #b91c1c;
 }
 
 .content-mgmt-details-link {

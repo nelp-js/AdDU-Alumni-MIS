@@ -95,6 +95,10 @@
     background: #fafafa;
 }
 
+.event-mgmt-table tbody tr.event-mgmt-row-hidden td:not(:last-child) {
+    opacity: 0.6;
+}
+
 .event-mgmt-table td {
     padding: 14px 16px;
     color: #4b5563;

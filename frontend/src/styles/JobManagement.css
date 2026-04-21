@@ -122,7 +122,7 @@
 .jm-table tbody tr { border-bottom: 1px solid #e5e7eb; }
 .jm-table tbody tr:last-child { border-bottom: none; }
 .jm-table tbody tr:nth-child(even) { background: #fafafa; }
-.jm-table tbody tr.jm-row-hidden { opacity: 0.5; }
+.jm-table tbody tr.jm-row-hidden td:not(:last-child) { opacity: 0.6; }
 
 .jm-table td {
     padding: 14px 16px;

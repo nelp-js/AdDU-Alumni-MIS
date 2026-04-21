@@ -80,7 +80,7 @@
 .vm-table tbody tr { border-bottom: 1px solid #e5e7eb; }
 .vm-table tbody tr:last-child { border-bottom: none; }
 .vm-table tbody tr:nth-child(even) { background: #fafafa; }
-.vm-table tbody tr.vm-row-hidden { opacity: 0.5; }
+.vm-table tbody tr.vm-row-hidden td:not(:last-child) { opacity: 0.6; }
 
 .vm-table td {
     padding: 14px 16px;
