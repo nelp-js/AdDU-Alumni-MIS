@@ -411,7 +411,7 @@ function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api }) {
                                 onChange={handleChange}
                                 required
                             />
-                            Aligned to Degree<span className="exp-form-required-star">*</span>
+                            Aligned to Degree
                         </label>
                     </div>
 
