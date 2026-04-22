@@ -409,7 +409,6 @@ function ExperienceSection({ experiences, onAdd, onUpdate, onDelete, api }) {
                                 name="aligned_to_degree"
                                 checked={form.aligned_to_degree}
                                 onChange={handleChange}
-                                required
                             />
                             Aligned to Degree
                         </label>
