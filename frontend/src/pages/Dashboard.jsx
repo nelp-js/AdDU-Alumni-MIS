@@ -66,7 +66,7 @@ function Dashboard() {
     useEffect(() => {
         Promise.all([
             api.get('/api/users/').then((res) => {
-                const active = (res.data || []).filter(u => !u.is_superuser && u.is_active !== false);
+                const active = (res.data || []).filter(u => !u.is_superuser && u.is_active !== false && u.is_approved);
                 setAlumniCount(active.length);
             }),
             api.get('/api/events/').then((res) => {
