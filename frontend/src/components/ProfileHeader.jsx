@@ -3,7 +3,7 @@ import { FiCamera, FiEdit3, FiMail, FiPhone, FiMapPin, FiBook, FiCalendar } from
 import { getOptimizedUrl } from '../utils/imageUtils';
 import '../styles/ProfileHeader.css';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://sia-2.onrender.com';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 function getFullImageUrl(url) {
     if (!url) return null;

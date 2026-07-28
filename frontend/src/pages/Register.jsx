@@ -118,7 +118,8 @@ function Register() {
         if (formData.diploma_file) dataToSend.append('diploma_file', formData.diploma_file);
 
         try {
-            const response = await fetch('https://sia-2.onrender.com/api/user/register/', {
+            const apiBase = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+            const response = await fetch(`${apiBase}/api/user/register/`, {
                 method: 'POST',
                 body: dataToSend 
             });

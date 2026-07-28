@@ -2,7 +2,7 @@ import axios from "axios";
 import { ACCESS_TOKEN, REFRESH_TOKEN, USER_IS_ADMIN, USER_PROFILE_CACHE } from "./constants";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://sia-2.onrender.com",
+  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000",
 });
 
 /** Clear tokens and cached profile so UI cannot get stuck (token present but /api/user/me/ failed). */

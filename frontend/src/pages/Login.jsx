@@ -61,7 +61,7 @@ function Login() {
         setLoading(true);
         setErrors({});
 
-        const apiBase = import.meta.env.VITE_API_URL || 'https://sia-2.onrender.com';
+        const apiBase = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 90000);
 
